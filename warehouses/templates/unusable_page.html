@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Depolar /</span>Pert Depo</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4">
+            <li class="nav-item me-2">
+            </li>
+            <li class="nav-item me-2">
+                <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modalToggle">
+                    <i class="bx bx-add-to-queue me-1"></i> Ekle
+                </button>
+            </li>
+            
+        </ul>
+        <div class="card">
+            <div class="table-responsive text-nowrap">
+                <div class="container">
+                    <table class="table table-striped mt32 customers-list">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Kuyu No</th>
+                                <th>Motor</th>
+                                <th>Pompa</th>
+                                <th>Tarih</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            {% for item in unusable %}
+                                <tr>
+                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>{{ item.well_number }}</td>
+                                    <td>{{ item.engine }}</td>
+                                    <td>{{ item.pump }}</td>
+                                    <td>{{ item.created_at }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+

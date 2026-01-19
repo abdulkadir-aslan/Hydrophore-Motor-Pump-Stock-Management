@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content%}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Hidrofor /</span>Yeni Hidrofor Ekle</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link "  href="{% url 'pump_type' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Pompa Tipi</a>
+            </li>
+            <li class="nav-item me-2">
+            <a class="nav-link "  href="{% url 'new_power' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Güç</a>
+            </li>
+            <li class="nav-item me-2">
+              <a class="nav-link "  href="{% url 'district_field_personnel' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Personel</a>
+            </li>
+        </ul> 
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Yeni Hidrofor Ekle</h5>
+            </div>
+            <div class="card-body">
+              <form id="formAuthentication"  class="mb-3" method="POST">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="mb-3 col-md-6">
+                        {{ form.serial_number.label_tag }}
+                        {{ form.serial_number}}
+                      </div>
+                    <div class="mb-3 col-md-6">
+                        {{ form.engine_power.label_tag }}
+                        {{form.engine_power}}
+                    </div>
+                </div>
+                <div class="row">
+                  <div class="mb-3 col-md-6">
+                    {{ form.engine_brand.label_tag }}
+                    {{form.engine_brand}}
+                  </div>
+                  <div class="mb-3 col-md-6" >
+                    {{ form.pump_type.label_tag }}
+                    {{form.pump_type}}
+                    </div>
+                </div>
+                <div class="row">
+                  <div class="mb-3 col-md-6" >
+                    {{ form.district.label_tag }}
+                    {{form.district}}
+                  </div>
+                  <div class="mb-3 col-md-6" >
+                    {{ form.neighborhood.label_tag }}
+                    {{form.neighborhood}}
+                  </div>
+                </div>
+                <br>
+                <div class=" justify-content-end mb-3 ">
+                  <div class="col-sm-12">
+                      <a href="{% url 'hydrophore_homepage' %}" class="btn btn-secondary" >
+                          Vazgeç
+                      </a>
+                      <button type="submit" class="btn btn-primary" >
+                          Kaydet
+                      </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+      </div>
+    </div>
+</div>
+{% endblock content%}

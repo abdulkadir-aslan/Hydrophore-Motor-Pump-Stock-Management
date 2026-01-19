@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Depolar /</span> Kuyu Deposu</h4>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title">Envanter Ekle</h5>
+      </div>
+      <div class="card-body">
+        <div class="container">
+          <!-- Form Başlangıcı -->
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}  <!-- CSRF koruması -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="well_number" class="form-label">Kuyu Numarası</label>
+                {{ form.well_number }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="district" class="form-label">İlçe</label>
+                {{ form.district }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="address" class="form-label">Adres</label>
+                {{ form.address }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="disassembly_depth" class="form-label">Demontaj Derinliği</label>
+                {{ form.disassembly_depth }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="mounting_depth" class="form-label">Montaj Derinliği</label>
+                {{ form.mounting_depth }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="tank_info" class="form-label">Depo Bilgisi</label>
+                {{ form.tank_info }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="pipe_type" class="form-label">Boru Tipi</label>
+                {{ form.pipe_type }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="cable" class="form-label">Kablo</label>
+                {{ form.cable }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="engine" class="form-label">Motor</label>
+                {{ form.engine }}
+                {% if request.resolver_match.url_name in 'inventory_edit' %}
+                  <input type="hidden" name="engine" value="{{ form.engine.value }}">
+                {% endif %}
+                <div id="defaultFormControlHelp" class="form-text">
+                    İstediğiniz değerde motor değeri listede görünmüyorsa <a href="{% url 'seconhand' %}">2.El Depo</a>  sekmesinden ekleyebilirsiniz.
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="pump" class="form-label">Pompa</label>
+                {{ form.pump }}
+                {% if request.resolver_match.url_name in 'inventory_edit' %}
+                  <input type="hidden" name="pump" value="{{ form.pump.value }}">
+                {% endif %}
+                <div id="defaultFormControlHelp" class="form-text">
+                    İstediğiniz değerde pompa değeri listede görünmüyorsa <a href="{% url 'seconhand' %}">2.El Depo</a>  sekmesinden ekleyebilirsiniz.
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="flow" class="form-label">Debi</label>
+                {{ form.flow }}
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="comment" class="form-label">Açıklama</label>
+                {{ form.comment }}
+              </div>
+            </div>
+            <div class="text-end mt-3">
+              <a href="{% url 'inventory' %}" class="btn btn-secondary">
+                Vazgeç
+              </a>
+              <button type="submit" class="btn btn-primary" >
+                {% if request.resolver_match.url_name in 'add_inventory' %}
+                  Kaydet 
+                {% else %}
+                  Düzenle
+                {% endif %}
+              </button>
+            </div>
+          </form>
+          <!-- Form Bitişi -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function () {
+    $('select.select2').select2({
+        width: '100%',
+        placeholder: 'Seçiniz...',
+        allowClear: true
+    });
+});
+
+</script>
+{% endblock content %}

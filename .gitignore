@@ -1,0 +1,29 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+
+# Editors
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Environments
+.env
+env/
+.venv/
+
+# Media & upload
+media/
+veri_yukleme/
+
+# Packaging
+*.egg-info/
+build/
+dist/

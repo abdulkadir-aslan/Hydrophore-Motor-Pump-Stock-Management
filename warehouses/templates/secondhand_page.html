@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Depoalar /</span>2. El Depo</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+            <li class="nav-item me-2">
+                <button type="button" class="btn " data-bs-toggle="modal" data-bs-target="#modalEngine">
+                    <i class="bx bx-add-to-queue me-1"></i>Motor Ekle
+                </button>
+            </li>
+            <li class="nav-item me-2">
+                <button type="button" class="btn " data-bs-toggle="modal" data-bs-target="#modalPump">
+                    <i class="bx bx-add-to-queue me-1"></i>Pompa Ekle
+                </button>
+            </li>
+            <li class="nav-item me-2">
+                <!-- Yeni Depo No Ekle butonunu ekliyoruz -->
+                <button type="button" class="btn" id="add-new-depot" data-id="123">
+                    <i class="bx bx-add-to-queue me-1"></i> Yeni Depo No Ekle
+                </button>
+            </li>
+            <script>
+                document.getElementById('add-new-depot').addEventListener('click', function() {
+                    // Kullanıcıdan onay iste
+                    const userConfirmed = confirm("Yeni depo numarası eklemek istediğinizden emin misiniz?");
+                    
+                    if (userConfirmed) {
+                        // Onay verildiyse formu gönder
+                        const depotId = this.getAttribute('data-id'); // Butondan alınan id
+                        document.getElementById('depot-id').value = depotId; // Formun hidden alanına id'yi yerleştir
+                        
+                        // Formu gönder
+                        document.getElementById('seconhand-form').submit();
+                    } else {
+                        // Kullanıcı işlemi iptal etti
+                        alert("İşlem iptal edildi.");
+                    }
+                });
+            </script>
+        </ul> 
+        <!-- Motor Ekle Modalı -->
+        <div class="modal fade" id="modalEngine" tabindex="-1" aria-labelledby="modalEngineLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalEngineLabel">Motor Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Motor Ekle Formu -->
+                        <form method="POST">
+                            {% csrf_token %}
+                            <p>
+                                <label >Sıra seç:</label>
+                                <select class="form-select select2" name="secondhand_row" required>
+                                <option value="">-----</option>
+                                {% for item in null_list %}
+                                    {% if not item.engine  %}
+                                    <option value="{{ item.id }}">{{ item }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                </select>
+                            </p>
+                            {{ engine_form.as_p }}
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Pompa Ekle Modalı -->
+        <div class="modal fade" id="modalPump" tabindex="-1" aria-labelledby="modalPumpLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalPumpLabel">Pompa Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Pompa Ekle Formu -->
+                        <form method="POST">
+                            {% csrf_token %}
+                            <p>
+                                <label >Sıra seç:</label>
+                                <select class="form-select select2" name="secondhand_row" required>
+                                <option value="">-----</option>
+                                {% for item in null_list %}
+                                    {% if not item.pump  %}
+                                    <option value="{{ item.id }}">{{ item }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                </select>
+                            </p>
+                            {{ pump_form.as_p }}
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--=== Filtreleme === -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <div class="col-md-3">
+                        {{ filter.form.pump.label_tag }}
+                        {{ filter.form.pump }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.engine.label_tag }}
+                        {{ filter.form.engine }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.row_identifier.label_tag }}
+                        {{ filter.form.row_identifier }}
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="table-responsive text-nowrap">
+                <div class="container">
+                    <table class="table table-striped mt32 customers-list">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>No</th>
+                            <th>Motor</th>
+                            <th>Pompa</th>
+                            <th>Tarih</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        {% for item in items %}
+                            <tr>
+                                <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
+                                <td>{{item.row_identifier}}</td>
+                                <td>{{item.engine}}</td>
+                                <td>{{item.pump}}</td>
+                                <td>{{item.created_at}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example">
+                <hr>
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="container-fluid">
+                            <a class="navbar-brand mb-0 h1">
+                                {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <ul class="pagination justify-content-end px-4">
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page=1">
+                                        İlk
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                        ← Önceki
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_number in items.paginator.page_range %}
+                                {% if page_number == items.number %}
+                                    <li class="page-item active">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number > items.number|add:-3 and page_number < items.number|add:3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number == items.paginator.ELLIPSIS %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                        Sonraki →
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.paginator.num_pages }}">
+                                        Son
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+$(document).ready(function () {
+
+    function initSelect2(context = document) {
+        $(context).find('select.select2').each(function () {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2({
+                    width: '100%',
+                    placeholder: 'Seçiniz...',
+                    allowClear: true,
+                    dropdownParent: $(this).closest('.modal').length
+                        ? $(this).closest('.modal')
+                        : $('body')
+                });
+            }
+        });
+    }
+
+    initSelect2();
+
+    $('.modal').on('shown.bs.modal', function () {
+        initSelect2(this);
+    });
+
+});
+</script>
+
+{% endblock %}

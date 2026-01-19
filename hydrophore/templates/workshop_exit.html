@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>Atölye Çıkış İş Emirleri</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link active"  href="{% url 'workshop_exit' %}"><i class="bx bx-add-to-queue me-1"></i> Aktif İş Emirleri </a>
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link "  href="{% url 'all_workshop_exit' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan İş Emirleri </a>
+            </li>
+        </ul>
+        <!--=== Filtreleme === -->
+        
+        <div class="card">
+            <div class="table-responsive text-nowrap">
+                <div class="container">
+                    <table class="table table-striped mt32 customers-list">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>#</th>
+                                <th>Hidofor No </th>
+                                <th>İlçe </th>
+                                <th>Mahalle</th>
+                                <th>Getiren Personel</th>
+                                <th>A. Giden Fiş No</th>
+                                <th>Fiş Tarihi</th>
+                                <th>Oluşturulma Tarihi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            {% for item in items %}
+                                <tr>
+                                    <td>
+                                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'workshop_exit_edit' item.id  %}">
+                                            <i class='tf-icons bx bx-edit'></i>
+                                        </button>
+                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'workshop_exit_delete' item.id %}">
+                                                <i class='tf-icons bx bx-trash'></i>
+                                        </button>
+                                    </td>
+                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>{{ item.hydrophore}}</td>
+                                    <td>{{ item.outbound_work_order.get_district_display }}</td>
+                                    <td>{{ item.outbound_work_order.neighborhood }}</td>
+                                    <td>{{ item.outbound_work_order.district_personnel }}</td>
+                                    <td>{{ item.workshop_dispatch_slip_number }}</td>
+                                    <td>{{item.workshop_dispatch_date}}</td>
+                                    <td>{{item.created_at}}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example">
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="container-fluid">
+                                    <a class="navbar-brand mb-0 h1">
+                                        {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <ul class="pagination justify-content-end px-4">
+                                    {% if items.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                                ← Önceki
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_number in items.paginator.page_range %}
+                                        {% if page_number == items.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% elif page_number == items.paginator.ELLIPSIS %}
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if items.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                                Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+      document.querySelectorAll('.delete').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
+ document.querySelectorAll('.edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const editUrl = button.getAttribute('data-href');
+            window.location.href = editUrl; 
+        });
+    });
+
+</script>
+{% endblock content %}
+
+

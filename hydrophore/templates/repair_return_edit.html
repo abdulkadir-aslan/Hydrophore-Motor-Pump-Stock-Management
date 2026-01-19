@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tag_library %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">İş Emirleri /</span> Atölyeden Çıkış İş Emri
+</h4>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label >Hidrofor No:</label>
+                            <input type="text" value= "{{repair.hydrophore}}" class="form-control"  readonly >
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label >Atölye Çıkış No</label>
+                            <input type="text" value= "{{repair.workshop_exit}}" class="form-control"  readonly >
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.repair_return_slip_number.label_tag }}
+                            {{ form.repair_return_slip_number }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.repair_return_date.label_tag }}
+                            {{ form.repair_return_date }}
+                        </div>
+                    </div>
+                    
+                    <!-- BUTONLAR -->
+                    <div class="d-flex justify-content-between mt-3">
+                        <div>
+                            <button type="submit" name="action" value="pert" class="btn btn-danger pert">
+                                Pert Depoya Gönder
+                            </button>
+                        </div>
+                        <div>
+                            <button type="submit" name="action" value="workshop" class="btn btn-primary ">
+                                Atölyeye Gönder
+                            </button>
+                            <a href="{% url 'repair_return' %}" class="btn btn-secondary">
+                                Vazgeç
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.pert').forEach(button => {
+    button.addEventListener('click', function (e) {
+        // Formu yakala
+        const form = button.closest('form');
+
+        // Kontrol edilecek alanlar
+        const slipNumber = form.querySelector('[name="repair_return_slip_number"]');
+        const returnDate = form.querySelector('[name="repair_return_date"]');
+
+        // Alanlar boş mu?
+        if (!slipNumber.value.trim() || !returnDate.value.trim()) {
+            e.preventDefault(); // Form submit olmasın
+            alert("Lütfen Tamirden Gelen Fiş Numarası ve  Tarihini giriniz.");
+            return;
+        }
+
+        // Alanlar doluysa onay sor
+        const confirmResult = confirm(
+            "Hidrofor Pert Depoya Gönderilecek. Onaylıyor musunuz?"
+        );
+
+        if (!confirmResult) {
+            e.preventDefault(); // İptal edilirse submit olmasın
+        }
+        // Onaylanırsa form normal şekilde submit olur
+    });
+});
+</script>
+
+{% endblock %}

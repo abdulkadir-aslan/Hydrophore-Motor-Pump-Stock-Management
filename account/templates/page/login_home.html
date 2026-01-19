@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block content%}
+        
+<div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Kullanıcılar /</span> Hesaplar</h4>
+
+        <div class="row">
+            <div class="col-md-12">
+            <ul class="nav nav-pills flex-column flex-md-row mb-3">
+                <li class="nav-item">
+                <a class="nav-link active" href="javascript:void(0);"><i class="bx bx-user me-1"></i> Hesaplar</a>
+                </li>
+                <li class="nav-item">
+                <a class="nav-link" href="{% url 'register' %}"><i class="bx bx-bell me-1"></i> Yeni Hesap</a>
+                </li>
+            </ul>
+          <div class="card mb-4">
+            <div class="card">
+                <div class="table-responsive text-nowrap">
+                  <table class="table table-hover" >
+                    <thead>
+                      <tr>
+                        <th>Adı Soyadı</th>
+                        <th>Kullanıcı Adı</th>
+                        <th>Yetki</th>
+                        <th>Durum</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        {% for item in users %}
+                            <tr>
+                                <td><i class="fab fa-angular fa-lg text-danger me-3 "></i> <strong>{{item.get_full_name}}</strong></td>
+                                <td>{{item.username}}</td>
+                                <td>{{item.get_authorization_display}} </td>
+                                <td>
+                                  {% if item.status == 'active' %}
+                                    <span class="badge bg-label-primary me-1">Aktif</span>
+                                  {% else %}
+                                  <span class="badge bg-label-warning me-1">Pasif</span>
+                                  {% endif %}
+                                </td>
+                                <td>
+                                <div class="dropdown">
+                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="{% url 'register_edit' item.id %}"><i class="bx bx-edit-alt me-1"></i> Düzenle</a>
+                                    <a class="dropdown-item" href="{% url 'update_password' item.username %}"><i class="bx bx-key me-1"></i> Şifreyi değiştir</a>
+                                    <a class="dropdown-item delete" href="#delete" data-id='{{ item.id }}' ><i class="bx bx-trash me-1"></i> Sil</a>
+                                  </div>  
+                                </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            <!-- /Account -->
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+<!-- delete -->
+<div class="modal fade" id="delete" >
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCenterTitle">Kullanıcıyı Sil</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" method="POST" action="{% url 'user_delete' %}">
+          <input type="hidden" id="userid"  name="id">
+          {% csrf_token %}
+          <div class="text-center">
+            <p>Dilerseniz kullanıcıyı düzenle sekmesinden <b>'PASİF'</b> durumuna getirebilirsiniz.</p>
+            <p>Kullanıcı kalıcı olarak silinecektir.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          Kapat
+        </button>
+        <button type="submit" class="btn btn-danger">Sil</button>
+      </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+$(function() {
+
+  $(document).on('click', '.delete', function(e) {
+      e.preventDefault();
+      $('#delete').modal('show');
+      var id = $(this).data('id');
+      document.getElementById("userid").value = id;
+      console.log(id);
+  });
+});
+</script>
+{% endblock %}

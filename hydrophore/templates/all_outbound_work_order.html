@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>Çıkış İş Emirleri</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link "  href="{% url 'outbound_work_order' %}"><i class="bx bx-add-to-queue me-1"></i> Aktif İş Emirleri </a>
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link active"  href="{% url 'all_outbound_work_order' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan İş Emirleri </a>
+            </li>
+        </ul>
+    
+        <div class="card">
+            <div class="table-responsive text-nowrap">
+                <div class="container">
+                    <table class="table table-striped mt32 customers-list">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>M. Hidrofor No </th>
+                                <th>İlçe</th>
+                                <th>Mahalle</th>
+                                <th>Alan Personel</th>
+                                <th>Çıkış Fiş No</th>
+                                <th>Çıkış Tarihi</th>
+                                <th>D. Hidrofor No</th>
+                                <th>D. Hidrofor Tarihi</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            {% for item in items %}
+                                <tr>
+                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>{{ item.mounted_hydrophore }}</td>
+                                    <td>{{ item.get_district_display }}</td>
+                                    <td>{{ item.neighborhood }}</td>
+                                    <td>{{ item.district_personnel }}</td>
+                                    <td>{{ item.dispatch_slip_number }}</td>
+                                    <td>{{item.dispatch_date}}</td>
+                                    <td>{{item.disassembled_hydrophore}}</td>
+                                    <td>{{item.disassembled_date}}</td>
+                                    <td>{{item.comment}}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example">
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="container-fluid">
+                                    <a class="navbar-brand mb-0 h1">
+                                        {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <ul class="pagination justify-content-end px-4">
+                                    {% if items.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                                ← Önceki
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_number in items.paginator.page_range %}
+                                        {% if page_number == items.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% elif page_number == items.paginator.ELLIPSIS %}
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if items.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                                Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load tag_library %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>Aktif İş Emirleri</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link "  href="{% url 'all_order_page' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan İş Emirleri </a>
+            </li>
+        </ul>
+        <div class="card mb-4">
+            <h5 class="card-header">Yeni iş Emri Oluştur</h5>
+            <div class="card-body" >
+                <form  method="POST">
+                    {% csrf_token %}
+                    <div class="row gx-3 gy-2 align-items-center" >
+                        <div class="col-md-3"  >
+                            <label for="defaultFormControlInput" class="form-label">Kuyu Numarası</label>
+                            <input type="text"  class="form-control" name="well_number" placeholder="kuyu numarası "  autofocus="" required>
+                        </div>
+                        <div class="col-md-3" >
+                            <label class="form-label" for="showToastPlacement">&nbsp;</label>
+                            <button type="submit"  class="btn btn-primary d-block ">Oluştur</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="defaultFormControlHelp" class="form-text">
+                    İş Emri oluşturmak istediğiniz tesis için KUYU numarasını giriniz.
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="table-responsive text-nowrap">
+                <div class="container">
+                    <table class="table table-striped mt32 customers-list">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>#</th>
+                                <th>Ç. Fişi </th>
+                                <th>Ç. Fişi Trh.</th>
+                                <th>Kuyu No</th>
+                                <th>İlçe</th>
+                                <th>Mahalle</th>
+                                <th>M. Motor</th>
+                                <th>M. Pompa</th>
+                                <th>D. Motor</th>
+                                <th>D. Pompa</th>
+                                <th>G. Fişi</th>
+                                <th>G. Fişi Trh.</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            {% for item in order %}
+                                <tr>
+                                    <td>
+                                        <a class='btn btn-icon btn-outline-success  btn-flat' href="{% url 'order_edit' item.id  %}">
+                                            <i class='tf-icons bx bx-edit'></i>
+                                        </a>
+                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'order_delete' item.id %}">
+                                                <i class='tf-icons bx bx-trash'></i>
+                                        </button>
+                                    </td>
+                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>{{ item.outlet_plug }}</td>
+                                    <td>
+                                        <span class="{% if item.outlet_plug_date|day_diff >= 2 %} badge bg-label-danger me-1 {% endif %}">
+                                            {{ item.outlet_plug_date }}
+                                        </span>
+                                    </td>
+                                    <td>{{ item.inventory.well_number }}</td>
+                                    <td>{{ item.inventory.district|upper }}</td>
+                                    <td>{{item.inventory.address}}</td>
+                                    <td>{{item.mounted_engine}}</td>
+                                    <td>{{item.mounted_pump}}</td>
+                                    <td>{{item.disassembled_engine}}</td>
+                                    <td>{{item.disassembled_pump}}</td>
+                                    <td>{{item.entrance_plug}}</td>
+                                    <td>{{item.entrance_plug_date}}</td>
+                                    <td>{{item.comment}}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.delete').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
+</script>
+{% endblock content %}
+
+

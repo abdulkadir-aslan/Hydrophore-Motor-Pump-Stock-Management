@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">İş Emirleri /</span> Yeni İş Emri
+</h4>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-body">
+
+                <!-- Kuyu Bilgisi -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Kuyu Bilgisi</label>
+                        <input type="text"
+                            class="form-control"
+                            value="{{ inventory }} - {{ inventory.district|upper }} - {{ inventory.address }}"
+                            disabled>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                Kuyuda yapılan son iş tarihi <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" value="{{end_order.outlet_plug_date}}" readonly>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- İşlem Türü -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            İşlem Türü <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select"
+                                id="operation_type"
+                                name="operation_type"
+                                required>
+                            <option value="">Seçiniz</option>
+                            <option value="engine">Motor</option>
+                            <option value="pump">Pompa</option>
+                            <option value="engine_pump">Motor + Pompa</option>
+                        </select>
+                    </div>
+                    <!-- Çıkış / Giriş Fişi -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.outlet_plug.label_tag }}
+                            {{ form.outlet_plug }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.outlet_plug_date.label_tag }} 
+                            {{ form.outlet_plug_date }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.entrance_plug.label_tag }}
+                            {{ form.entrance_plug }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.entrance_plug_date.label_tag }}
+                            {{ form.entrance_plug_date }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                    <!-- MOTOR -->
+                        <div class="col-md-6 mb-3" id="engine_section"   style="display:none;">
+                            <label class="form-label">Montaj Edilen Motor</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control"
+                                       id="mounted_engine_text"
+                                       placeholder="Motor seçiniz"
+                                       readonly>
+                                <button type="button"
+                                        class="btn btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#smallModal"
+                                        onclick="openModal('engine')">
+                                    Ekle
+                                </button>
+                            </div>
+                            <input type="hidden"
+                                   name="mounted_engine"
+                                   id="mounted_engine_id">
+                            <div id="defaultFormControlHelp" class="form-text">
+                                Mevcut Motor Bilgisi : {{inventory.engine}}
+                            </div>
+                        </div>
+
+                    <!-- POMPA -->
+                        <div class="col-md-6 mb-3"  id="pump_section" style="display:none;">
+                            <label class="form-label">Montaj Edilen Pompa</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control"
+                                       id="mounted_pump_text"
+                                       placeholder="Pompa seçiniz"
+                                       readonly>
+                                <button type="button"
+                                        class="btn btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#smallModal"
+                                        onclick="openModal('pump')">
+                                    Ekle
+                                </button>
+                            </div>
+                            <input type="hidden"
+                                   name="mounted_pump"
+                                   id="mounted_pump_id">
+                            <input type="hidden"
+                                name="mounted_pump_display"
+                                id="mounted_pump_display">
+                            <div id="defaultFormControlHelp" class="form-text">
+                                Mevcut Pompa Bilgisi : {{inventory.pump}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.comment.label_tag }}
+                            {{ form.comment }}
+                        </div>
+                    </div>
+                    <!-- MODAL -->
+                    <div class="modal fade" id="smallModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalTitle"></h5>
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <label class="form-label" id="modalLabel"></label>
+                                    <select id="modalName" class="form-select">
+                                        <option value="">Seçiniz</option>
+                                    </select>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button"
+                                            class="btn btn-secondary"
+                                            data-bs-dismiss="modal">
+                                        Kapat
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            onclick="saveModalData()">
+                                        Kaydet
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BUTONLAR -->
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            İş Emri Oluştur
+                        </button>
+                        <a href="{% url 'order_page' %}" class="btn btn-secondary">
+                            Vazgeç
+                        </a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+let currentType = null;
+
+const engineSection = document.getElementById("engine_section");
+const pumpSection = document.getElementById("pump_section");
+const engineInput = document.getElementById("mounted_engine_id");
+const pumpInput = document.getElementById("mounted_pump_id");
+const operationSelect = document.getElementById("operation_type");
+
+/* İşlem Türü Değişince */
+operationSelect.addEventListener("change", function () {
+
+    engineSection.style.display = "none";
+    pumpSection.style.display = "none";
+
+    engineInput.required = false;
+    pumpInput.required = false;
+
+    engineInput.value = "";
+    pumpInput.value = "";
+    document.getElementById("mounted_engine_text").value = "";
+    document.getElementById("mounted_pump_text").value = "";
+
+    if (this.value === "engine") {
+        engineSection.style.display = "block";
+        engineInput.required = true;
+    }
+
+    if (this.value === "pump") {
+        pumpSection.style.display = "block";
+        pumpInput.required = true;
+    }
+
+    if (this.value === "engine_pump") {
+        engineSection.style.display = "block";
+        pumpSection.style.display = "block";
+        engineInput.required = true;
+        pumpInput.required = true;
+    }
+});
+
+/* Backend verileri */
+const secondhandengine = [
+    {% for item in seconhand %}
+        {% if item.engine %}
+            { value: "{{ item.engine.id }}", text: "{{ item.row_identifier }} - {{ item.engine }}" },
+        {% endif %}
+    {% endfor %}
+];
+
+const secondhandpump = [
+    {% for item in seconhand %}
+        {% if item.pump %}
+            { value: "{{ item.pump.id }}", text: "{{ item.row_identifier }} - {{ item.pump }}" },
+        {% endif %}
+    {% endfor %}
+];
+
+const newEngines = [
+    {% for item in new_engine %}
+        { value: "{{ item.id }}", text: "{{ item }}" },
+    {% endfor %}
+];
+
+const newPumps = [
+    {% for item in new_pump %}
+        { value: "{{ item.pump.id }}", text: "{{ item.pump }}" },
+    {% endfor %}
+];
+
+function openModal(type) {
+    currentType = type;
+    const modalSelect = document.getElementById("modalName");
+
+    // Eğer daha önce select2 başlatıldıysa yok et
+    if ($(modalSelect).hasClass("select2-hidden-accessible")) {
+        $(modalSelect).select2('destroy');
+    }
+
+    modalSelect.innerHTML = '<option value="">Seçiniz</option>';
+
+    let items = [];
+    if (type === "engine") {
+        document.getElementById("modalTitle").innerText = "Motor Seç";
+        items = [...secondhandengine, ...newEngines];
+    } else {
+        document.getElementById("modalTitle").innerText = "Pompa Seç";
+        items = [...secondhandpump, ...newPumps];
+    }
+
+    items.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.value;
+        opt.text = item.text;
+        modalSelect.appendChild(opt);
+    });
+
+    // Select2 yeniden başlat
+    $(modalSelect).select2({
+        dropdownParent: $('#smallModal'), // modal içinde düzgün çalışması için
+        width: '100%',
+        placeholder: "Arama yapınız...",
+        allowClear: true,   
+    });
+}
+
+function saveModalData() {
+    const select = document.getElementById("modalName");
+    if (!select.value) {
+        alert("Lütfen seçim yapınız");
+        return;
+    }
+
+    if (currentType === "engine") {
+        document.getElementById("mounted_engine_text").value =
+            select.options[select.selectedIndex].text;
+        engineInput.value = select.value;
+    } else {
+        document.getElementById("mounted_pump_text").value =
+            select.options[select.selectedIndex].text;
+        document.getElementById("mounted_pump_display").value = select.options[select.selectedIndex].text;
+        pumpInput.value = select.value;
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById("smallModal")).hide();
+}
+
+/* Submit Kontrolü */
+document.querySelector("form").addEventListener("submit", function (e) {
+
+    const entrancePlug = document.getElementById("id_entrance_plug");
+    const entrancePlugDate = document.getElementById("id_entrance_plug_date");
+
+    if (entrancePlug.value && !entrancePlugDate.value) {
+        e.preventDefault();
+        alert("Lütfen giriş fişi tarihi giriniz, çünkü giriş fişi seçili.");
+        return;
+    }
+
+    if (!operationSelect.value) {
+        e.preventDefault();
+        alert("Lütfen işlem türü seçiniz.");
+        return;
+    }
+
+    if (operationSelect.value === "engine" && !engineInput.value) {
+        e.preventDefault();
+        alert("Lütfen motor seçiniz.");
+        return;
+    }
+
+    if (operationSelect.value === "pump" && !pumpInput.value) {
+        e.preventDefault();
+        alert("Lütfen pompa seçiniz.");
+        return;
+    }
+
+    if (operationSelect.value === "engine_pump" &&
+        (!engineInput.value || !pumpInput.value)) {
+        e.preventDefault();
+        alert("Lütfen motor ve pompa seçiniz.");
+    }
+});
+</script>
+
+{% endblock %}

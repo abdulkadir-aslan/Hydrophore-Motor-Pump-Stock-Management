@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content%}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>İş Emri Düzenle</h4>
+<div class="row">
+    <div class="col-md-12">
+          <div class="card mb-4">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Kuyu Bilgisi</label>
+                    <input type="text"
+                           class="form-control"
+                           value="{{ order.inventory }} - {{ order.inventory.district|upper }} - {{ order.inventory.address }}"
+                           disabled>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.outlet_plug.label_tag }}
+                            {{ form.outlet_plug }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.outlet_plug_date.label_tag }}
+                            {{ form.outlet_plug_date }}
+                        </div>
+                    </div>
+                     <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.entrance_plug.label_tag }}
+                            {{ form.entrance_plug }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.entrance_plug_date.label_tag }}
+                            {{ form.entrance_plug_date }}
+                        </div>
+                    </div>
+                    <div class="row">
+                      {% if order.mounted_engine %}
+                        <div class="col-md-6 mb-3">
+                          <label class="form-label fw-bold">Motor Bilgisi</label>
+                          <input type="text"
+                                class="form-control"
+                                value="{{ order.mounted_engine }}"
+                                disabled>
+                        </div>
+                      {% endif %}
+
+                      {% if order.mounted_pump %}
+                        <div class="col-md-6 mb-3">
+                          <label class="form-label fw-bold">Pompa Bilgisi</label>
+                          <input type="text"
+                                class="form-control"
+                                value="{{ order.mounted_pump }}"
+                                disabled>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.comment.label_tag }}
+                            {{ form.comment }}
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            İş Emri Düzenle
+                        </button>
+                        <a href="{% url 'order_page' %}" class="btn btn-secondary">
+                            Vazgeç
+                        </a>
+                    </div>
+                </form>
+            </div>
+          </div>
+      </div>
+    </div>
+</div>
+{% endblock content%}

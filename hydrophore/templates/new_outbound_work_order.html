@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tag_library %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">İş Emirleri /</span> Çıkış İş Emri Ekle
+</h4>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-body">
+                <!-- Hidrofor -->
+                <div class=" mb-3">
+                    <label class="form-label fw-bold">Hidrofor</label>
+                    <input type="text"
+                        class="form-control"
+                        value="{{ hydrophore }}"
+                        disabled>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Çıkış / Giriş Fişi -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.dispatch_slip_number.label_tag }}
+                            {{ form.dispatch_slip_number }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.dispatch_date.label_tag }}
+                            {{ form.dispatch_date }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.district.label_tag }}
+                            {{ form.district }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.neighborhood.label_tag }}
+                            {{ form.neighborhood }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="disassembled_hydrophore_input" class="form-label fw-bold">
+                                Sökülen Hidrofor
+                                <span id="disassembledBadge"
+                                    class="badge bg-label-success ms-2 d-none">
+                                    Seçildi
+                                </span>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" id="disassembled_hydrophore_input" {% if form.disassembled_hydrophore.value %} value= "{{form.disassembled_hydrophore.value|hydrophore_value}}" {% endif %}  class="form-control" placeholder="Hidrofor Seri Numarası Giriniz">
+                                <input type="hidden" value="{{form.disassembled_hydrophore.value|default_if_none:''}}" name="disassembled_hydrophore" id="disassembled_hydrophore_id">
+                                <button type="button" class="btn btn-primary" id="searchHydrophoreBtn">Ara</button>
+                            </div>
+                        </div>
+
+                        <!-- MODAL -->
+                        <div class="modal fade" id="hydrophoreModal" tabindex="-1">
+                            <div class="modal-dialog modal-sm">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Hidrofor Ara </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="modalBodyContent">
+                                            <!-- AJAX ile hidroforlar buraya gelecek -->
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const input = document.getElementById("disassembled_hydrophore_input");
+                            const hiddenInput = document.getElementById("disassembled_hydrophore_id");
+                            const badge = document.getElementById("disassembledBadge");
+                            const btn = document.getElementById("searchHydrophoreBtn");
+                            const modal = new bootstrap.Modal(document.getElementById('hydrophoreModal'));
+                            const modalBody = document.getElementById("modalBodyContent");
+
+                            function syncBadge() {
+                                if (hiddenInput.value && hiddenInput.value !== "") {
+                                    badge.classList.remove("d-none");
+                                } else {
+                                    badge.classList.add("d-none");
+                                }
+                            }
+
+                            // Sayfa ilk açıldığında (POST sonrası dahil)
+                            syncBadge();
+
+                            function searchHydrophore() {
+                                const serial = input.value.trim();
+                                if (!serial) {
+                                    hiddenInput.value = "";
+                                    syncBadge();
+                                    alert("Lütfen bir seri numarası girin!");
+                                    return;
+                                }
+
+                                fetch(`/ajax/search_hydrophore/?serial_number=${serial}`)
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.hydrophore) {
+                                            const h = data.hydrophore;
+                                            modalBody.innerHTML = `
+                                                <p><strong>Seri No:</strong> ${h.serial_number}</p>
+                                                <p><strong>Motor Gücü:</strong> ${h.engine_power} KW</p>
+                                                <p><strong>Pompa Tipi:</strong> ${h.pump_type}</p>
+                                                <p><strong>Lokasyon:</strong> ${h.location}</p>
+                                                <p><strong>İlçe:</strong> ${h.district}</p>
+                                                <p><strong>Mahalle:</strong> ${h.neighborhood}</p>
+                                                <button type="button" class="btn btn-success" id="selectHydrophoreBtn">
+                                                    Seç
+                                                </button>
+                                            `;
+                                            modal.show();
+
+                                            document.getElementById("selectHydrophoreBtn").onclick = function () {
+                                                input.value = h.serial_number;
+                                                hiddenInput.value = h.id;
+                                                syncBadge();
+                                                modal.hide();
+                                            };
+                                        } else {
+                                            hiddenInput.value = "";
+                                            syncBadge();
+                                            modalBody.innerHTML = `<div class="text-danger">${data.error}</div>`;
+                                            modal.show();
+                                        }
+                                    })
+                                    .catch(() => {
+                                        hiddenInput.value = "";
+                                        syncBadge();
+                                        modalBody.innerHTML = `<div class="text-danger">Hidrofor bulunamadı!</div>`;
+                                        modal.show();
+                                    });
+                            }
+
+                            // Butona tıklayınca arama yap
+                            btn.addEventListener("click", searchHydrophore);
+
+                            // Enter tuşuna basınca arama yap ve form submiti engelle
+                            input.addEventListener("keydown", function(event) {
+                                if (event.key === "Enter") {
+                                    event.preventDefault();
+                                    searchHydrophore();
+                                }
+                            });
+                        });
+                        </script>
+                        <div class="col-md-6 mb-3">
+                            {{ form.disassembled_date.label_tag }}
+                            {{ form.disassembled_date }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.district_personnel.label_tag }}
+                            {{ form.district_personnel }}
+                            <div id="defaultFormControlHelp" class="form-text">
+                                İstediğiniz personel listede görünmüyorsa <a href="{% url 'district_field_personnel' %}">buradan</a>  ekleyebilirsiniz.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.comment.label_tag }}
+                            {{ form.comment }}
+                        </div>
+                    </div>
+                    <!-- MODAL -->
+                    <div class="modal fade" id="smallModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalTitle"></h5>
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <label class="form-label" id="modalLabel"></label>
+                                    <select id="modalName" class="form-select">
+                                        <option value="">Seçiniz</option>
+                                    </select>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button"
+                                            class="btn btn-secondary"
+                                            data-bs-dismiss="modal">
+                                        Kapat
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            onclick="saveModalData()">
+                                        Kaydet
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BUTONLAR -->
+                    <div class="d-flex justify-content-between mt-3">
+    
+                    <div>
+                        <button type="submit" name="action" value="close" class="btn btn-danger">
+                            İş Emrini Kapat
+                        </button>
+                    </div>
+
+                    <div>
+                        {% if form_edit %}
+                            <button type="submit" name="action" value="workshop" class="btn btn-primary">
+                                Düzenle
+                            </button>
+                        {% else %}
+                            <button type="submit" name="action" value="workshop" class="btn btn-primary">
+                                İş Emri Oluştur
+                            </button>
+                        {% endif %}
+
+                        <a href="{% url 'outbound_work_order' %}" class="btn btn-secondary ms-2">
+                            Vazgeç
+                        </a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const closeBtn = document.querySelector('button[name="action"][value="close"]');
+    const commentInput = document.getElementById("id_comment");
+
+    closeBtn.addEventListener("click", function (e) {
+        const comment = commentInput.value.trim();
+
+        if (!comment) {
+            e.preventDefault(); // form submit olmasın
+
+            alert(
+                "İş emrini kapatıyorsunuz.\n\n" +
+                "Lütfen iş emrini kapatma isteğiniz için bir açıklama giriniz."
+            );
+
+            commentInput.focus();
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    const districtSelect = document.getElementById("id_district");
+    const personnelSelect = document.getElementById("id_district_personnel");
+
+    districtSelect.addEventListener("change", function() {
+        const district = this.value;
+
+        // AJAX ile personelleri al
+        fetch(`/ajax/get_personnel/?district=${district}`)
+            .then(response => response.json())
+            .then(data => {
+                // Mevcut seçenekleri temizle
+                personnelSelect.innerHTML = '<option value="">Seçiniz</option>';
+
+                // Yeni seçenekleri ekle
+                data.personnel.forEach(person => {
+                    const opt = document.createElement("option");
+                    opt.value = person.id;
+                    opt.text = person.name;
+                    personnelSelect.appendChild(opt);
+                });
+
+                // Eğer Select2 kullanıyorsan güncelle
+                if ($(personnelSelect).hasClass("select2-hidden-accessible")) {
+                    $(personnelSelect).trigger('change.select2');
+                }
+            })
+            .catch(error => {
+                console.error("Personel yüklenirken hata oluştu:", error);
+            });
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Hidrofor /</span>İlçe Saha Elektrikçileri</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+
+            <li class="nav-item me-2">
+            <a class="nav-link "  href="{% url 'pump_type' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Pompa Tipi</a>
+            </li>
+            <li class="nav-item me-2">
+            <a class="nav-link "  href="{% url 'new_power' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Güç</a>
+            </li>
+            <li class="nav-item me-2">
+            <a class="nav-link active"  href="{% url 'district_field_personnel' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Personel</a>
+            </li>
+        </ul> 
+        <!--=== Filtreleme === -->
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#largeModal">
+                    Yeni Ekle
+                </button>
+            </div>
+            <div class="modal fade" id="largeModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Yeni Personel Ekle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form id="personnelForm" method="POST">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                <div class="row g-2">
+                                    <div class="col mb-0">
+                                        {{ form.full_name.label_tag }}
+                                        {{ form.full_name }}
+                                    </div>
+                                    <div class="col mb-0">
+                                        {{ form.phone_number.label_tag }}
+                                        {{ form.phone_number }}
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col mb-0">
+                                        {{ form.district.label_tag }}
+                                        {{ form.district }}
+                                    </div>
+                                    <div class="col mb-0">
+                                        {{ form.vehicle_plate.label_tag }}
+                                        {{ form.vehicle_plate }}
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="row g-2">
+                                    <div class="col mb-0">
+                                        {{ form.is_active.label_tag }}
+                                        {{ form.is_active }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                    Kapat
+                                </button>
+                                <button type="submit" class="btn btn-primary">Kaydet</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive text-nowrap">
+                <div class="container">
+                    <table class="table table-striped mt32 customers-list">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>#</th>
+                                <th>Adı Soyadı </th>
+                                <th>Telefon</th>
+                                <th>İlçe</th>
+                                <th>Plaka</th>
+                                <th>Durum</th>
+                                <th>Oluşturulma Tarihi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            {% for item in items %}
+                                <tr>
+                                    <td>
+                                        <a href="javascript:void(0);"
+                                            class="btn btn-icon btn-outline-success btn-flat open-edit-modal"
+                                            data-id="{{ item.id }}"
+                                            data-full_name="{{ item.full_name }}"
+                                            data-phone_number="{{ item.phone_number }}"
+                                            data-district="{{ item.district }}"
+                                            data-vehicle_plate="{{ item.vehicle_plate }}"
+                                            data-is_active="{{ item.is_active|yesno:'true,false' }}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#largeModal">
+                                                <i class="tf-icons bx bx-edit"></i>
+                                        </a>
+                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'district_field_personnel_delete' item.id %}">
+                                                <i class='tf-icons bx bx-trash'></i>
+                                        </button>
+                                    </td>
+                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>{{ item.full_name }}</td>
+                                    <td>{{ item.phone_number }}</td>
+                                    <td>{{ item.get_district_display }}</td>
+                                    <td>{{ item.vehicle_plate }}</td>
+                                    <td>{% if item.is_active %}
+                                        <span class="badge bg-label-success me-1">Aktif</span>
+                                        {% else %}
+                                        <span class="badge bg-label-danger me-1">Pasif</span>
+                                        {% endif %}
+                                        
+                                    </td>
+                                    <td>{{item.created_at}}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example">
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="container-fluid">
+                                    <a class="navbar-brand mb-0 h1">
+                                        {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <ul class="pagination justify-content-end px-4">
+                                    {% if items.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                                ← Önceki
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_number in items.paginator.page_range %}
+                                        {% if page_number == items.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% elif page_number == items.paginator.ELLIPSIS %}
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if items.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                                Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelectorAll('.delete').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
+  
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById('personnelForm');
+    const modal = document.getElementById('largeModal');
+
+    document.querySelectorAll('.open-edit-modal').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-id');
+
+            // Form action'ını dinamik olarak set et
+            form.action = `/district_field_personnel/${itemId}/`;  // URL yapınıza göre değiştir
+
+            // Modal başlığını değiştir
+            modal.querySelector('.modal-title').innerText = "Personel Düzenle";
+
+            // Form alanlarını doldur
+            form.querySelector('[name="full_name"]').value = this.getAttribute('data-full_name');
+            form.querySelector('[name="phone_number"]').value = this.getAttribute('data-phone_number');
+            form.querySelector('[name="district"]').value = this.getAttribute('data-district');
+            form.querySelector('[name="vehicle_plate"]').value = this.getAttribute('data-vehicle_plate');
+
+            const isActive = this.getAttribute('data-is_active') === 'true';
+            form.querySelector('[name="is_active"]').checked = isActive;
+        });
+    });
+
+    // "Yeni Ekle" butonunu temiz form için hazırla
+    document.querySelector('[data-bs-target="#largeModal"]').addEventListener('click', function() {
+        if (!this.classList.contains('open-edit-modal')) {
+            // Modal başlığını resetle
+            modal.querySelector('.modal-title').innerText = "Yeni Personel Ekle";
+
+            // Form action boş veya create URL'si
+            form.action = "{% url 'district_field_personnel' %}";
+
+            // Alanları temizle
+            form.querySelectorAll('input, select').forEach(input => {
+                if (input.type === 'checkbox') input.checked = false;
+                else input.value = '';
+            });
+        }
+    });
+});
+</script>
+
+{% endblock content %}
+
+

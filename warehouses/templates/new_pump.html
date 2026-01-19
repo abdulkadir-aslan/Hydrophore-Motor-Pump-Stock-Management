@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content%}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Envarter /</span>Yeni Pompa Ekle</h4>
+<div class="row">
+    <div class="col-md-12">
+      <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+        <li class="nav-item me-2">
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link active"  href="{% url 'add_pump' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Pompa</a>
+        </li>
+        <li class="nav-item me-2" >
+          <a class="nav-link "  href="{% url 'add_mark' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Marka</a>
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link "  href="{% url 'add_power' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Güç</a>
+        </li>
+    </ul>
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Yeni Pompa Ekle</h5>
+            </div>
+            <div class="card-body">
+              <form id="formAuthentication" class="mb-3" method="POST">
+                {% csrf_token %}
+                <div class="row">
+                <div class="mb-3 col-md-6">
+                    <label class="form-label" {% if form.pump_type.errors %} style="color:#ff3e1d ;" {% endif %} for="basic-default-company">Pompa Tipi</label>
+                    {{ form.pump_type}}
+                  </div>
+                <div class="mb-3 col-md-6">
+                    <label for="exampleFormControlSelect1" {% if form.pump_breed.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Pompa Cinsi</label>
+                    {{ form.pump_breed}}
+                  </div>
+                </div>
+                <div class="row">
+                <div class="mb-3 col-md-6">
+                    <label class="form-label" {% if form.number_stages.errors %} style="color:#ff3e1d ;" {% endif %} for="basic-default-company">Kademe Sayısı</label>
+                    {{ form.number_stages}}
+                </div>
+                <div class="mb-3 col-md-6">
+                    <label for="exampleFormControlSelect1" {% if form.pump_mark.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Pompa Markası</label>
+                    {{ form.pump_mark}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="mb-3 col-md-6" >
+                    
+                  </div>
+                  <div class="mb-3 col-md-6" >
+                  <label for="exampleFormControlTextarea1" {% if form.engine_mark.comment %} style="color:#ff3e1d ;" {% endif %} class="form-label">Açıklama</label>
+                  {{ form.comment}}
+                  </div>
+                </div>
+                  <div class=" justify-content-end mb-3 ">
+                    <div class="col-sm-12">
+                        <button type="submit" class="btn btn-primary" style="width: 150px;margin-left: auto;float: right;margin-top: -3px;">
+                          {% if request.resolver_match.url_name in 'add_pump' %}
+                            Kaydet 
+                          {% else %}
+                            Düzenle
+                          {% endif %}
+                        </button>
+                    </div>
+                  </div>
+              </form>
+            </div>
+          </div>
+      </div>
+    </div>
+</div>
+{% endblock content%}

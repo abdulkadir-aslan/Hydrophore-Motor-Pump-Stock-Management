@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load tag_library %}
+
+{% block content%}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Depolar /</span>Sıfır Depo Motor</h4>
+<div class="row">
+    <div class="col-md-12">
+      <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+        <li class="nav-item me-2">
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link  active"  href="{% url 'new_warehouse_engine' %}"><i class="bx bx-add-to-queue me-1"></i> Motor</a>
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link "  href="{% url 'new_warehouse_pump' %}"><i class="bx bx-add-to-queue me-1"></i> Pompa</a>
+        </li>
+      </ul>
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#largeModal">
+            Yeni Ekle
+          </button>
+        </div>
+        <div class="modal fade" id="largeModal" tabindex="-1" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel3">Yeni Motor Ekle</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formAuthentication"  class="mb-3" method="POST">
+                {% csrf_token %}
+              <div class="modal-body">
+                <div class="row g-2">
+                  <div class="col mb-0">
+                    <label for="exampleFormControlSelect1" {% if form.engine_type.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Motor Tipi</label>
+                    {{ form.engine_type}}
+                  </div>
+                  <div class="col mb-0">
+                    <label for="exampleFormControlSelect1" {% if form.engine_power.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Motor Gücü</label>
+                    {{form.engine_power}}
+                  </div>
+                </div>
+                <div class="row g-2">
+                  <div class="col mb-0">
+                    <label for="exampleFormControlSelect1" {% if form.engine_mark.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Motor Markası</label>
+                    {{form.engine_mark}}
+                  </div>
+                  <div class="col mb-0">
+                    <label for="exampleFormControlTextarea1" {% if form.comment.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Seri Numarası</label>
+                    {{form.serialnumber}}
+                  </div>
+                </div>
+                <div class="row g-2">
+                  <div class="col mb-0">
+                    <label for="exampleFormControlTextarea1" {% if form.comment.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Açıklama</label>
+                    {{form.comment}}
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                  Kapat
+                </button>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+              </div>
+            </form>
+          </div>
+        </div>  
+        </div>
+        <div class="table-responsive text-nowrap">
+          <div class="container">
+            <table class="table table-striped mt32 customers-list">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Motor Tipi</th>
+                    <th>Motor Gücü</th>
+                    <th>Markası</th>
+                    <th>Seri Numarası</th>
+                    <th>Locasyon</th>
+                    <th>Açıklama</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                  {% for item in items %}
+                    <tr>
+                      <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
+                      <td>{{item.get_engine_type_display}}</td>
+                      <td>{{item.engine_power}} </td>
+                      <td>{{item.engine_mark}}</td>
+                      <td>{{item.serialnumber}}</td>
+                      <td>
+                        <span class="badge bg-label-primary me-1">{{item.get_location_display}}</span>
+                      </td>
+                      <td>{{item.comment}}</td>
+                      <td>
+                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id  %}">
+                            <i class='tf-icons bx bx-edit'></i>
+                        </button>
+                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'new_warehouse_engine_delete' item.id %}">
+                                <i class='tf-icons bx bx-trash'></i>
+                        </button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+                <hr>
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="container-fluid">
+                            <a class="navbar-brand mb-0 h1">
+                                {{ fuel.paginator.count }} Kayıttan {{ fuel.number|to_start|add:1 }}- 
+                                {% widthratio fuel.number 1 10 %} arası
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <ul class="pagination justify-content-end px-4">
+                            {% if fuel.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ fuel.previous_page_number }}">
+                                        ← Önceki
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_number in fuel.adjusted_elided_pages %}
+                                {% if page_number == fuel.paginator.ELLIPSIS %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% else %}
+                                    <li class="page-item {% if page_number == fuel.number %}active{% endif %}">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if fuel.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ fuel.next_page_number }}">
+                                        Sonraki →
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+          </div>
+      </div>
+      </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const editUrl = button.getAttribute('data-href');
+            window.location.href = editUrl; 
+        });
+    });
+document.querySelectorAll('.delete').forEach(button => {
+button.addEventListener('click', function() {
+    const deleteUrl = button.getAttribute('data-href');
+      if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+        window.location.href = deleteUrl;  
+    }
+});
+});
+
+$(document).ready(function () {
+    function initSelect2(context = document) {
+        $(context).find('select.select2').each(function () {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2({
+                    width: '100%',
+                    placeholder: 'Seçiniz...',
+                    allowClear: true,
+                    dropdownParent: $(this).closest('.modal').length
+                        ? $(this).closest('.modal')
+                        : $('body')
+                });
+            }
+        });
+    }
+
+    initSelect2();
+
+    $('.modal').on('shown.bs.modal', function () {
+        initSelect2(this);
+    });
+
+});
+</script>
+{% endblock content%}

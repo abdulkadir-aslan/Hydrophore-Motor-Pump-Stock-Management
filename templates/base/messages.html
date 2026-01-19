@@ -1,0 +1,33 @@
+{% if messages %}
+  {% for message in messages %}
+  <!-- Messages -->
+  <div class="bs-toast toast toast-placement-ex m-2 fade bg-{{ message.tags }} top-0 end-0 hide" 
+       id="funcmessage-{{ items.start_index|add:forloop.counter0 }}" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
+      
+      <div class="toast-header">
+        {% if message.tags == "warning" %}
+          <i class="bx bx-error"></i>
+        {% else %}
+          <i class="bx bx-bell me-2"></i>
+        {% endif %}
+        <div class="me-auto fw-semibold">BİLDİRİM</div>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      
+      <div class="toast-body">
+        {{ message|safe }}
+      </div>
+  </div>
+    
+  <script>
+      let message = document.querySelector("#funcmessage-{{ items.start_index|add:forloop.counter0 }}")
+      message.classList.add("show")
+      message.classList.remove("hide")
+      setTimeout(function(){
+        message.classList.remove("show");
+        message.classList.add("hide");
+      },9000)
+  </script>
+  <!-- Messages -->
+  {% endfor %}
+{% endif %}

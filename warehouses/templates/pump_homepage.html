@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load tag_library %}
+
+{% block content%}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Envarter /</span>Pompa Stoğu</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+        <li class="nav-item me-2">
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link "  href="{% url 'add_pump' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Pompa</a>
+        </li>
+        <li class="nav-item me-2" >
+          <a class="nav-link "  href="{% url 'add_mark' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Marka</a>
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link "  href="{% url 'add_power' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Güç</a>
+        </li>
+    </ul> 
+          <div class="card mb-4">
+            <div class="card-body row">
+                <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
+                  <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between pb-0">
+                      <div class="card-title mb-0">
+                        <h5 class="m-0 me-2">Toplam Pompa Stoğu</h5>
+                        <br>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3" style="position: relative;">
+                        <div class="d-flex flex-column align-items-center gap-1">
+                          <h2 class="mb-2">{{ well|add:repair|add:secondhand|add:unusable|add:new }} </h2>
+                          <span>Toplam Pompa</span>
+                        </div>
+                        
+                      <div class="resize-triggers"><div class="expand-trigger"><div style="width: 297px; height: 139px;"></div></div><div class="contract-trigger"></div></div></div>
+                      <ul class="p-0 m-0">
+                        <li class="d-flex mb-4 pb-1">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-primary"><i class="bx bx-spa"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">Kuyu</h6>
+                              <small class="text-muted">Kuyuda Bulunan Pompalar</small>
+                            </div>
+                            <div class="user-progress">
+                              <small class="fw-semibold">{{well}}</small>
+                            </div>
+                          </div>
+                        </li>
+                        <li class="d-flex mb-4 pb-1">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-secondary"><i class="bx bx-cog"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">Tamir</h6>
+                              <small class="text-muted">Tamirde Bekleyen Pompalar</small>
+                            </div>
+                            <div class="user-progress">
+                              <small class="fw-semibold">{{repair}}</small>
+                            </div>
+                          </div>
+                        </li>
+                        <li class="d-flex mb-4 pb-1">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-info"><i class="bx bx-shape-circle"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">2.El</h6>
+                              <small class="text-muted">2.El Depodaki Pompalar</small>
+                            </div>
+                            <div class="user-progress">
+                              <small class="fw-semibold">{{secondhand}}</small>
+                            </div>
+                          </div>
+                        </li>
+                        <li class="d-flex mb-4 pb-1">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-danger"><i class="bx bx-stop"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">Pert</h6>
+                              <small class="text-muted">Pert Olan Pompalar</small>
+                            </div>
+                            <div class="user-progress">
+                              <small class="fw-semibold">{{unusable}}</small>
+                            </div>
+                          </div>
+                        </li>
+                        <li class="d-flex">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-success"><i class="bx bx-news"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">Sıfır</h6>
+                              <small class="text-muted">Sıfır  Pompalar</small>
+                            </div>
+                            <div class="user-progress">
+                              <small class="fw-semibold">{{new}}</small>
+                            </div>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
+                  <form method="get" class="row g-2 mb-3">
+                        {{ filter.form.pump_type.label_tag }}
+                        {{ filter.form.pump_type }}
+
+                        {{ filter.form.number_stages.label_tag }}
+                        {{ filter.form.number_stages }}
+
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                  </form>
+                </div>
+            </div>
+          </div>
+
+      <div class="card">
+        <div class="table-responsive text-nowrap">
+          <div class="container">
+            <table class="table table-striped mt32 customers-list">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Pompa Tipi</th>
+                    <th>Pompa Cinsi</th>
+                    <th>Kademe Sayısı</th>
+                    <th>Markası</th>
+                    <th>Açıklama</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                  {% for item in items %}
+                    <tr>
+                      <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
+                      <td>{{item.pump_type}}</td>
+                      <td>{{item.get_pump_breed_display}}</td>
+                      <td>{{item.number_stages}}</td>
+                      <td>{{item.pump_mark}}</td>
+                      <td>{{item.comment}}</td>
+                      <td>
+                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'pump_edit' item.id  %}">
+                            <i class='tf-icons bx bx-edit'></i>
+                        </button>
+                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'pump_delete' item.id %}">
+                                <i class='tf-icons bx bx-trash'></i>
+                        </button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+                <hr>
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="container-fluid">
+                            <a class="navbar-brand mb-0 h1">
+                                {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <ul class="pagination justify-content-end px-4">
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page=1">
+                                        İlk
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                        ← Önceki
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_number in items.paginator.page_range %}
+                                {% if page_number == items.number %}
+                                    <li class="page-item active">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number > items.number|add:-3 and page_number < items.number|add:3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number == items.paginator.ELLIPSIS %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                        Sonraki →
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.paginator.num_pages }}">
+                                        Son
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+          </div>
+      </div>
+      </div>
+    </div>
+</div>
+<script>
+      document.querySelectorAll('.edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const editUrl = button.getAttribute('data-href');
+            window.location.href = editUrl; 
+        });
+    });
+
+      document.querySelectorAll('.delete').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
+
+</script>
+{% endblock content%}

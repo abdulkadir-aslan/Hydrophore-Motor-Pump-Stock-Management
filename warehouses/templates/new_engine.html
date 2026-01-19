@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content%}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Envarter /</span>Yeni Motor Ekle</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+        <li class="nav-item me-2">
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link "  href="{% url 'add_pump' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Pompa</a>
+        </li>
+        <li class="nav-item me-2" >
+          <a class="nav-link "  href="{% url 'add_mark' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Marka</a>
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link "  href="{% url 'add_power' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Güç</a>
+        </li>
+    </ul> 
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Yeni Motor Ekle</h5>
+            </div>
+            <div class="card-body">
+              <form id="formAuthentication"  class="mb-3" method="POST">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="mb-3 col-md-6">
+                        <label for="exampleFormControlSelect1" {% if form.engine_type.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Motor Tipi</label>
+                        {{ form.engine_type}}
+                      </div>
+                    <div class="mb-3 col-md-6">
+                      <label for="exampleFormControlSelect1" {% if form.engine_power.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Motor Gücü</label>
+                      {{form.engine_power}}
+                    </div>
+                </div>
+                <div class="row">
+                  <div class="mb-3 col-md-6">
+                    <label for="exampleFormControlSelect1" {% if form.engine_mark.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Motor Markası</label>
+                    {{form.engine_mark}}
+                  </div>
+                  <div class="mb-3 col-md-6" >
+                    <label for="exampleFormControlTextarea1" {% if form.comment.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Seri Numarası</label>
+                    {{form.serialnumber}}
+                    </div>
+                </div>
+                <div class="row">
+                  <div class="mb-6 col-md-6" >
+                    <label for="exampleFormControlTextarea1" {% if form.comment.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Açıklama</label>
+                    {{form.comment}}
+                  </div>
+                </div>
+                <br>
+                <div class=" justify-content-end mb-3 ">
+                  <div class="col-sm-12">
+                      <a href="{% url 'engine_homepage' %}" class="btn btn-secondary" >
+                          Vazgeç
+                      </a>
+                      <button type="submit" class="btn btn-primary" >
+                          Düzenle
+                      </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+      </div>
+    </div>
+</div>
+{% endblock content%}

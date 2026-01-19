@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tag_library %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">İş Emirleri /</span> Atölyeden Çıkış İş Emri
+</h4>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label >Hidrofor No:</label>
+                            <input type="text" value= "{{workshop.hydrophore}}" class="form-control"  readonly >
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label >İlçe, Mahalle, Getiren Personel</label>
+                            <input type="text" value= "{{workshop.outbound_work_order.get_district_display}} , {{workshop.outbound_work_order.neighborhood }} , {{workshop.outbound_work_order.district_personnel}}" class="form-control"  readonly >
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.workshop_dispatch_slip_number.label_tag }}
+                            {{ form.workshop_dispatch_slip_number }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.workshop_dispatch_date.label_tag }}
+                            {{ form.workshop_dispatch_date }}
+                        </div>
+                    </div>
+                    
+                    <!-- BUTONLAR -->
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            Bakıma Gönder
+                        </button>
+                        <a href="{% url 'workshop_exit' %}" class="btn btn-secondary">
+                            Vazgeç
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

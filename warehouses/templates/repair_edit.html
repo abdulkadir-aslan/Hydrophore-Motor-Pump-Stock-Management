@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Depolar /</span>Tamir Depo Düzenle</h4>
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Motor</label>
+          <input type="text" value="{{ repair.engine }}" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Pompa</label>
+          <input type="text" value="{{ repair.pump }}" class="form-control" readonly>
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+
+          {% if repair.engine %}
+          <!-- Motor Depo Seçimi -->
+          <div class="mb-3">
+            <label class="form-label">Motor İçin Depo Seç</label>
+            <select class="form-select" name="engine" id="engine_depo" required>
+              <option value="">-----</option>
+              <option value="contractor">Mütahit Depo</option>
+              <option value="secondhand">2.El Depo</option>
+              <option value="unusable">Pert Depo</option>
+            </select>
+          </div>
+          {% endif %}
+          <!-- Motor Mütahit Satır Seçimi -->
+          <div class="mb-3" id="engine_contractor_area" style="display:none;">
+            <label class="form-label">Değiştirilecek Mütahit Depo Motor Seç</label>
+            <select class="form-select select2" name="engine_contractor" required>
+              <option value="">-----</option>
+              {% for item in engine %}
+                  <option value="{{ item.id }}">{{ item }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <!-- Motor 2.El Satır Seçimi -->
+          <div class="mb-3" id="engine_secondhand_area" style="display:none;">
+            <label class="form-label">Motor 2.El Satır Seç</label>
+            <select class="form-select select2" name="engine_secondhand_row" required>
+              <option value="">-----</option>
+              {% for item in row_identifier %}
+                {% if item.engine is None %}
+                  <option value="{{ item.id }}">{{ item }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+
+          {% if repair.pump %}
+          <!-- Pompa Depo Seçimi -->
+          <div class="mb-3">
+            <label class="form-label">Pompa İçin Depo Seç</label>
+            <select class="form-select" name="pump" id="pump_depo" required>
+              <option value="">-----</option>
+              <option value="secondhand">2.El Depo</option>
+              <option value="unusable">Pert Depo</option>
+            </select>
+          </div>
+          {% endif %}
+
+          <!-- Pompa 2.El Satır Seçimi -->
+          <div class="mb-3" id="pump_secondhand_area" style="display:none;">
+            <label class="form-label">Pompa 2.El Satır Seç</label>
+            <select class="form-select select2" name="pump_secondhand_row" required>
+              <option value="">-----</option>
+              {% for item in row_identifier %}
+                {% if item.pump is None %}
+                  <option value="{{ item.id }}">{{ item }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <a href="{% url 'repair' %}" class="btn btn-secondary">
+              Vazgeç
+          </a>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function () {
+
+    function initSelect2(context = document) {
+        $(context).find('select.select2').each(function () {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2({
+                    width: '100%',
+                    placeholder: 'Seçiniz...',
+                    allowClear: true,
+                    dropdownParent: $(this).closest('.modal').length
+                        ? $(this).closest('.modal')
+                        : $('body')
+                });
+            }
+        });
+    }
+
+    initSelect2();
+
+    $('.modal').on('shown.bs.modal', function () {
+        initSelect2(this);
+    });
+
+});
+document.addEventListener("DOMContentLoaded", function () {
+    const engineDepo = document.getElementById("engine_depo");
+    const pumpDepo = document.getElementById("pump_depo");
+
+    const enginecontractorArea = document.getElementById("engine_contractor_area");
+    const engineArea = document.getElementById("engine_secondhand_area");
+    const pumpArea = document.getElementById("pump_secondhand_area");
+
+    function toggleAreas() {
+        const engineVal = engineDepo ? engineDepo.value : null;
+        const pumpVal = pumpDepo ? pumpDepo.value : null;
+
+        // Önce gizle ve required kaldır
+        [engineArea, pumpArea,enginecontractorArea].forEach(area => {
+            if (area) {
+                area.style.display = "none";
+                const select = area.querySelector("select");
+                if (select) select.required = false;
+            }
+        });
+
+        // Motor 2.el seçildiyse
+        if (engineVal === "secondhand") {
+            engineArea.style.display = "block";
+            engineArea.querySelector("select").required = true;
+        }
+
+        if (engineVal === "contractor") {
+            engineArea.style.display = "block";
+            engineArea.querySelector("select").required = true;
+            enginecontractorArea.style.display = "block";
+            enginecontractorArea.querySelector("select").required = true;
+        }
+
+        // Pompa 2.el seçildiyse
+        if (pumpVal === "secondhand") {
+            pumpArea.style.display = "block";
+            pumpArea.querySelector("select").required = true;
+        }
+    }
+
+    if (engineDepo) engineDepo.addEventListener("change", toggleAreas);
+    if (pumpDepo) pumpDepo.addEventListener("change", toggleAreas);
+
+    toggleAreas();
+});
+
+$(document).ready(function () {
+    $('form').on('submit', function (e) {
+        if (!confirm("Bilgiler istenilen depoya aktarılacak.")) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+
+{% endblock content %}
