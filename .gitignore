@@ -21,7 +21,7 @@ env/
 
 # Media & upload
 media/
-veri_yukleme/
+veri_yükleme/
 
 # Packaging
 *.egg-info/
