@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Veri Yükle /</span>....</h4>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="POST" class="row g-2" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <label class="form-label" for="model">Model Seçin:</label>
+                    <select class="form-select" name="model" id="model">
+                        <option value="">------</option>
+                        <option value="WorkshopExitSlip">Tüm İş Emri</option>
+                        <option value="Engine">Motor</option>
+                        <option value="Pump">Pompa</option>
+                        <option value="Hydrophore">Hidrofor</option>
+                    </select>
+
+                    <label class="form-label mt-2" for="csv_file">CSV Dosyası Yükle:</label>
+                    <input type="file" class="form-control" name="csv_file" id="csv_file" accept=".csv">
+
+                    <div class="col-md-1 d-flex align-items-end mt-3">
+                        <button type="submit" class="btn btn-primary w-100">Ekle</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock content %}
+
+

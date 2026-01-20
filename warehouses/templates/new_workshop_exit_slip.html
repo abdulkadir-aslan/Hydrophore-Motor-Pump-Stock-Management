@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Atölye /</span>Yeni Çıkış Fişi Ekle</h4>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Yeni Çıkış Fişi Ekle</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="mb-3 col-md-4">
+                            <label class="form-label" {% if form.date.errors %} style="color:#ff3e1d;" {% endif %}>Tarih</label>
+                            {{ form.date }}
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label class="form-label" {% if form.slip_no.errors %} style="color:#ff3e1d;" {% endif %}>Fiş No</label>
+                            {{ form.slip_no }}
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label class="form-label" {% if form.well_no.errors %} style="color:#ff3e1d;" {% endif %}>Kuyu No</label>
+                            {{ form.well_no }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3 col-md-4">
+                            <label class="form-label" {% if form.district.errors %} style="color:#ff3e1d;" {% endif %}>İlçe</label>
+                            {{ form.district }}
+                        </div>
+                        <div class="mb-3 col-md-8">
+                            <label class="form-label" {% if form.address.errors %} style="color:#ff3e1d;" {% endif %}>Adres</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.motor_type.errors %} style="color:#ff3e1d;" {% endif %}>Motor Tipi</label>
+                            {{ form.motor_type }}
+                        </div>
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.hydrofor_no.errors %} style="color:#ff3e1d;" {% endif %}>Hidrofor No</label>
+                            {{ form.hydrofor_no }}
+                        </div>
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.brand.errors %} style="color:#ff3e1d;" {% endif %}>Marka</label>
+                            {{ form.brand }}
+                        </div>
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.power.errors %} style="color:#ff3e1d;" {% endif %}>Gücü</label>
+                            {{ form.power }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.pump_type.errors %} style="color:#ff3e1d;" {% endif %}>Pompa Tipi</label>
+                            {{ form.pump_type }}
+                        </div>
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.pump_brand.errors %} style="color:#ff3e1d;" {% endif %}>Pompa Markası</label>
+                            {{ form.pump_brand }}
+                        </div>
+                        <div class="mb-3 col-md-2">
+                            <label class="form-label" {% if form.submersible.errors %} style="color:#ff3e1d;" {% endif %}>Dalgıç</label>
+                            {{ form.submersible }}
+                        </div>
+                        <div class="mb-3 col-md-2">
+                            <label class="form-label" {% if form.motor.errors %} style="color:#ff3e1d;" {% endif %}>Motor</label>
+                            {{ form.motor }}
+                        </div>
+                        <div class="mb-3 col-md-2">
+                            <label class="form-label" {% if form.pump.errors %} style="color:#ff3e1d;" {% endif %}>Pompa</label>
+                            {{ form.pump }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.hydrofor.errors %} style="color:#ff3e1d;" {% endif %}>Hidrofor</label>
+                            {{ form.hydrofor }}
+                        </div>
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.main_pipe.errors %} style="color:#ff3e1d;" {% endif %}>Ö.Boru</label>
+                            {{ form.main_pipe }}
+                        </div>
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.secondary_pipe.errors %} style="color:#ff3e1d;" {% endif %}>K.Boru</label>
+                            {{ form.secondary_pipe }}
+                        </div>
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label" {% if form.maintenance_status.errors %} style="color:#ff3e1d;" {% endif %}>Bakım Durumu</label>
+                            {{ form.maintenance_status }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3 col-md-12">
+                            <label class="form-label" {% if form.overall_status.errors %} style="color:#ff3e1d;" {% endif %}>Genel Durum</label>
+                            {{ form.overall_status }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="submit" class="btn btn-primary" style="width: 150px;">
+                            Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -23,7 +23,7 @@ A Django-based system for managing the inventory and movement of hydrophores, mo
 
     ```sh
     git clone https://github.com/abdulkadir-aslan/Hydrophore-Motor-Pump-Stock-Management
-    cd hydrophore-stock-management
+    cd Hydrophore-Motor-Pump-Stock-Management
     ```
 
 2. **Create a virtual environment and activate it**

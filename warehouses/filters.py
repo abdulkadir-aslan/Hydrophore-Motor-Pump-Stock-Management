@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Inventory,Engine,LOCATION,Pump,Order,Seconhand
+from .models import Inventory,Engine,LOCATION,Pump,Order,Seconhand,WorkshopExitSlip
 
 class InventoryFilter(django_filters.FilterSet):
 
@@ -216,4 +216,48 @@ class SeconhandFilter(django_filters.FilterSet):
             id__in=Seconhand.objects.filter(engine__isnull=False).values_list('engine', flat=True).distinct()
         )
 
-    
+class WorkshopExitSlipFilter(django_filters.FilterSet):
+    # Tarih sıralaması
+    date_order = django_filters.OrderingFilter(
+        fields=(('date', 'date'),),
+        field_labels={'date': 'Tarih'},
+        label='Sırala',
+        widget=forms.Select, 
+        choices=(
+            ('date', 'Eskiden Yeniye'),
+            ('-date', 'Yeniden Eskiye'),
+        )
+    )
+
+    # Fiş No arama
+    slip_no = django_filters.CharFilter(
+        field_name='slip_no',
+        lookup_expr='icontains',
+        label='Fiş No',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Fiş No'})
+    )
+
+    # Kuyu No arama
+    well_no = django_filters.CharFilter(
+        field_name='well_no',
+        lookup_expr='icontains',
+        label='Kuyu No',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu No'})
+    )
+
+    # Adres arama
+    address = django_filters.CharFilter(
+        field_name='address',
+        lookup_expr='icontains',
+        label='Adres',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
+    )
+
+    class Meta:
+        model = WorkshopExitSlip
+        fields = ['slip_no', 'well_no', 'address']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # date_order widget attrs ekleme
+        self.filters['date_order'].field.widget.attrs.update({'class': 'form-select select2'})

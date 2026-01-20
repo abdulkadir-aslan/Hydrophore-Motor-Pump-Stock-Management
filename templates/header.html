@@ -240,6 +240,13 @@
                 </li>
               </ul>
             </li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Kapanan İş Emirleri </span></li>
+            <li class="menu-item {% if url_name == 'workshop_exit_slip' %}active {% endif %}">
+              <a href="{% url 'workshop_exit_slip' %}"  class="menu-link">
+                <i class="menu-icon tf-icons bx bx-file"></i>
+                <div data-i18n="Documentation">Atölye Çıkış Fişleri</div>
+              </a>
+            </li>
           </ul>
           {% endwith %}
         </aside>

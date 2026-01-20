@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Tüm İş Emirleri /</span>Atölye Çıkış Fişleri</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link" href="{% url 'new_workshop_exit_slip' %}">
+                    <i class="bx bx-add-to-queue me-1"></i> Ekle
+                </a>
+            </li>
+        </ul>
+
+        <!--=== Filtreleme === -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <!-- Tarih Sıralama -->
+                    <div class="col-md-2">
+                        {{ filter.form.date_order.label_tag }}
+                        {{ filter.form.date_order }}
+                    </div>
+
+                    <!-- Fiş No Arama -->
+                    <div class="col-md-2">
+                        {{ filter.form.slip_no.label_tag }}
+                        {{ filter.form.slip_no }}
+                    </div>
+
+                    <!-- Kuyu No Arama -->
+                    <div class="col-md-2">
+                        {{ filter.form.well_no.label_tag }}
+                        {{ filter.form.well_no }}
+                    </div>
+
+                    <!-- Adres Arama -->
+                    <div class="col-md-4">
+                        {{ filter.form.address.label_tag }}
+                        {{ filter.form.address }}
+                    </div>
+
+                    <!-- Filtrele Butonu -->
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!--=== Tablo ===-->
+        <div class="card">
+            <div class="table-responsive text-nowrap">
+                <div class="container">
+                    <table class="table table-striped mt32 customers-list">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Fiş No</th>
+                                <th>Tarih</th>
+                                <th>Kuyu No</th>
+                                <th>İlçe</th>
+                                <th>Adres</th>
+                                <th>Motor Tipi</th>
+                                <th>Hidrofor No</th>
+                                <th>Marka</th>
+                                <th>Gücü</th>
+                                <th>Pompa Tipi</th>
+                                <th>Pompa Markası</th>
+                                <th>Dalgıç</th>
+                                <th>Motor</th>
+                                <th>Pompa</th>
+                                <th>Hidrofor</th>
+                                <th>Ö.Boru</th>
+                                <th>K.Boru</th>
+                                <th>Bakım Durumu</th>
+                                <th>Genel Durum</th>
+                                <th>İşlem Yap</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            {% for item in items %}
+                                <tr>
+                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>{{ item.slip_no }}</td>
+                                    <td>{{ item.date }}</td>
+                                    <td>{{ item.well_no }}</td>
+                                    <td>{{ item.district|upper }}</td>
+                                    <td>{{ item.address }}</td>
+                                    <td>{{ item.motor_type }}</td>
+                                    <td>{{ item.hydrofor_no }}</td>
+                                    <td>{{ item.brand }}</td>
+                                    <td>{{ item.power }}</td>
+                                    <td>{{ item.pump_type }}</td>
+                                    <td>{{ item.pump_brand }}</td>
+                                    <td>{{ item.submersible }}</td>
+                                    <td>{{ item.motor }}</td>
+                                    <td>{{ item.pump }}</td>
+                                    <td>{{ item.hydrofor }}</td>
+                                    <td>{{ item.main_pipe }}</td>
+                                    <td>{{ item.secondary_pipe }}</td>
+                                    <td>{{ item.maintenance_status }}</td>
+                                    <td>{{ item.overall_status }}</td>
+                                    <td>
+                                        <a class='btn btn-icon btn-outline-success  btn-flat' href="{% url 'workshop_exit_slip_edit' item.id  %}">
+                                            <i class='tf-icons bx bx-edit'></i>
+                                        </a>
+                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'workshop_exit_slip_delete' item.id %}">
+                                                <i class='tf-icons bx bx-trash'></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation example">
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="container-fluid">
+                                    <a class="navbar-brand mb-0 h1">
+                                        {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <ul class="pagination justify-content-end px-4">
+                                    {% if items.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                                ← Önceki
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_number in items.paginator.page_range %}
+                                        {% if page_number == items.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if items.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                                Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelectorAll('.delete').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
+</script>
+{% endblock content %}

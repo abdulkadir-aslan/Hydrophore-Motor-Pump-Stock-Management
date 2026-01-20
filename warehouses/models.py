@@ -335,3 +335,37 @@ class Order(models.Model):
     class Meta:
         verbose_name = "İş Emri"
         verbose_name_plural = "İş Emirleri"
+
+class WorkshopExitSlip(models.Model):
+    date = models.DateField(verbose_name="Tarih")
+    slip_no = models.CharField(max_length=100, verbose_name="Fiş No")
+    well_no = models.CharField(max_length=100,blank=True, null=True, verbose_name="Kuyu No")
+    district = models.CharField(max_length=100,blank=True, null=True, verbose_name="İlçe")
+    address = models.CharField(max_length=100, blank=True, null=True,verbose_name="Adres")
+
+    motor_type = models.CharField(max_length=100,blank=True, null=True, verbose_name="Motor Tipi")
+    hydrofor_no = models.CharField(max_length=100,blank=True, null=True, verbose_name="Hidrofor No")
+    brand = models.CharField(max_length=100, blank=True, null=True,verbose_name="Markası")
+    power = models.CharField(max_length=100,blank=True, null=True, verbose_name="Gücü")
+
+    pump_type = models.CharField(max_length=100, blank=True, null=True,verbose_name="Pompa Tipi")
+    pump_brand = models.CharField(max_length=100, blank=True, null=True,verbose_name="Pompa Markası")
+
+    submersible = models.CharField(max_length=100,blank=True, null=True, verbose_name="Dalgıç")
+    motor = models.CharField(max_length=100, blank=True, null=True,verbose_name="Motor")
+    pump = models.CharField(max_length=100,blank=True, null=True, verbose_name="Pompa")
+    hydrofor = models.CharField(max_length=100,blank=True, null=True, verbose_name="Hidrofor")
+
+    main_pipe = models.CharField(max_length=100,blank=True, null=True, verbose_name="Ö.Boru")
+    secondary_pipe = models.CharField(max_length=100,blank=True, null=True, verbose_name="K.Boru")
+
+    maintenance_status = models.CharField(max_length=100,blank=True, null=True, verbose_name="Bakım Durumu")
+    overall_status = models.CharField(max_length=100, blank=True, null=True,verbose_name="Genel Durum")
+
+    class Meta:
+        verbose_name = "Tüm Atölye Çıkış Fişi"
+        verbose_name_plural = "Tüm Atölye Çıkış Fişleri"
+        ordering = ("date",)
+
+    def __str__(self):
+        return f"{self.slip_no} - {self.well_no}"

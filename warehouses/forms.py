@@ -399,4 +399,50 @@ class OrderEditForm(forms.ModelForm):
                 raise forms.ValidationError("Bu atölye fişi daha önce kullanılmıştır.")
 
             return entrance_plug
-        
+
+class WorkshopExitSlipForm(forms.ModelForm):
+    class Meta:
+        model = WorkshopExitSlip
+        fields = '__all__'
+        labels = {
+            'date': 'Tarih',
+            'slip_no': 'Fiş No',
+            'well_no': 'Kuyu No',
+            'district': 'İlçe',
+            'address': 'Adres',
+            'motor_type': 'Motor Tipi',
+            'hydrofor_no': 'Hidrofor No',
+            'brand': 'Markası',
+            'power': 'Gücü',
+            'pump_type': 'Pompa Tipi',
+            'pump_brand': 'Pompa Markası',
+            'submersible': 'Dalgıç',
+            'motor': 'Motor',
+            'pump': 'Pompa',
+            'hydrofor': 'Hidrofor',
+            'main_pipe': 'Ö.Boru',
+            'secondary_pipe': 'K.Boru',
+            'maintenance_status': 'Bakım Durumu',
+            'overall_status': 'Genel Durum',
+        }
+        widgets = {
+            'date': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'Tarih', 'type': 'date','required': 'required'},format='%Y-%m-%d',),
+            'slip_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Fiş No','required': 'required'}),
+            'well_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu No'}),
+            'district': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'İlçe'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'}),
+            'motor_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Motor Tipi'}),
+            'hydrofor_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Hidrofor No'}),
+            'brand': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Markası'}),
+            'power': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Gücü'}),
+            'pump_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pompa Tipi'}),
+            'pump_brand': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pompa Markası'}),
+            'submersible': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dalgıç'}),
+            'motor': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Motor'}),
+            'pump': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pompa'}),
+            'hydrofor': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Hidrofor'}),
+            'main_pipe': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ö.Boru'}),
+            'secondary_pipe': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'K.Boru'}),
+            'maintenance_status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bakım Durumu'}),
+            'overall_status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Genel Durum'}),
+        }

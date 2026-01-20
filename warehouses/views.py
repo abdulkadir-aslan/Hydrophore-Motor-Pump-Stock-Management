@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from django.db import transaction
 from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
-from .filters import InventoryFilter,EngineFilter,PumpFilter,OrderFilter,SeconhandFilter
+from .filters import InventoryFilter,EngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
 from .forms import *
 
 def handle_deletion(request, model, object_id, redirect_url, success_message, error_message, protected_error_message):
@@ -719,3 +719,58 @@ def order_delete(request, id):
         protected_error_message="{} silinemiyor, ilişkili kayıtlar var."
     )
 
+def workshop_exit_slip(request):
+    order_list = WorkshopExitSlip.objects.all()
+    
+    order_filter = WorkshopExitSlipFilter(request.GET, queryset=order_list)
+    filtered_order_list = order_filter.qs
+
+    paginator = Paginator(filtered_order_list, 10)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'total': filtered_order_list.count(),
+        'items': page_obj,
+        'query_string': request.GET.urlencode(),
+        'filter': order_filter,
+    }
+    return render(request, "workshop_exit_slip.html", context)
+
+def new_workshop_exit_slip(request):
+    if request.method == 'POST':
+        form = WorkshopExitSlipForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "İş Emri Eklendi.")
+            return redirect('workshop_exit_slip')
+        else:
+            messages.warning(request, form.errors.as_ul())
+    else:
+            form = WorkshopExitSlipForm()
+    return render(request, 'new_workshop_exit_slip.html', {'form': form})
+
+def workshop_exit_slip_edit(request,id):
+    order = get_object_or_404(WorkshopExitSlip, pk=id)
+    if request.method == 'POST':
+        form = WorkshopExitSlipForm(request.POST,instance=order)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "İş Emri Güncellendi.")
+            return redirect('workshop_exit_slip')
+        else:
+            messages.warning(request, form.errors.as_ul())
+    else:
+            form = WorkshopExitSlipForm(instance=order)
+    return render(request, 'new_workshop_exit_slip.html', {'form': form})
+
+def workshop_exit_slip_delete(request, id):
+    return handle_deletion(
+        request=request,
+        model=WorkshopExitSlip,
+        object_id=id,
+        redirect_url="workshop_exit_slip",
+        success_message="{} Kuyusu için iş emri başarıyla silindi.",
+        error_message="İş emri bulunamadı.",
+        protected_error_message="{} silinemiyor, ilişkili kayıtlar var."
+    )
