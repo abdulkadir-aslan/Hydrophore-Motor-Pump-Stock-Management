@@ -151,18 +151,13 @@ def newPump(request):
     if request.method == "POST":
         form = PumpForm(request.POST)
         if form.is_valid():
-            try:
-                item = form.save()
-                messages.success(
-                    request,
-                    f'*{ item }* Pompa kaydı başarılı bir şekilde oluşturuldu.'
-                )
-                return redirect('add_pump')  
-            except IntegrityError:
-                messages.warning(
-                    request,
-                    f'*{ item }* Bu Pompa zaten mevcut!'
-                )
+            item = form.save()
+            messages.success(
+                request,
+                f'*{ item }* Pompa kaydı başarılı bir şekilde oluşturuldu.'
+            )
+            return redirect('add_pump')  
+            
         else:
             messages.warning(
                 request,
@@ -323,7 +318,6 @@ def seconhand(request):
                 existing_pump = Pump.objects.filter(
                     pump_type=pump_form.data["pump_type"],
                     pump_breed=pump_form.data["pump_breed"],
-                    number_stages=pump_form.data["number_stages"],
                     pump_mark=pump_form.data["pump_mark"]
                 ).first()
 

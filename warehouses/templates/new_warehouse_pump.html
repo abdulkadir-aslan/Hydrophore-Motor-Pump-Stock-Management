@@ -72,7 +72,6 @@
                     <th>#</th>
                     <th>Pompa Tipi</th>
                     <th>Pompa Cinsi</th>
-                    <th>Kademe Sayısı</th>
                     <th>Markası</th>
                     <th>Miktarı</th>
                     <th>Actions</th>
@@ -84,7 +83,6 @@
                       <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
                       <td>{{ item.pump.pump_type }}</td>
                       <td>{{ item.pump.get_pump_breed_display }}</td>
-                      <td>{{ item.pump.number_stages }}</td>
                       <td>{{ item.pump.pump_mark }}</td>
                       <td>{{ item.quantity }}</td>
                       <td>

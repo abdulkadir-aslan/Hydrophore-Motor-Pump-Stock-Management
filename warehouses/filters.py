@@ -44,9 +44,7 @@ class InventoryFilter(django_filters.FilterSet):
 
     def filter_pump_type_or_stage(self, queryset, name, value):
         return queryset.filter(
-            Q(pump__pump_type__iexact=value) |
-            Q(pump__number_stages__iexact=value)
-        )
+            Q(pump__pump_type__iexact=value))
 
 class EngineFilter(django_filters.FilterSet):
 
@@ -95,18 +93,9 @@ class PumpFilter(django_filters.FilterSet):
         })
     )
 
-    number_stages = django_filters.NumberFilter(
-        field_name='number_stages',
-        lookup_expr='exact',
-        label='Kademe Sayısı',
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Kademe sayısı'
-        })
-    )
     class Meta:
         model = Pump
-        fields = ['pump_type', 'number_stages']
+        fields = ['pump_type', ]
 
 class OrderFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(

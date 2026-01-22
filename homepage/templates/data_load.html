@@ -8,16 +8,19 @@
     <div class="col-md-12">
         <div class="card mb-4">
             <div class="card-body">
-                <form method="POST" class="row g-2" enctype="multipart/form-data">
+               <form method="POST" class="row g-2" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <label class="form-label" for="model">Model Seçin:</label>
                     <select class="form-select" name="model" id="model">
                         <option value="">------</option>
                         <option value="WorkshopExitSlip">Tüm İş Emri</option>
-                        <option value="Engine">Motor</option>
-                        <option value="Pump">Pompa</option>
+                        <option value="Inventory">Kuyu Envarter</option>
+                        <option value="NewEngine">Yeni Motor</option>
+                        <option value="NewWarehousePump">Yeni Pompa</option>
                         <option value="Hydrophore">Hidrofor</option>
+                        <option value="mütahit">Mütahit Depo Motor Eklem</option>
+                        <option value="Seconhand">2.El Depo</option>
                     </select>
 
                     <label class="form-label mt-2" for="csv_file">CSV Dosyası Yükle:</label>

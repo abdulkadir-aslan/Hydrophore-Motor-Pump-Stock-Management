@@ -118,9 +118,6 @@
                         {{ filter.form.pump_type.label_tag }}
                         {{ filter.form.pump_type }}
 
-                        {{ filter.form.number_stages.label_tag }}
-                        {{ filter.form.number_stages }}
-
                     <div class="col-md-4">
                         <button type="submit" class="btn btn-primary w-100">
                             Filtrele
@@ -140,7 +137,6 @@
                     <th>#</th>
                     <th>Pompa Tipi</th>
                     <th>Pompa Cinsi</th>
-                    <th>Kademe Sayısı</th>
                     <th>Markası</th>
                     <th>Açıklama</th>
                     <th>Actions</th>
@@ -152,7 +148,6 @@
                       <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
                       <td>{{item.pump_type}}</td>
                       <td>{{item.get_pump_breed_display}}</td>
-                      <td>{{item.number_stages}}</td>
                       <td>{{item.pump_mark}}</td>
                       <td>{{item.comment}}</td>
                       <td>

@@ -37,24 +37,16 @@
                   </div>
                 </div>
                 <div class="row">
-                <div class="mb-3 col-md-6">
-                    <label class="form-label" {% if form.number_stages.errors %} style="color:#ff3e1d ;" {% endif %} for="basic-default-company">Kademe Sayısı</label>
-                    {{ form.number_stages}}
-                </div>
-                <div class="mb-3 col-md-6">
-                    <label for="exampleFormControlSelect1" {% if form.pump_mark.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Pompa Markası</label>
-                    {{ form.pump_mark}}
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="mb-3 col-md-6" >
-                    
-                  </div>
-                  <div class="mb-3 col-md-6" >
+                    <div class="mb-3 col-md-6">
+                      <label for="exampleFormControlSelect1" {% if form.pump_mark.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Pompa Markası</label>
+                      {{ form.pump_mark}}
+                    </div>
+                    <div class="mb-3 col-md-6" >
                   <label for="exampleFormControlTextarea1" {% if form.engine_mark.comment %} style="color:#ff3e1d ;" {% endif %} class="form-label">Açıklama</label>
                   {{ form.comment}}
                   </div>
                 </div>
+                
                   <div class=" justify-content-end mb-3 ">
                     <div class="col-sm-12">
                         <button type="submit" class="btn btn-primary" style="width: 150px;margin-left: auto;float: right;margin-top: -3px;">

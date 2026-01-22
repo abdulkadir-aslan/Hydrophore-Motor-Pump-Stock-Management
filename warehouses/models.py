@@ -74,14 +74,13 @@ BREED = (
 )
 
 class Pump(models.Model):
-    pump_type = models.CharField(verbose_name="Tipi", max_length=25, null=False, blank=False)
+    pump_type = models.CharField(verbose_name="Tipi", max_length=50, null=False, blank=False)
     pump_breed = models.CharField(verbose_name="Cinsi", choices=BREED, max_length=5, null=False, blank=False)
-    number_stages = models.PositiveIntegerField(verbose_name="Kademe Sayısı", default=0, null=False, blank=False)
     pump_mark = models.ForeignKey(Mark, verbose_name="Pompa Markası", on_delete=models.PROTECT, null=True)
     comment = models.TextField(verbose_name="Açıklama", blank=True)
 
     def __str__(self):
-        return self.pump_type + "/" + str(self.number_stages) + " - " +self.pump_mark.engine_mark 
+        return self.pump_type +" - " +self.pump_mark.engine_mark 
     
     class Meta:
         verbose_name = "Pompa"
@@ -89,7 +88,7 @@ class Pump(models.Model):
         ordering = ("pump_type",)
         constraints = [
             models.UniqueConstraint(
-                fields=['pump_type', 'pump_breed', 'number_stages', 'pump_mark'], 
+                fields=['pump_type', 'pump_breed', 'pump_mark'], 
                 name='unique_pump_combination'
             )
         ]

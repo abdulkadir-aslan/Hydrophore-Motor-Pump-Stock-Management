@@ -48,7 +48,7 @@ class EngineForm(ModelForm):
 class PumpEditForm(ModelForm):
     class Meta:
         model = Pump
-        fields = ['pump_type', 'pump_breed', 'number_stages', 'pump_mark', 'comment']
+        fields = ['pump_type', 'pump_breed', 'pump_mark', 'comment']
         widgets = {
             'pump_type': forms.TextInput(attrs={
                 'class': 'form-control', 
@@ -58,11 +58,6 @@ class PumpEditForm(ModelForm):
             'pump_breed': forms.Select(attrs={
                 'class': 'form-select', 
                 'id': 'pump_breed_id'
-            }),
-            'number_stages': forms.NumberInput(attrs={
-                'class': 'form-control', 
-                'placeholder': 'Kademe Sayısı', 
-                'id': 'number_stages_id'
             }),
             'pump_mark': forms.Select(attrs={
                 'class': 'form-select', 
@@ -79,7 +74,7 @@ class PumpEditForm(ModelForm):
 class PumpForm(ModelForm):
     class Meta:
         model = Pump
-        fields = ['pump_type', 'pump_breed', 'number_stages', 'pump_mark', 'comment']
+        fields = ['pump_type', 'pump_breed', 'pump_mark', 'comment']
         
         widgets = {
             'pump_type': forms.TextInput(attrs={
@@ -90,11 +85,6 @@ class PumpForm(ModelForm):
             'pump_breed': forms.Select(attrs={
                 'class': 'form-select select2', 
                 'id': 'pump_breed_id'
-            }),
-            'number_stages': forms.NumberInput(attrs={
-                'class': 'form-control', 
-                'placeholder': 'Kademe Sayısı', 
-                'id': 'number_stages_id'
             }),
             'pump_mark': forms.Select(attrs={
                 'class': 'form-select select2', 
@@ -112,13 +102,11 @@ class PumpForm(ModelForm):
         cleaned_data = super().clean()
         pump_type = cleaned_data.get("pump_type")
         pump_breed = cleaned_data.get("pump_breed")
-        number_stages = cleaned_data.get("number_stages")
         pump_mark = cleaned_data.get("pump_mark")
         
         if Pump.objects.filter(
             pump_type=pump_type,
             pump_breed=pump_breed,
-            number_stages=number_stages,
             pump_mark=pump_mark
         ).exists():
             raise forms.ValidationError("Bu pompa kombinasyonu zaten mevcut!")
