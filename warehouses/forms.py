@@ -114,6 +114,10 @@ class PumpForm(ModelForm):
         return cleaned_data
 
 class InventoryEditForm(ModelForm):
+    district = forms.ChoiceField(
+        choices=DISTRICT_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
     engine = forms.ModelChoiceField(
         queryset=Engine.objects.none(),
         widget=forms.Select(attrs={
@@ -124,15 +128,6 @@ class InventoryEditForm(ModelForm):
             'disabled': 'disabled'
         })
     )
-    pump = forms.ModelChoiceField(
-        queryset=Pump.objects.none(),
-        widget=forms.Select(attrs={
-            'class': 'form-select',
-            'id': 'select-pump',
-            'disabled': 'disabled'
-        })
-    )
-
     class Meta:
         model = Inventory  
         fields = ["well_number", "district", "address", "disassembly_depth",
@@ -140,7 +135,7 @@ class InventoryEditForm(ModelForm):
                   "engine", "pump", "flow", "comment"]
         widgets = {
             "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
-            "district": forms.Select(attrs={'class': 'form-select','id': 'select-district'}),
+            "district": forms.Select(attrs={'class': 'form-select'}),
             "address": forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Adres', 'rows': "2"}),
             "disassembly_depth": forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Demontaj Derinliği'}),
             "mounting_depth": forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Montaj Derinliği'}),
@@ -157,9 +152,6 @@ class InventoryEditForm(ModelForm):
             if self.instance.engine:
                 self.fields['engine'].queryset = Engine.objects.filter(pk=self.instance.engine.pk)
                 self.fields['engine'].initial = self.instance.engine
-            if self.instance.pump:
-                self.fields['pump'].queryset = Pump.objects.filter(pk=self.instance.pump.pk)
-                self.fields['pump'].initial = self.instance.pump
 
 class EngineChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):

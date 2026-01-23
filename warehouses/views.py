@@ -242,11 +242,16 @@ def inventory_edit(request, pk):
             messages.success(request, "Kuyu bilgileri güncellendi.")
             return redirect('inventory')
         else:
+            print(form.data)
             messages.warning(request, form.errors.as_ul())
     else:
         form = InventoryEditForm(instance=inventory)
 
-    return render(request, 'new_inventory.html', {'form': form})
+    return render(request, 'new_inventory.html', {
+        'form': form,
+        'pump_list': Pump.objects.all(),
+        'selected_pump': inventory.pump
+    })
 
 def add_inventory(request):
     if request.method == 'POST':

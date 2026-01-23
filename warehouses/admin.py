@@ -20,9 +20,14 @@ class EngineAdmin(admin.ModelAdmin):
     list_display = ( 'engine_type','engine_power','engine_mark','serialnumber','location')
     list_filter = ('engine_power', 'engine_type','location')
     search_fields = ( 'serialnumber',)
+
+class InventoryAdmin(admin.ModelAdmin):
+    list_display = ( 'well_number','get_district_display','address','engine','pump')
+    list_filter = ( 'engine__location',)
+    search_fields = ( 'engine',)
     
 admin.site.register(Pump)
-admin.site.register(Inventory)
+admin.site.register(Inventory,InventoryAdmin)
 admin.site.register(Engine,EngineAdmin)
 admin.site.register(Seconhand, SeconhandAdmin)
 admin.site.register(Repair, RepairAdmin)

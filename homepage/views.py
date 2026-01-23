@@ -273,7 +273,7 @@ def load_inventory_from_csv(file, request):
 
         engine = parse_engine(cols[8], cols[10], cols[9], cols[11], "1")
         pump = parse_pump(cols[12], cols[13])
-
+        
         Inventory.objects.create(
             well_number=well_no,
             district=cols[1],
