@@ -50,7 +50,7 @@
                                     <i class="bx bx-dots-vertical-rounded"></i>
                                     </button>
                                     <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="{% url 'register_edit' item.id %}"><i class="bx bx-edit-alt me-1"></i> Düzenle</a>
+                                    <a class="dropdown-item" href="{% url 'update_user' item.id %}"><i class="bx bx-edit-alt me-1"></i> Düzenle</a>
                                     <a class="dropdown-item" href="{% url 'update_password' item.username %}"><i class="bx bx-key me-1"></i> Şifreyi değiştir</a>
                                     <a class="dropdown-item delete" href="#delete" data-id='{{ item.id }}' ><i class="bx bx-trash me-1"></i> Sil</a>
                                   </div>  

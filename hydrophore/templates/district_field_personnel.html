@@ -35,7 +35,7 @@
                             <h5 class="modal-title">Yeni Personel Ekle</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-                        <form id="personnelForm" method="POST">
+                        <form id="personnelForm"  method="POST">
                             {% csrf_token %}
                             <div class="modal-body">
                                 <div class="row g-2">
@@ -200,8 +200,8 @@ document.addEventListener("DOMContentLoaded", function() {
         button.addEventListener('click', function() {
             const itemId = this.getAttribute('data-id');
 
-            // Form action'ını dinamik olarak set et
-            form.action = `/district_field_personnel/${itemId}/`;  // URL yapınıza göre değiştir
+            // Form action'ını dinamik olarak set et (Düzenleme işlemi)
+            form.action = `/saha_personeli_düzenle/${itemId}/`;  // URL yapınıza göre değiştir
 
             // Modal başlığını değiştir
             modal.querySelector('.modal-title').innerText = "Personel Düzenle";
@@ -217,13 +217,13 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // "Yeni Ekle" butonunu temiz form için hazırla
+    // "Yeni Ekle" butonuna tıklandığında formu sıfırlayın
     document.querySelector('[data-bs-target="#largeModal"]').addEventListener('click', function() {
         if (!this.classList.contains('open-edit-modal')) {
             // Modal başlığını resetle
             modal.querySelector('.modal-title').innerText = "Yeni Personel Ekle";
 
-            // Form action boş veya create URL'si
+            // Form action'ı yeni kayıt için ayarla
             form.action = "{% url 'district_field_personnel' %}";
 
             // Alanları temizle
@@ -231,9 +231,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (input.type === 'checkbox') input.checked = false;
                 else input.value = '';
             });
+            // Yeni CSRF token'ını form'a ekleyin
+            const csrfTokenInput = form.querySelector('[name="csrfmiddlewaretoken"]');
+            if (csrfTokenInput) {
+                csrfTokenInput.value = '{{ csrf_token }}';  // CSRF token'ını yenile
+            }
         }
     });
 });
+
 </script>
 
 {% endblock content %}

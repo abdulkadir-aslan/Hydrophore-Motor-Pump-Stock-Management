@@ -85,16 +85,6 @@ def userDelete(request):
 
 @login_required(login_url="login")
 @administrator
-def userEdit(request, myid):
-    user = get_object_or_404(User, id=myid)
-    context = {
-        'sel_item': user,
-        'users': get_user_model().objects.all()
-    }
-    return render(request, 'page/register_edit.html', context)
-
-@login_required(login_url="login")
-@administrator
 def updateUser(request, myid):
     user = get_object_or_404(User, id=myid)
     if request.method == "POST":
@@ -107,6 +97,10 @@ def updateUser(request, myid):
                 user = form.save()
                 messages.success(request, f'*{user.username}* kullanıcısına ait bilgiler güncellendi.')
                 return redirect('users_home')
+        else:
+            messages.warning(
+            request,
+            f"Formda hatalar var. Lütfen kontrol edin: {form.errors.as_ul()}")
     else:
         form = SignUpEditForm(instance=user)
     return render(request, "page/register_edit.html", context={'form': form, 'sel_item': user})

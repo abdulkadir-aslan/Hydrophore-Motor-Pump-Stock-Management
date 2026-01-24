@@ -15,10 +15,8 @@ from django.db.models.functions import Cast, Substr
 
 
 @login_required(login_url="login")
-@administrator
 def index(request):
     return render(request, "index.html")
-
 
 # -------------------------------------------------
 # GENEL YARDIMCI FONKSİYONLAR

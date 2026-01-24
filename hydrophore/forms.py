@@ -100,7 +100,7 @@ class DistrictFieldPersonnelForm(ModelForm):
                 attrs={'class': 'form-check-input'}
             ),
         }
-
+        
 class OutboundWorkOrderForm(ModelForm):
     class Meta:
         model = OutboundWorkOrder

@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
 from .models import Hydrophore,PumpType,Power,OutboundWorkOrder,RepairReturn,WorkshopExit,DistrictFieldPersonnel
 from .forms import PumpTypeForm,RepairReturnForm,PowerForm,HydrophoreForm,OutboundWorkOrderForm,DistrictFieldPersonnelForm,WorkshopExitForm
-from warehouses.views import handle_deletion,paginate_items,IntegrityError,get_object_or_404,transaction
+from warehouses.views import handle_deletion,paginate_items,IntegrityError,get_object_or_404,transaction,create_workshop_exit_slip
 from .filters import HydrophoreFilter,HydrophoreAllFilter,OutboundWorkOrderFilter
 from django.contrib import messages
 from django.http import JsonResponse
@@ -111,9 +111,7 @@ def hydrophore_edit(request, pk):
 def district_field_personnel(request, id=None):
     items = DistrictFieldPersonnel.objects.all().order_by('-id')
     page_obj = paginate_items(request, items)
-
     instance = get_object_or_404(DistrictFieldPersonnel, id=id) if id else None
-
     form = DistrictFieldPersonnelForm(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -185,6 +183,7 @@ def new_outbound_work_order(request, id):
                     hydrophore.neighborhood = order.neighborhood
                     order.status = "passive"
                     order.save()
+                    create_workshop_exit_slip("hydrophore",order)
                     hydrophore.save()
                     messages.success(request, f"İş Emri Kapandı.")
                     return redirect("outbound_work_order")
@@ -200,8 +199,8 @@ def new_outbound_work_order(request, id):
                     hydrophore.neighborhood = order.neighborhood
                     disassembled.location = "2"
                     disassembled.save()
-
-                    order.save()  
+                    order.save()
+                    create_workshop_exit_slip("hydrophore",order)
                     WorkshopExit.objects.create(
                         hydrophore=disassembled,
                         outbound_work_order=order,
@@ -255,6 +254,7 @@ def outbound_work_order_edit(request,pk):
                     order.status = "passive"
                     order.save()
                     mounted.save()
+                    create_workshop_exit_slip("hydrophore",order)
                     messages.success(request, f"İş Emri Kapandı.")
                     return redirect("outbound_work_order")
                 

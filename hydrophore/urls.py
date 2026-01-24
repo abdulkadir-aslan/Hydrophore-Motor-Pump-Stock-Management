@@ -19,7 +19,7 @@ urlpatterns = [
     path('ajax/search_hydrophore/', search_hydrophore, name='search_hydrophore'),
     path('ajax/personel_getir/', get_personnel_by_district, name='get_personnel_by_district'),
     path("saha_personeli/", district_field_personnel, name="district_field_personnel"),
-    path("saha_personeli/<int:id>/", district_field_personnel, name="district_field_personnel_edit"),  # edit
+    path("saha_personeli_düzenle/<int:id>/", district_field_personnel, name="district_field_personnel_edit"),  # edit
     path("saha_personeli_sil/<int:id>/", district_field_personnel_delete, name="district_field_personnel_delete"),
 
     # Çıkış İş Emri

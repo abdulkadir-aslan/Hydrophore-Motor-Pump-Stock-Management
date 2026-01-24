@@ -364,7 +364,7 @@ class WorkshopExitSlip(models.Model):
     class Meta:
         verbose_name = "Tüm Atölye Çıkış Fişi"
         verbose_name_plural = "Tüm Atölye Çıkış Fişleri"
-        ordering = ("date",)
+        ordering = ("-date","-slip_no")
 
     def __str__(self):
         return f"{self.slip_no} - {self.well_no}"

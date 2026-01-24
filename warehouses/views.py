@@ -599,6 +599,7 @@ def create_repair_if_needed(request, order):
     order.status = "passive"
     inventory.save()
     order.save()
+    create_workshop_exit_slip("diver",order)
     messages.success(request, "İş Emri Kapandı.")
     Repair.objects.create(**repair_data)
     return redirect("order_page")
@@ -773,3 +774,46 @@ def workshop_exit_slip_delete(request, id):
         error_message="İş emri bulunamadı.",
         protected_error_message="{} silinemiyor, ilişkili kayıtlar var."
     )
+
+def create_workshop_exit_slip(modalname, modal):
+    if modalname == 'hydrophore':
+        workshop_exit_slip = WorkshopExitSlip.objects.create(
+            date=modal.dispatch_date,
+            slip_no=modal.dispatch_slip_number,
+            well_no="",
+            district=modal.get_district_display(),
+            address=modal.neighborhood,
+            motor_type="HİDROFOR",
+            hydrofor_no=modal.mounted_hydrophore.serial_number if modal.mounted_hydrophore else None,
+            brand=modal.mounted_hydrophore.engine_brand if modal.mounted_hydrophore else None,
+            power=modal.mounted_hydrophore.engine_power if modal.mounted_hydrophore else None,
+            pump_type=modal.mounted_hydrophore.pump_type if modal.mounted_hydrophore else None,
+            pump_brand="",
+            submersible=None,
+            motor=None,
+            pump=None,
+            hydrofor="1",
+            overall_status="",
+        )
+
+    elif modalname == 'diver':
+        workshop_exit_slip = WorkshopExitSlip.objects.create(
+            date=modal.outlet_plug_date,
+            slip_no=modal.outlet_plug,
+            well_no=modal.inventory.well_number,
+            district=modal.inventory.get_district_display(),
+            address=modal.inventory.address,
+            motor_type=modal.mounted_engine.get_engine_type_display() if modal.mounted_engine else None,
+            hydrofor_no=modal.mounted_engine.serialnumber if modal.mounted_engine else None,
+            brand=modal.mounted_engine.engine_mark if modal.mounted_engine else None,
+            power=modal.mounted_engine.engine_power if modal.mounted_engine else None,
+            pump_type=modal.mounted_pump.pump_type if modal.mounted_pump else None,
+            pump_brand=modal.mounted_pump.pump_mark if modal.mounted_pump else None,
+            submersible="1" if modal.mounted_engine and modal.mounted_pump else None,
+            motor="2.EL-"+modal.engine_info if modal.engine_info else None,
+            pump="2.EL-"+modal.pump_info if modal.pump_info else None,
+            hydrofor=None,
+            overall_status=modal.comment,
+        )
+
+    return
