@@ -30,7 +30,7 @@
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                            {% for item in unusable %}
+                            {% for item in items %}
                                 <tr>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
                                     <td>{{ item.well_number }}</td>

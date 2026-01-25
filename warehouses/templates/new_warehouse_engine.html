@@ -17,6 +17,37 @@
           <a class="nav-link "  href="{% url 'new_warehouse_pump' %}"><i class="bx bx-add-to-queue me-1"></i> Pompa</a>
         </li>
       </ul>
+      <!--=== Filtreleme === -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <div class="col-md-2">
+                        {{ filter.form.engine_type.label_tag }}
+                        {{ filter.form.engine_type }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.engine_power.label_tag }}
+                        {{ filter.form.engine_power }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.engine_mark.label_tag }}
+                        {{ filter.form.engine_mark }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter.form.serialnumber.label_tag }}
+                        {{ filter.form.serialnumber }}
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#largeModal">
@@ -98,11 +129,14 @@
                       </td>
                       <td>{{item.comment}}</td>
                       <td>
-                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id  %}">
+                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
                             <i class='tf-icons bx bx-edit'></i>
                         </button>
-                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'new_warehouse_engine_delete' item.id %}">
-                                <i class='tf-icons bx bx-trash'></i>
+                        <button
+                          title="sil"
+                          class="btn btn-icon btn-outline-danger delete btn-flat"
+                          data-href="{% url 'engine_delete' item.id %}?next={{ request.get_full_path }}">
+                            <i class='tf-icons bx bx-trash'></i>
                         </button>
                       </td>
                     </tr>
@@ -115,37 +149,58 @@
                     <div class="col-sm-12 col-md-5">
                         <div class="container-fluid">
                             <a class="navbar-brand mb-0 h1">
-                                {{ fuel.paginator.count }} Kayıttan {{ fuel.number|to_start|add:1 }}- 
-                                {% widthratio fuel.number 1 10 %} arası
+                                {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
                             </a>
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-7">
                         <ul class="pagination justify-content-end px-4">
-                            {% if fuel.has_previous %}
+                            {% if items.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?{{ query_string }}&page={{ fuel.previous_page_number }}">
+                                    <a class="page-link" href="?{{ query_string }}&page=1">
+                                        İlk
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
                                         ← Önceki
                                     </a>
                                 </li>
                             {% endif %}
 
-                            {% for page_number in fuel.adjusted_elided_pages %}
-                                {% if page_number == fuel.paginator.ELLIPSIS %}
-                                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                                {% else %}
-                                    <li class="page-item {% if page_number == fuel.number %}active{% endif %}">
+                            {% for page_number in items.paginator.page_range %}
+                                {% if page_number == items.number %}
+                                    <li class="page-item active">
                                         <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
                                             {{ page_number }}
                                         </a>
                                     </li>
+                                {% elif page_number > items.number|add:-3 and page_number < items.number|add:3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number == items.paginator.ELLIPSIS %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
                                 {% endif %}
                             {% endfor %}
 
-                            {% if fuel.has_next %}
+                            {% if items.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?{{ query_string }}&page={{ fuel.next_page_number }}">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
                                         Sonraki →
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.paginator.num_pages }}">
+                                        Son
                                     </a>
                                 </li>
                             {% endif %}

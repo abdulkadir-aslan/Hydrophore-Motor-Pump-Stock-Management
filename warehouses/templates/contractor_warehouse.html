@@ -91,11 +91,14 @@
                             </td>
                             <td>{{item.comment}}</td>
                             <td>
-                                <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id  %}">
+                                <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
                                     <i class='tf-icons bx bx-edit'></i>
                                 </button>
-                                <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'new_warehouse_engine_delete' item.id %}">
-                                        <i class='tf-icons bx bx-trash'></i>
+                                <button
+                                title="sil"
+                                class="btn btn-icon btn-outline-danger delete btn-flat"
+                                data-href="{% url 'engine_delete' item.id %}?next={{ request.get_full_path }}">
+                                    <i class='tf-icons bx bx-trash'></i>
                                 </button>
                             </td>
                             </tr>
@@ -158,7 +161,21 @@
 </div>
 
 <script>
-    
+document.querySelectorAll('.edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const editUrl = button.getAttribute('data-href');
+            window.location.href = editUrl; 
+        });
+    });
+document.querySelectorAll('.delete').forEach(button => {
+button.addEventListener('click', function() {
+    const deleteUrl = button.getAttribute('data-href');
+      if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+        window.location.href = deleteUrl;  
+    }
+});
+});
+
 $(document).ready(function () {
     function initSelect2(context = document) {
         $(context).find('select.select2').each(function () {

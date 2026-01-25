@@ -36,6 +36,41 @@
             </div>
         </div>
         <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <!-- Kuyu Numarası Filtreleme -->
+                    <div class="col-md-2">
+                        {{ filter.form.well_number.label_tag }}
+                        {{ filter.form.well_number }}
+                    </div>
+
+                    <!-- Montaj Edilen Motor Filtreleme -->
+                    <div class="col-md-3">
+                        {{ filter.form.serial_number.label_tag }}
+                        {{ filter.form.serial_number }}
+                    </div>
+
+                    <!-- Demontaj Edilen Motor Filtreleme -->
+                    <div class="col-md-3">
+                        {{ filter.form.outlet_plug_date_start.label_tag }}
+                        {{ filter.form.outlet_plug_date_start }}
+                    </div>
+
+                    <!-- Çıkış Fişi Başlangıç Tarihi -->
+                    <div class="col-md-3">
+                        {{ filter.form.outlet_plug_date_end.label_tag }}
+                        {{ filter.form.outlet_plug_date_end }}
+                    </div>
+
+                    <!-- Filtrele Butonu -->
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <hr>
             <div class="table-responsive text-nowrap">
                 <div class="container">
                     <table class="table table-striped mt32 customers-list">
@@ -58,7 +93,7 @@
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
-                            {% for item in order %}
+                            {% for item in items %}
                                 <tr>
                                     <td>
                                         <a class='btn btn-icon btn-outline-success  btn-flat' href="{% url 'order_edit' item.id  %}">
@@ -78,8 +113,20 @@
                                     <td>{{ item.inventory.well_number }}</td>
                                     <td>{{ item.inventory.district|upper }}</td>
                                     <td>{{item.inventory.address}}</td>
-                                    <td>{{item.mounted_engine}}</td>
-                                    <td>{{item.mounted_pump}}</td>
+                                    <td>
+                                        {% if item.engine_info %}
+                                        {{item.engine_info}}-{{item.mounted_engine}}
+                                        {% else %}
+                                        {{item.mounted_engine}}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.pump_info %}
+                                        {{item.pump_info}}-{{item.mounted_pump}}
+                                        {% else %}
+                                        {{item.mounted_pump}}
+                                        {% endif %}
+                                    </td>
                                     <td>{{item.disassembled_engine}}</td>
                                     <td>{{item.disassembled_pump}}</td>
                                     <td>{{item.entrance_plug}}</td>
@@ -89,6 +136,55 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    <nav aria-label="Page navigation example">
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="container-fluid">
+                                    <a class="navbar-brand mb-0 h1">
+                                        {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <ul class="pagination justify-content-end px-4">
+                                    {% if items.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                                ← Önceki
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_number in items.paginator.page_range %}
+                                        {% if page_number == items.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% elif page_number == items.paginator.ELLIPSIS %}
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if items.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                                Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
                 </div>
             </div>
         </div>

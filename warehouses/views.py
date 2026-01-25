@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from django.db import transaction
 from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
-from .filters import InventoryFilter,EngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
+from .filters import InventoryFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
 from .forms import *
 
 def handle_deletion(request, model, object_id, redirect_url, success_message, error_message, protected_error_message):
@@ -90,16 +90,18 @@ def powerDelete(request, myid):
     )
 
 def engineDelete(request, myid):
+    redirect_url = request.GET.get('next', 'engine_homepage')
+
     return handle_deletion(
         request,
         Engine,
         myid,
-        'engine_homepage',
+        redirect_url,
         "*{0}* Motor kaydı başarıyla silindi.",
         "Motor kaydı bulunamadı.",
         "*{0}* Motor kaydı başka bir tabloda kullanılıyor, silinemez."
     )
-
+    
 def engine_homepage(request):
     # Tüm motorlar
     engine_list = Engine.objects.all().order_by("-id")
@@ -137,15 +139,29 @@ def engine_homepage(request):
 
 def engine_edit(request, pk):
     engine = get_object_or_404(Engine, pk=pk)
+
+    # next'i al
+    next_url = request.GET.get('next')
+
     if request.method == 'POST':
         form = EngineForm(request.POST, instance=engine)
+
+        # POST'tan tekrar al
+        next_url = request.POST.get('next')
+
         if form.is_valid():
             form.save()
-            messages.success(request, f"Motor bilgileri güncellendi.")
-            return redirect('engine_homepage')
+            messages.success(request, "Motor bilgileri güncellendi.")
+            return redirect(next_url or 'engine_homepage')
+        else:
+            messages.warning(request, form.errors.as_ul())
     else:
         form = EngineForm(instance=engine)
-    return render(request, 'new_engine.html', {'form': form})
+
+    return render(request, 'new_engine.html', {
+        'form': form,
+        'next': next_url
+    })
 
 def newPump(request):
     if request.method == "POST":
@@ -242,7 +258,6 @@ def inventory_edit(request, pk):
             messages.success(request, "Kuyu bilgileri güncellendi.")
             return redirect('inventory')
         else:
-            print(form.data)
             messages.warning(request, form.errors.as_ul())
     else:
         form = InventoryEditForm(instance=inventory)
@@ -450,6 +465,7 @@ def contractor_warehouse(request):
     return render(request, "contractor_warehouse.html",contex)
 
 def unusable(request):
+    
     context = {
         'unusable' : Unusable.objects.all()
     }
@@ -467,32 +483,19 @@ def new_warehouse_engine(request):
     else:
         form = EngineForm()
         
-    engine_list = Engine.objects.filter(location="5").order_by("-id")
-    paginator = Paginator(engine_list, 10)  
-    page_number = request.GET.get('page')  
-    page_obj = paginator.get_page(page_number)
-
-    query_string = request.GET.urlencode()
-
+    queryset = Engine.objects.filter(location="5").order_by("-id")
+    engine_filter = GeneralEngineFilter(request.GET, queryset=queryset)
+    filtered_qs = engine_filter.qs
+    page_obj = paginate_items(request, filtered_qs)
+    
     context = {
-        'total': engine_list.count(),
+        'filter': engine_filter,
+        'total': filtered_qs.count(),
         'items': page_obj,  
-        'fuel': page_obj,   
-        'query_string': query_string,
+        'query_string': request.GET.urlencode(),
         'form' : form
     }
     return render(request, "new_warehouse_engine.html",context)
-
-def new_warehouse_engine_delete(request, id):
-    return handle_deletion(
-        request,
-        Engine,
-        id,
-        'new_warehouse_engine',
-        "*{0}* Motor kaydı başarıyla silindi.",
-        "Motor kaydı bulunamadı.",
-        "*{0}* Motor kaydı başka bir tabloda kullanılıyor, silinemez."
-    )
 
 def new_warehouse_pump(request):
     if request.method == "POST":
@@ -652,20 +655,14 @@ def new_order(request, id):
     })
 
 def all_order_page(request):
-    # Başlangıçta tüm siparişleri alıyoruz
-    order_list = Order.objects.filter(status="passive").select_related('inventory').order_by("-id")
-    
-    # Filtreleme işlemi
-    order_filter = OrderFilter(request.GET, queryset=order_list)
-    filtered_order_list = order_filter.qs
+    queryset = Order.objects.filter(status="passive").select_related('inventory').order_by("-id")
 
-    # Sayfalama işlemi
-    paginator = Paginator(filtered_order_list, 10)  # 10 öğe per sayfa
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    order_filter = OrderFilter(request.GET, queryset=queryset)
+    filtered_qs = order_filter.qs
 
+    page_obj = paginate_items(request, filtered_qs)
     context = {
-        'total': filtered_order_list.count(),
+        'total': filtered_qs.count(),
         'items': page_obj,
         'query_string': request.GET.urlencode(),
         'filter': order_filter,
@@ -687,8 +684,18 @@ def order_page(request):
                 messages.warning(request, "Bu kuyu numarası bulunamadı.")
                 return redirect("order_page")
 
+        queryset = Order.objects.filter(status="passive").select_related('inventory').order_by("-id")
+
+    queryset = Order.objects.filter(status="active").select_related('inventory')
+    order_filter = OrderFilter(request.GET, queryset=queryset)
+    filtered_qs = order_filter.qs
+
+    page_obj = paginate_items(request, filtered_qs)
     context = {
-        'order': Order.objects.filter(status="active").select_related('inventory')
+        'total': filtered_qs.count(),
+        'items': page_obj,
+        'query_string': request.GET.urlencode(),
+        'filter': order_filter,
     }
     return render(request, "order_page.html", context)
 
@@ -709,15 +716,22 @@ def order_edit(request, id):
     return render(request, 'order_edit.html', {'form': form,'order':order})
 
 def order_delete(request, id):
-    return handle_deletion(
-        request=request,
-        model=Order,
-        object_id=id,
-        redirect_url="order_page",
-        success_message="{} Kuyusu için iş emri başarıyla silindi.",
-        error_message="İş emri bulunamadı.",
-        protected_error_message="{} silinemiyor, ilişkili kayıtlar var."
-    )
+    try:
+        return handle_deletion(
+            request=request,
+            model=Order,
+            object_id=id,
+            redirect_url="order_page",
+            success_message="{} Kuyusu için iş emri başarıyla silindi.",
+            error_message="İş emri bulunamadı.",
+            protected_error_message="{} silinemiyor, ilişkili kayıtlar var."
+        )
+    except Order.DoesNotExist:
+        messages.warning(request, "İş Emri kaydı bulunamadı.")
+    except ValueError as e:
+        messages.warning(request, str(e))
+        
+    return redirect('order_page')
 
 def workshop_exit_slip(request):
     order_list = WorkshopExitSlip.objects.all()

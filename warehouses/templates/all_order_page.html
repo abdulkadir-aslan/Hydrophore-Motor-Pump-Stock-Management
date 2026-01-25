@@ -83,8 +83,20 @@
                                     <td>{{ item.inventory.well_number }}</td>
                                     <td>{{ item.inventory.district|upper }}</td>
                                     <td>{{item.inventory.address}}</td>
-                                    <td>{{item.mounted_engine}}</td>
-                                    <td>{{item.mounted_pump}}</td>
+                                    <td>
+                                        {% if item.engine_info %}
+                                        {{item.engine_info}}-{{item.mounted_engine}}
+                                        {% else %}
+                                        {{item.mounted_engine}}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.pump_info %}
+                                        {{item.pump_info}}-{{item.mounted_pump}}
+                                        {% else %}
+                                        {{item.mounted_pump}}
+                                        {% endif %}
+                                    </td>
                                     <td>{{item.disassembled_engine}}</td>
                                     <td>{{item.disassembled_pump}}</td>
                                     <td>{{item.entrance_plug}}</td>

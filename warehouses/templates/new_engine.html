@@ -26,6 +26,7 @@
             <div class="card-body">
               <form id="formAuthentication"  class="mb-3" method="POST">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
                 <div class="row">
                     <div class="mb-3 col-md-6">
                         <label for="exampleFormControlSelect1" {% if form.engine_type.errors %} style="color:#ff3e1d ;" {% endif %} class="form-label">Motor Tipi</label>
@@ -55,7 +56,7 @@
                 <br>
                 <div class=" justify-content-end mb-3 ">
                   <div class="col-sm-12">
-                      <a href="{% url 'engine_homepage' %}" class="btn btn-secondary" >
+                      <a href="{{ next|default:'{% url "engine_homepage" %}' }}" class="btn btn-secondary" >
                           Vazgeç
                       </a>
                       <button type="submit" class="btn btn-primary" >

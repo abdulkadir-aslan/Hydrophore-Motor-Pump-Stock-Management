@@ -79,7 +79,7 @@
                 {% if request.resolver_match.url_name in 'inventory_edit' %}
                   <div class="col-md-1 mb-3">
                     <label for="pump" class="form-label">Düzenle</label>
-                    <a class="btn btn-success" title="Motor değerini düzenle." href="{% url 'engine_edit' form.engine.value  %}"><i class="bx bx-add-to-queue me-1"></i> </a>
+                    <a class="btn btn-success" title="Motor değerini düzenle." href="{% url 'engine_edit' form.engine.value %}?next={{ request.get_full_path }}"><i class="bx bx-add-to-queue me-1"></i> </a>
                   </div>
                 {% endif %}
 

@@ -38,11 +38,10 @@ urlpatterns = [
     path("müteahhit_deposu/", contractor_warehouse, name="contractor_warehouse"),
 
     # Kullanılamaz
-    path("kullanilamaz/", unusable, name="unusable"),
+    path("pert_depo/", unusable, name="unusable"),
 
     # Yeni Depo Sayfası
     path("yeni_depo_motor/", new_warehouse_engine, name="new_warehouse_engine"),
-    path("yeni_depo_motor_sil/<int:id>/", new_warehouse_engine_delete, name="new_warehouse_engine_delete"),
     path("yeni_depo_pompa_sil/<int:id>/", new_warehouse_pump_delete, name="new_warehouse_pump_delete"),
     path("yeni_depo_pompa/", new_warehouse_pump, name="new_warehouse_pump"),
 

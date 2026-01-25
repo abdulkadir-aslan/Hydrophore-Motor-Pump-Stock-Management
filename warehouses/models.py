@@ -4,6 +4,7 @@ from django.db.models.functions import Substr, Cast
 from django.db import models, transaction
 from django.utils import timezone
 
+
 ENGINE_TYPE = (
     ("1", "3′"),
     ("2", "4′"),
@@ -293,44 +294,61 @@ class Order(models.Model):
     
     def delete(self, *args, **kwargs):
         with transaction.atomic():
+
+            # ---------- ENGINE ----------
             if self.mounted_engine:
                 engine = self.mounted_engine
 
                 if self.engine_info:
-                    seconhand = Seconhand.objects.get(
+                    seconhand = Seconhand.objects.select_for_update().get(
                         row_identifier=self.engine_info
                     )
 
-                    if seconhand:
-                        seconhand.engine = engine
-                        seconhand.save()
+                    # ❗ DOLUysa hata
+                    if seconhand.engine is not None:
+                        raise ValueError(
+                            f"{self.engine_info} Bu ikinci el kaydında motor tanımlı olduğundan dolayı iş emri silinemiyor."
+                        )
+
+                    # BOŞSA ata
+                    seconhand.engine = engine
+                    seconhand.save()
 
                     engine.location = "3"
                 else:
                     engine.location = "5"
 
                 engine.save()
-                
+
+            # ---------- PUMP ----------
             if self.mounted_pump:
                 pump = self.mounted_pump
 
                 if self.pump_info:
-                    seconhand = Seconhand.objects.get(
+                    seconhand = Seconhand.objects.select_for_update().get(
                         row_identifier=self.pump_info
                     )
 
-                    if seconhand:
-                        seconhand.pump = pump
-                        seconhand.save()
+                    # ❗ DOLUysa hata
+                    if seconhand.pump is not None:
+                        raise ValueError(
+                            f"{self.pump_info} Bu ikinci el kaydında pompa tanımlı olduğundan dolayı iş emri silinemiyor."
+                        )
+
+                    # BOŞSA ata
+                    seconhand.pump = pump
+                    seconhand.save()
+
                 else:
-                    warehouse_pump = NewWarehousePump.objects.get(
+                    warehouse_pump = NewWarehousePump.objects.select_for_update().get(
                         pump=pump
                     )
                     warehouse_pump.quantity += 1
                     warehouse_pump.save()
 
+            # ---------- ASIL SILME ----------
             super().delete(*args, **kwargs)
-    
+        
     class Meta:
         verbose_name = "İş Emri"
         verbose_name_plural = "İş Emirleri"

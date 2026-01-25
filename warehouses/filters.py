@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Inventory,Engine,LOCATION,Pump,Order,Seconhand,WorkshopExitSlip
+from .models import Inventory,Engine,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
 
 class InventoryFilter(django_filters.FilterSet):
 
@@ -80,7 +80,51 @@ class EngineFilter(django_filters.FilterSet):
     class Meta:
         model = Engine
         fields = ['serialnumber', 'engine_power', 'location']
-        
+
+class GeneralEngineFilter(django_filters.FilterSet):
+    serialnumber = django_filters.CharFilter(
+        field_name='serialnumber',
+        lookup_expr='iexact',
+        label='Seri Numarası',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Motor seri numarası'
+        })
+    )
+
+    engine_power = django_filters.NumberFilter(
+        field_name='engine_power__engine_power',
+        lookup_expr='exact',
+        label='Motor Gücü',
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Motor gücü'
+        })
+    )
+    
+    engine_mark = django_filters.CharFilter(
+        field_name='engine_mark__engine_mark',
+        lookup_expr='iexact',
+        label='Marka',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Motor markası'
+        })
+    )
+
+    engine_type = django_filters.ChoiceFilter(
+        field_name='engine_type',
+        choices=ENGINE_TYPE,
+        label='Motor Tipi',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
+
+    class Meta:
+        model = Engine
+        fields = ['serialnumber', 'engine_mark','engine_power', 'engine_type']
+
 class PumpFilter(django_filters.FilterSet):
 
     pump_type = django_filters.CharFilter(
