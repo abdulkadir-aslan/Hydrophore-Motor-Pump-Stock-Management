@@ -43,7 +43,7 @@ urlpatterns = [
 
     # Depolar
     path("atolye_depo/", workshop_stock, name="workshop_stock"),
-    path("tamir_depo/", repair_stock, name="repair_stock"),
+    path("hidrofor_tamir_depo/", repair_stock, name="repair_stock"),
     path("tamir_listesi/", repair_list, name="repair_list"),
     path("arazi_depo/", field_stock, name="field_stock"),
     path("elektrik_depo/", electrical_stock, name="electrical_stock"),

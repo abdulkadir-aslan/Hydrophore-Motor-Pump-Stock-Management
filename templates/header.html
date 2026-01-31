@@ -115,7 +115,7 @@
                 <div data-i18n="Basic">Pompa</div>
               </a>
             </li>
-            <li class="menu-item {% if url_name == 'inventory' or url_name == 'repair_edit' or url_name == 'new_warehouse_pump' or url_name == 'repair' or url_name == 'seconhand' or url_name == 'new_warehouse_engine' or url_name == 'unusable' or url_name == 'contractor_warehouse' %}active open {% endif %}">
+            <li class="menu-item {% if url_name == 'inventory' or url_name == 'warehouses_repair' or url_name == 'new_warehouse_pump' or url_name == 'repair' or url_name == 'seconhand' or url_name == 'new_warehouse_engine' or url_name == 'unusable' or url_name == 'contractor_warehouse' %}active open {% endif %}">
               <a href="#" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-copy"></i>
                 <div data-i18n="Extended UI">Depolar</div>
@@ -126,8 +126,8 @@
                     <div data-i18n="Perfect Scrollbar">Kuyu Depo</div>
                   </a>
                 </li>
-                <li class="menu-item {% if url_name == 'repair' or url_name == 'repair_edit'  %}active {% endif %}">
-                  <a href="{% url 'repair' %}" class="menu-link">
+                <li class="menu-item {% if url_name == 'warehouses_repair' %}active {% endif %}">
+                  <a href="{% url 'warehouses_repair' %}" class="menu-link">
                     <div data-i18n="Text Divider">Tamir Depo</div>
                   </a>
                 </li>
@@ -153,7 +153,7 @@
                 </li>
               </ul>
             </li>
-            <li class="menu-item {% if url_name == 'order_page' or url_name == 'new_order' or url_name == 'all_order_page'%}active open {% endif %}">
+            <li class="menu-item {% if url_name == 'order_page' or url_name == 'engine_repair' or url_name == 'repair_edit' or url_name == 'engine_all_repair' or url_name == 'repair' or url_name == 'new_order' or url_name == 'all_order_page'%}active open {% endif %}">
               <a href="#" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-copy"></i>
                 <div data-i18n="Extended UI">İş Emirleri</div>
@@ -162,6 +162,11 @@
                 <li class="menu-item {% if url_name == 'order_page' or url_name == 'new_order'  or url_name == 'all_order_page' %}active {% endif %}">
                   <a href="{% url 'order_page' %}" class="menu-link">
                     <div data-i18n="Perfect Scrollbar">Çıkış İş Emri</div>
+                  </a>
+                </li>
+                <li class="menu-item {% if url_name == 'engine_repair' or url_name == 'repair_edit' or url_name == 'engine_all_repair' %}active {% endif %}">
+                  <a href="{% url 'engine_repair' %}" class="menu-link">
+                    <div data-i18n="Perfect Scrollbar">Tamirden Gelen İş Emri</div>
                   </a>
                 </li>
               </ul>

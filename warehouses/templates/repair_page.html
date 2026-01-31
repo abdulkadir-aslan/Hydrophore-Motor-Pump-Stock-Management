@@ -10,6 +10,12 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4">
             <li class="nav-item me-2">
             </li>
+            <li class="nav-item me-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'engine_repair' %} active {% endif %}"  href="{% url 'engine_repair' %}"><i class="bx bx-add-to-queue me-1"></i> Aktif Tamir İş Emirleri </a>
+            </li>
+            <li class="nav-item me-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'engine_all_repair' %} active {% endif %}"  href="{% url 'engine_all_repair' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan Tamir İş Emirleri </a>
+            </li>
         </ul>
         <div class="card">
             <div class="table-responsive text-nowrap">
@@ -17,26 +23,41 @@
                     <table class="table table-striped mt32 customers-list">
                         <thead>
                             <tr>
-                                <th></th>
+                                {% if request.resolver_match.url_name == 'engine_repair' %}
+                                    <th></th>
+                                {% endif %}
                                 <th>#</th>
                                 <th>Kuyu No</th>
                                 <th>Motor</th>
                                 <th>Pompa</th>
+                                {% if request.resolver_match.url_name == 'engine_all_repair' %}
+                                    <th>Motor Giden Depo</th>
+                                    <th>Pompa Giden Depo</th>
+                                {% endif %}
                                 <th>Tarih</th>
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
                             {% for item in items %}
                                 <tr>
-                                    <td>
-                                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'repair_edit' item.id  %}">
-                                            <i class='tf-icons bx bx-edit'></i>
-                                        </button>
-                                    </td>
+                                    {% if request.resolver_match.url_name == 'engine_repair' %}
+                                        <td>
+                                            <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'repair_delete' item.id %}">
+                                                <i class='tf-icons bx bx-trash'></i>
+                                            </button>
+                                            <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'repair_edit' item.id  %}">
+                                                <i class='tf-icons bx bx-edit'></i>
+                                            </button>
+                                        </td>
+                                    {% endif %}
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
-                                    <td>{{ item.well_number }}</td>
+                                    <td>{{ item.order.inventory }}</td>
                                     <td>{{ item.engine }}</td>
                                     <td>{{ item.pump }}</td>
+                                    {% if request.resolver_match.url_name == 'engine_all_repair' %}
+                                        <td>{{ item.engine_info }}</td>
+                                        <td>{{ item.pump_info }}</td>
+                                    {% endif %}
                                     <td>
                                         <span class="{% if item.outlet_plug_date|day_diff >= 2 %} badge bg-label-danger me-1 {% endif %}">
                                             {{ item.created_at }}
@@ -101,6 +122,14 @@
     </div>
 </div>
 <script>
+        document.querySelectorAll('.delete').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu kaydı silmek istediğinizden emin misiniz?\n Kayıt kalıcı olarak silinecek bilgiler çıkış iş emrine aktarılacak.")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
     document.querySelectorAll('.edit').forEach(button => {
         button.addEventListener('click', function() {
             const editUrl = button.getAttribute('data-href');

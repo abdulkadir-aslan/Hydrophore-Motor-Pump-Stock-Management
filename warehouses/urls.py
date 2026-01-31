@@ -31,7 +31,10 @@ urlpatterns = [
     path("ikinci_el/", seconhand, name="seconhand"),
 
     # Tamir
-    path("tamir/", repair, name="repair"),
+    path("tamir_depo/", warehouses_repair, name="warehouses_repair"),
+    path("tamir/", repair, name="engine_repair"),
+    path("tamir_iş_emri_sil/<int:id>/", repair_delete, name="repair_delete"),
+    path("kapanan_tamir_emirleri/", all_repair, name="engine_all_repair"),
     path("tamir_duzenle/<int:id>/", repair_edit, name="repair_edit"),
 
     # Müteahhit Deposu

@@ -123,14 +123,20 @@ def parse_mark(value):
 def parse_power(value):
     if not value:
         return None
-    raw = value.lower()
+
+    raw = value.lower().replace(',', '.')
     match = re.search(r'(\d+(\.\d+)?)', raw)
+
     if not match:
         return None
+
     power_val = float(match.group(1))
+
     if power_val.is_integer():
         power_val = int(power_val)
+
     return Power.objects.get_or_create(engine_power=power_val)[0]
+
 
 
 ENGINE_TYPE_MAP = {

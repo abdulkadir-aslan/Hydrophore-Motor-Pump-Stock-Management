@@ -26,6 +26,9 @@
             <div class="card-body">
               <form id="formAuthentication"  class="mb-3" method="POST">
                 {% csrf_token %}
+                {% if next %}
+                  <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
                 <div class="row">
                     <div class="mb-3 col-md-6">
                         {{ form.serial_number.label_tag }}
@@ -59,7 +62,7 @@
                 <br>
                 <div class=" justify-content-end mb-3 ">
                   <div class="col-sm-12">
-                      <a href="{% url 'hydrophore_homepage' %}" class="btn btn-secondary" >
+                      <a href="{{ next|default:'{% url "hydrophore_homepage" %}' }}" class="btn btn-secondary">
                           Vazgeç
                       </a>
                       <button type="submit" class="btn btn-primary" >

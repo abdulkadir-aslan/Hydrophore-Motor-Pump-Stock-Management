@@ -16,8 +16,9 @@ def handle_deletion(request, model, object_id, redirect_url, success_message, er
         messages.success(request, success_message.format(obj))
     except model.DoesNotExist:
         messages.warning(request, error_message)
-    except ProtectedError:
-        messages.warning(request, protected_error_message.format(obj))
+    except ProtectedError as e:
+        model_name = e.args[0].split(' ')[-1] 
+        messages.warning(request, protected_error_message.format(obj, model_name))
     return redirect(redirect_url)
 
 def paginate_items(request, items, per_page=10):
@@ -57,7 +58,7 @@ def markDelete(request, myid):
         'add_mark',
         "*{0}* Markası başarıyla silindi.",
         "Marka bulunamadı.",
-        "*{0}* Markası başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Marka kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def newPower(request):
@@ -86,12 +87,11 @@ def powerDelete(request, myid):
         'add_power',
         "*{0}* Güç değeri başarıyla silindi.",
         "Güç değeri bulunamadı.",
-        "*{0}* Güç değeri başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Güç kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def engineDelete(request, myid):
     redirect_url = request.GET.get('next', 'engine_homepage')
-
     return handle_deletion(
         request,
         Engine,
@@ -99,7 +99,7 @@ def engineDelete(request, myid):
         redirect_url,
         "*{0}* Motor kaydı başarıyla silindi.",
         "Motor kaydı bulunamadı.",
-        "*{0}* Motor kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Motor kaydı {1} tabloda kullanılıyor, silinemez."
     )
     
 def engine_homepage(request):
@@ -194,7 +194,7 @@ def pumpDelete(request, myid):
         'pump_homepage',
         "*{0}* Pompa kaydı başarıyla silindi.",
         "Pompa kaydı bulunamadı.",
-        "*{0}* Pompa kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Pompa kaydı {1} tabloda kullanılıyor, silinemez."
     )
     
 def pump_edit(request, pk):
@@ -305,7 +305,7 @@ def delete_inventory(request, id):
         'inventory',
         "*{0}* Nolu kuyu kaydı başarıyla silindi.",
         "Kuyu kaydı bulunamadı.",
-        "*{0}* Kuyu kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Kuyu kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def seconhand(request):
@@ -327,14 +327,15 @@ def seconhand(request):
 
         if secondhand_id:
             item = Seconhand.objects.get(id=secondhand_id)
-
+            engine_valid = False
             if engine_form.is_valid():
                 engine = engine_form.save(commit=False)
                 engine.location = "3"
                 engine.save()
                 item.engine = engine
-
+                engine_valid = True
             try:
+                pump_valid = False
                 existing_pump = Pump.objects.filter(
                     pump_type=pump_form.data["pump_type"],
                     pump_breed=pump_form.data["pump_breed"],
@@ -345,13 +346,15 @@ def seconhand(request):
                     item.pump = existing_pump
                 else:
                     item.pump = pump_form.save()
-
+                pump_valid = True
             except MultiValueDictKeyError:
                 pass
-
-            item.save()
-            return redirect('seconhand')
-
+            
+            if engine_valid or pump_valid:
+                item.save()
+                messages.success(request,f"{item.row_identifier} Sırası güncellendi.")
+                return redirect('seconhand')
+            
         messages.warning(
             request,
             engine_form.errors.as_ul() or pump_form.errors.as_ul()
@@ -373,8 +376,30 @@ def seconhand(request):
 
     return render(request, "secondhand_page.html", context)
 
+def warehouses_repair(request):
+    repair_list = Repair.objects.filter(status="active")
+    page_obj = paginate_items(request, repair_list)
+
+    contex = {
+        'total': repair_list.count(),  
+        'items': page_obj, 
+        'query_string': request.GET.urlencode(),
+    }
+    return render(request, "repair_page.html",contex)
+
 def repair(request):
-    repair_list = Repair.objects.all().order_by('-id')
+    repair_list = Repair.objects.filter(status="active")
+    page_obj = paginate_items(request, repair_list)
+
+    contex = {
+        'total': repair_list.count(),  
+        'items': page_obj, 
+        'query_string': request.GET.urlencode(),
+    }
+    return render(request, "repair_page.html",contex)
+
+def all_repair(request):
+    repair_list = Repair.objects.filter(status="passive")
     page_obj = paginate_items(request, repair_list)
 
     contex = {
@@ -403,7 +428,9 @@ def repair_edit(request, id):
                 engine=repair.engine if engine_choice == "unusable" else None,
                 pump=repair.pump if pump_choice == "unusable" else None
             )
-
+            repair.engine_info = 'Pert Depo' if engine_choice == "unusable" else None
+            repair.pump_info = 'Pert Depo' if pump_choice == "unusable" else None
+            
             if engine_choice == "unusable" and repair.engine:
                 engine_locations_update(repair.engine.id, "4")
 
@@ -412,7 +439,7 @@ def repair_edit(request, id):
             row = Seconhand.objects.get(id=engine_row_id)
             row.engine = repair.engine
             row.save()
-
+            repair.engine_info = f"{row.row_identifier} - 2.El Depo"
             if repair.engine:
                 engine_locations_update(repair.engine.id, "3")
 
@@ -420,27 +447,39 @@ def repair_edit(request, id):
             row = Seconhand.objects.get(id=pump_row_id)
             row.pump = repair.pump
             row.save()
+            repair.pump_info = f"{row.row_identifier} - 2.El Depo"
 
         #---------- Mütahit ------
         if engine_choice == "contractor" and engine_contractor_row_id and engine_row_id:
-            
             row = Seconhand.objects.get(id=engine_row_id)
             row.engine = Engine.objects.get(id=engine_contractor_row_id)
             row.save()
             engine_locations_update(row.engine.id, "3")
-
+            repair.engine_info = f"Mütahit Depo({row.engine.serialnumber}) -> {row.row_identifier}"
             if repair.engine:
                 engine_locations_update(repair.engine.id, "6")
         
-        repair.delete()
+        repair.status = 'passive'
+        repair.save()
         messages.success(request, "Veriler istenilen depoya aktarıldı.")
-        return redirect("repair")
+        return redirect("engine_repair")
 
     return render(request, "repair_edit.html", {
         "repair": repair,"engine":engine,
         "row_identifier": row_identifier
     })
 
+def repair_delete(request, id):
+    return handle_deletion(
+        request,
+        Repair,
+        id,
+        'order_page',
+        "*{0}* Tamir İş Emri kaydı başarıyla silindi.",
+        "Tamir İş Emri kaydı bulunamadı.",
+        "*{0}* Tamir İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
+    )
+    
 def contractor_warehouse(request):
     queryset = Engine.objects.filter(location="6")
     page_obj = paginate_items(request, queryset)
@@ -536,7 +575,7 @@ def new_warehouse_pump_delete(request, id):
         'new_warehouse_pump',
         "*{0}* Pompa kaydı başarıyla silindi.",
         "Pompa kaydı bulunamadı.",
-        "*{0}* Pompa kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Pompa kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def handle_engine(order):
@@ -583,7 +622,7 @@ def create_repair_if_needed(request, order):
     inventory = order.inventory
 
     repair_data = {
-        "well_number": inventory,
+        "order": order,
         "pump": None,
         "engine": None,
     }
@@ -718,13 +757,13 @@ def order_edit(request, id):
 def order_delete(request, id):
     try:
         return handle_deletion(
-            request=request,
-            model=Order,
-            object_id=id,
-            redirect_url="order_page",
-            success_message="{} Kuyusu için iş emri başarıyla silindi.",
-            error_message="İş emri bulunamadı.",
-            protected_error_message="{} silinemiyor, ilişkili kayıtlar var."
+            request,
+            Order,
+            id,
+            "order_page",
+            "{} Kuyusu için iş emri başarıyla silindi.",
+            "İş emri bulunamadı.",
+            "*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
         )
     except Order.DoesNotExist:
         messages.warning(request, "İş Emri kaydı bulunamadı.")
@@ -786,7 +825,7 @@ def workshop_exit_slip_delete(request, id):
         redirect_url="workshop_exit_slip",
         success_message="{} Kuyusu için iş emri başarıyla silindi.",
         error_message="İş emri bulunamadı.",
-        protected_error_message="{} silinemiyor, ilişkili kayıtlar var."
+        protected_error_message="*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def create_workshop_exit_slip(modalname, modal):

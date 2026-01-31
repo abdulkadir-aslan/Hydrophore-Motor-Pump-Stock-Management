@@ -129,7 +129,8 @@
                       </td>
                       <td>{{item.comment}}</td>
                       <td>
-                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
+                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
+                            data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
                             <i class='tf-icons bx bx-edit'></i>
                         </button>
                         <button

@@ -10,9 +10,6 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
         <li class="nav-item me-2">
         </li>
-        <li class="nav-item me-2">
-          <a class="nav-link "  href="{% url 'add_pump' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Pompa</a>
-        </li>
         <li class="nav-item me-2" >
           <a class="nav-link "  href="{% url 'add_mark' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Marka</a>
         </li>
@@ -175,7 +172,8 @@
                       </td>
                       <td>{{item.comment}}</td>
                       <td>
-                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id  %}">
+                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
+                            data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
                             <i class='tf-icons bx bx-edit'></i>
                         </button>
                         <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'engine_delete' item.id %}">

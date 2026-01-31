@@ -31,7 +31,7 @@ def pump_type_delete(request, id):
         'pump_type',
         "*{0}* Pompa Tipi başarıyla silindi.",
         "Pompa Tipi bulunamadı.",
-        "*{0}* Pompa Tipi başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Pompa kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def new_power(request):
@@ -60,7 +60,7 @@ def hydrophore_power_delete(request, id):
         'new_power',
         "*{0}* Güç değeri başarıyla silindi.",
         "Güç değeri bulunamadı.",
-        "*{0}* Güç değeri başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Güç kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def hydrophore_homepage(request):
@@ -87,25 +87,37 @@ def hydrophore_delete(request, id):
         'hydrophore_homepage',
         "*{0}* Hidrofor kaydı başarıyla silindi.",
         "Hidrofor kaydı bulunamadı.",
-        "*{0}* Hidrofor kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Hidrofor kaydı {1} tabloda kullanılıyor, silinemez."
     )
     
 def hydrophore_edit(request, pk):
     item = get_object_or_404(Hydrophore, pk=pk)
+
+    # next'i al (GET)
+    next_url = request.GET.get('next')
+
     if request.method == 'POST':
         form = HydrophoreForm(request.POST, instance=item)
+
+        # next'i POST'tan tekrar al
+        next_url = request.POST.get('next')
+
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Hidrofor bilgileri güncellendi.")
-            return redirect('hydrophore_homepage')
+            item = form.save()
+            messages.success(request, f"*{item.serial_number}* Hidrofor bilgileri güncellendi.")
+            return redirect(next_url or 'hydrophore_homepage')
         else:
             messages.warning(
                 request,
-                f"Formda hatalar var. Lütfen kontrol edin: {form.errors.as_ul()}"
+                form.errors.as_ul()
             )
     else:
         form = HydrophoreForm(instance=item)
-    return render(request, 'new_hydrophore.html', {'form': form})
+
+    return render(request, 'new_hydrophore.html', {
+        'form': form,
+        'next': next_url
+    })
 
 ################ İş Emirleri ################
 def district_field_personnel(request, id=None):
@@ -141,7 +153,7 @@ def district_field_personnel_delete(request, id):
         'district_field_personnel',
         "*{0}* Personel bilgileri başarıyla silindi.",
         "Personel bilgisi bulunamadı.",
-        "*{0}* Personel bilgisi başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Personel kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def search_hydrophore(request):
@@ -324,7 +336,7 @@ def outbound_work_order_delete(request, id):
         'outbound_work_order',
         "*{0}* İş Emri Kaydı başarıyla silindi.",
         "İş Emri kaydı bulunamadı.",
-        "*{0}* İş Emri kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def workshop_exit(request):
@@ -372,7 +384,7 @@ def workshop_exit_delete(request, id):
         'outbound_work_order',
         "*{0}* Demontaj Edilen Hidrofor kaydı başarıyla silindi. \n İş emirleri sekmesine yönlendirildiniz mevcut iş emri üzerinden işlemlere devam edebilirsiniz.",
         "Hidrofor kaydı bulunamadı.",
-        "*{0}* Hidrofor kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Hidrofor kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def all_workshop_exit(request):
@@ -405,7 +417,7 @@ def repair_return_delete(request, id):
         'workshop_exit',
         "*{0}* Tamire Gelen Hidrofor kaydı başarıyla silindi. \n Tamire Gidecek İş Emirleri sekmesine yönlendirildiniz mevcut iş emri üzerinden işlemlere devam edebilirsiniz.",
         "Hidrofor kaydı bulunamadı.",
-        "*{0}* Hidrofor kaydı başka bir tabloda kullanılıyor, silinemez."
+        "*{0}* Hidrofor kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
 def repair_return_edit(request, pk):

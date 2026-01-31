@@ -4,7 +4,6 @@ from django.db.models.functions import Substr, Cast
 from django.db import models, transaction
 from django.utils import timezone
 
-
 ENGINE_TYPE = (
     ("1", "3′"),
     ("2", "4′"),
@@ -74,6 +73,11 @@ BREED = (
     ("5","-"),
 )
 
+STATUS= (
+    ('active','Aktif'),
+    ('passive','Pasif'),
+)
+
 class Pump(models.Model):
     pump_type = models.CharField(verbose_name="Tipi", max_length=50, null=False, blank=False)
     pump_breed = models.CharField(verbose_name="Cinsi", choices=BREED, max_length=5, null=False, blank=False)
@@ -119,7 +123,7 @@ class Inventory(models.Model):
     tank_info = models.CharField(verbose_name="Depo Bilgisi", max_length=50, null=False, blank=False)
     pipe_type = models.CharField(verbose_name="Boru Tipi", max_length=50, null=False, blank=False)
     cable = models.CharField(verbose_name="Kablo", max_length=15, null=False, blank=False)
-    engine = models.ForeignKey(Engine, verbose_name="Motor", on_delete=models.PROTECT, null=True)
+    engine = models.ForeignKey(Engine, verbose_name="Motor", on_delete=models.CASCADE, null=True)
     pump = models.ForeignKey(Pump, verbose_name="Pompa", on_delete=models.PROTECT, null=True)
     created_at = models.DateTimeField(auto_now_add=True)  # 'create_at' -> 'created_at'
     updated_at = models.DateTimeField(auto_now=True)  # 'update_at' -> 'updated_at'
@@ -133,6 +137,11 @@ class Inventory(models.Model):
     def __str__(self):
         return str(self.well_number)
 
+    def delete(self, *args, **kwargs):
+        if self.engine:
+            self.engine.delete()  
+        super(Inventory, self).delete(*args, **kwargs)
+        
     class Meta:
         verbose_name = "Kuyu"
         verbose_name_plural = "Kuyular"
@@ -171,59 +180,9 @@ class Seconhand(models.Model):
         verbose_name = "2.El Depo"
         verbose_name_plural = "2.El Depolar"
 
-class Repair(models.Model):
-    well_number = models.ForeignKey(Inventory, on_delete=models.CASCADE,null=True, blank=True)
-    pump = models.ForeignKey(Pump, on_delete=models.CASCADE,null=True, blank=True)
-    engine = models.ForeignKey(Engine, on_delete=models.CASCADE,null=True, blank=True)
-    created_at = models.DateTimeField(auto_now=True) 
-    
-    def __str__(self):
-        return self.well_number.well_number 
-    class Meta:
-        verbose_name = "Tamir Depo"
-        verbose_name_plural = "Tamir Depolar"
-
-class Unusable(models.Model):
-    well_number = models.ForeignKey(Inventory, on_delete=models.CASCADE,null=True, blank=True)
-    pump = models.ForeignKey(Pump, on_delete=models.CASCADE,null=True, blank=True)
-    engine = models.ForeignKey(Engine, on_delete=models.CASCADE,null=True, blank=True)
-    created_at = models.DateTimeField(auto_now=True) 
-    
-    def __str__(self):
-        return self.well_number 
-    class Meta:
-        verbose_name = "Pert Depo"
-        verbose_name_plural = "Pert Depolar"
-
-class NewWarehousePump(models.Model):
-    pump = models.ForeignKey(Pump, on_delete=models.CASCADE,null=False, blank=True)
-    quantity = models.PositiveIntegerField(default=0) 
-    created_at = models.DateTimeField(auto_now=True)  
-
-    def __str__(self):
-        return f"{self.pump} - {self.quantity}"
-    
-    def decrease_quantity(self, quantity=1):
-        """
-        Bu fonksiyon, pompa stoğundan belirtilen miktarı düşürür.
-        """
-        if self.quantity < quantity:
-            raise ValueError(f"Yeterli stok yok. Stokta {self.quantity} adet bulunuyor.")
-        
-        # Stok azaltma
-        self.quantity -= quantity
-        self.save()
-
-        return self.quantity
-
-STATUS= (
-    ('active','Aktif'),
-    ('passive','Pasif'),
-)
-
 class Order(models.Model):
     inventory = models.ForeignKey(
-        Inventory, verbose_name="Kuyu Bilgisi",on_delete=models.CASCADE, null=False, blank=True
+        Inventory, verbose_name="Kuyu Bilgisi",on_delete=models.PROTECT, null=False, blank=True
     )
 
     outlet_plug = models.CharField(
@@ -239,24 +198,24 @@ class Order(models.Model):
     )
 
     mounted_engine = models.ForeignKey(
-        Engine, verbose_name="Montaj Edilen Motor", on_delete=models.CASCADE,
+        Engine, verbose_name="Montaj Edilen Motor", on_delete=models.PROTECT,
         related_name="mounted_engine_orders",
         null=True, blank=True
     )
 
     mounted_pump = models.ForeignKey(
-        Pump,verbose_name="Montaj Edilen Pompa", on_delete=models.CASCADE,
+        Pump,verbose_name="Montaj Edilen Pompa", on_delete=models.PROTECT,
         related_name="mounted_pump_orders",
         null=True, blank=True
     )
 
     disassembled_engine = models.ForeignKey(
-        Engine,verbose_name="Demontaj Edilen Motor", on_delete=models.CASCADE,
+        Engine,verbose_name="Demontaj Edilen Motor", on_delete=models.PROTECT,
         null=True, blank=True
     )
 
     disassembled_pump = models.ForeignKey(
-        Pump,verbose_name="Demontaj Edilen Pompa", on_delete=models.CASCADE,
+        Pump,verbose_name="Demontaj Edilen Pompa", on_delete=models.PROTECT,
         null=True, blank=True
     )
 
@@ -352,6 +311,92 @@ class Order(models.Model):
     class Meta:
         verbose_name = "İş Emri"
         verbose_name_plural = "İş Emirleri"
+
+class Repair(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE,null=True, blank=True)
+    pump = models.ForeignKey(Pump, on_delete=models.CASCADE,null=True, blank=True)
+    engine = models.ForeignKey(Engine, on_delete=models.CASCADE,null=True, blank=True)
+    created_at = models.DateTimeField(auto_now=True) 
+    status = models.CharField(verbose_name="Durum",choices=STATUS,default="active",max_length=7)
+    engine_info = models.CharField(verbose_name="Motor Durumu",max_length=50,blank=True, null=True)
+    pump_info = models.CharField(verbose_name="Pompa Durumu",max_length=50,blank=True, null=True)
+    
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            order = self.order
+            inventory = order.inventory
+
+            # ---------- ENGINE GERİ AL ----------
+            if self.engine:
+                # Inventory'deki mevcut motor (mounted olan)
+                current_engine = inventory.engine
+
+                # Eski motoru geri koy
+                inventory.engine = self.engine
+
+                # Mounted motoru tekrar order’a bağla
+                order.mounted_engine = current_engine
+
+                # Location geri al
+                engine = Engine.objects.get(id=self.engine.id)
+                engine.location = "1"
+                engine.save()
+
+            # ---------- PUMP GERİ AL ----------
+            if self.pump:
+                current_pump = inventory.pump
+                inventory.pump = self.pump
+                order.mounted_pump = current_pump
+
+            # ---------- ORDER ----------
+            order.status = "active"
+
+            inventory.save()
+            order.save()
+
+            # ---------- ASIL SİLME ----------
+            super().delete(*args, **kwargs)
+
+    def __str__(self):
+        return self.order.inventory.well_number 
+    class Meta:
+        verbose_name = "Tamir Depo"
+        verbose_name_plural = "Tamir Depolar"
+        ordering = ['-id']
+
+class Unusable(models.Model):
+    well_number = models.ForeignKey(Inventory, on_delete=models.CASCADE,null=True, blank=True)
+    pump = models.ForeignKey(Pump, on_delete=models.CASCADE,null=True, blank=True)
+    engine = models.ForeignKey(Engine, on_delete=models.CASCADE,null=True, blank=True)
+    created_at = models.DateTimeField(auto_now=True) 
+    
+    def __str__(self):
+        return self.well_number 
+    class Meta:
+        verbose_name = "Pert Depo"
+        verbose_name_plural = "Pert Depolar"
+
+class NewWarehousePump(models.Model):
+    pump = models.ForeignKey(Pump, on_delete=models.PROTECT,null=False, blank=True)
+    quantity = models.PositiveIntegerField(default=0) 
+    created_at = models.DateTimeField(auto_now=True)  
+
+    def __str__(self):
+        return f"{self.pump} - {self.quantity}"
+    
+    def decrease_quantity(self, quantity=1):
+        """
+        Bu fonksiyon, pompa stoğundan belirtilen miktarı düşürür.
+        """
+        if self.quantity < quantity:
+            raise ValueError(f"Yeterli stok yok. Stokta {self.quantity} adet bulunuyor.")
+        
+        # Stok azaltma
+        self.quantity -= quantity
+        self.save()
+
+        return self.quantity
+
 
 class WorkshopExitSlip(models.Model):
     date = models.DateField(verbose_name="Tarih")

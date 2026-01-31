@@ -87,7 +87,6 @@
                     <th>Pompa Tipi</th>
                     <th>İlçe</th>
                     <th>Mahalle</th>
-                    <th>Lokasyon</th>
                   </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -100,9 +99,9 @@
                       <td>{{item.get_district_display}}</td>
                       <td>{{item.neighborhood}}</td>
                       <td>{{item.get_district_display}}</td>
-                      <td>{{item.get_location_display}}</td>
                       <td>
-                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'hydrophore_edit' item.id  %}">
+                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
+                            data-href="{% url 'hydrophore_edit' item.id %}?next={{ request.get_full_path }}">
                             <i class='tf-icons bx bx-edit'></i>
                         </button>
                         <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'hydrophore_delete' item.id %}">
