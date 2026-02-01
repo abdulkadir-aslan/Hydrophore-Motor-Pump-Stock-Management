@@ -397,7 +397,6 @@ class NewWarehousePump(models.Model):
 
         return self.quantity
 
-
 class WorkshopExitSlip(models.Model):
     date = models.DateField(verbose_name="Tarih")
     slip_no = models.CharField(max_length=100, verbose_name="Fiş No")
@@ -431,3 +430,4 @@ class WorkshopExitSlip(models.Model):
 
     def __str__(self):
         return f"{self.slip_no} - {self.well_no}"
+

@@ -275,12 +275,22 @@ def load_inventory_from_csv(file, request):
             messages.warning(request, f"{well_no} zaten kayıtlı.")
             continue
 
+        # İlçe değerini doğrula
+        try:
+            district = parse_district(cols[1])  # İlçe doğrulaması yapılacak
+            if not district:
+                raise ValueError("Geçersiz ilçe adı")  # İlçe geçersizse hata ver
+        except ValueError as e:
+            messages.warning(request, f"Satır {i}: {str(e)}")  # Hata mesajını kullanıcıya bildir
+            continue
+
+        # Motor ve pompa işlemleri
         engine = parse_engine(cols[8], cols[10], cols[9], cols[11], "1")
         pump = parse_pump(cols[12], cols[13])
-        
+
         Inventory.objects.create(
             well_number=well_no,
-            district=cols[1],
+            district=district,
             address=cols[2],
             disassembly_depth=int(cols[3]) if cols[3].isdigit() else 0,
             mounting_depth=int(cols[4]) if cols[4].isdigit() else 0,
@@ -446,10 +456,14 @@ def parse_district(value):
 
     value = value.replace('"', '').strip().lower()
 
-    district_map = {
-        v.lower(): k for k, v in Hydrophore.DISTRICT_CHOICES
-    }
-    return district_map.get(value)
+    # İlçe eşleme (map) oluşturuluyor
+    district_map = {v.lower(): k for k, v in Hydrophore.DISTRICT_CHOICES}
+
+    # İlçe değeri geçerli değilse hata fırlat
+    if value not in district_map:
+        raise ValueError(f"Geçersiz ilçe adı: {value}")
+
+    return district_map[value]
 
 
 def parse_location(value):

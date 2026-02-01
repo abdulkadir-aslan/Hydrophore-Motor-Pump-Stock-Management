@@ -236,6 +236,7 @@ def inventory_homepage(request):
     queryset = Inventory.objects.all().order_by("id")
 
     inventory_filter = InventoryFilter(request.GET, queryset=queryset)
+    
     filtered_qs = inventory_filter.qs
 
     page_obj = paginate_items(request, filtered_qs)

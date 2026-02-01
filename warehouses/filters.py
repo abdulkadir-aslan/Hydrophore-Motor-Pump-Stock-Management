@@ -1,10 +1,9 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Inventory,Engine,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
+from .models import Inventory,Engine,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
 
 class InventoryFilter(django_filters.FilterSet):
-
     well_number = django_filters.CharFilter(
         field_name='well_number',
         lookup_expr='iexact',
@@ -15,42 +14,66 @@ class InventoryFilter(django_filters.FilterSet):
         })
     )
 
-    engine = django_filters.CharFilter(
-        method='filter_engine_serial',
+    # Motor Seri No Filter
+    serialnumber = django_filters.CharFilter(
+        field_name='engine__serialnumber',
+        lookup_expr='icontains',
         label='Motor Seri No',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Motor seri numarası'
-        })
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Motor Seri No'})
     )
 
-    pump = django_filters.CharFilter(
-        method='filter_pump_type_or_stage',
-        label='Pompa Tipi / Kademe',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Pompa tipi veya kademe'
+    # Pompa Tipi Filter
+    pump_type = django_filters.CharFilter(
+        field_name='pump__pump_type',
+        lookup_expr='icontains',
+        label='Pompa Tipi',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pompa Tipi'})
+    )
+
+    # İlçe Filter
+    district = django_filters.ChoiceFilter(
+        field_name='district',
+        choices=DISTRICT_CHOICES,
+        label='İlçe',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
         })
+    )
+    
+
+    # Adres Filter (icontains)
+    address = django_filters.CharFilter(
+        field_name='address',
+        lookup_expr='icontains',
+        label='Adres',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
+    )
+
+    # Kuyu Numarasına göre sıralama (A-Z veya Z-A)
+    ordering = django_filters.OrderingFilter(
+        fields=(('well_number', 'well_number'),),
+        field_labels={'well_number': 'Kuyu No'},
+        label="Sıralama",
+        widget=forms.Select, 
+        choices=(
+            ('well_number', ' (A-Z)'),
+            ('-well_number', '(Z-A)'),
+        )
     )
 
     class Meta:
         model = Inventory
-        fields = ['well_number', 'engine', 'pump']
-
-    def filter_engine_serial(self, queryset, name, value):
-        return queryset.filter(
-            engine__serialnumber__iexact=value
-        )
-
-    def filter_pump_type_or_stage(self, queryset, name, value):
-        return queryset.filter(
-            Q(pump__pump_type__iexact=value))
+        fields = ['district', 'well_number', 'serialnumber', 'pump_type', 'address', 'ordering']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filters['ordering'].field.widget.attrs.update({'class': 'form-select '})
 
 class EngineFilter(django_filters.FilterSet):
 
     serialnumber = django_filters.CharFilter(
         field_name='serialnumber',
-        lookup_expr='iexact',
+        lookup_expr='icontains',
         label='Seri Numarası',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -76,10 +99,17 @@ class EngineFilter(django_filters.FilterSet):
             'class': 'form-control'
         })
     )
+    
+    engine_type = django_filters.ChoiceFilter(
+        field_name='engine_type',
+        choices=ENGINE_TYPE,
+        label='Motor Tipi',
+        widget=forms.Select(attrs={'class': 'form-select select2'})
+    )
 
     class Meta:
         model = Engine
-        fields = ['serialnumber', 'engine_power', 'location']
+        fields = ['serialnumber', 'engine_power', 'location','engine_type']
 
 class GeneralEngineFilter(django_filters.FilterSet):
     serialnumber = django_filters.CharFilter(
@@ -162,29 +192,26 @@ class OrderFilter(django_filters.FilterSet):
         })
     )
     
-    # Çıkış Fişi Tarihi Başlangıç filtresi
-    outlet_plug_date_start = django_filters.DateFilter(
-        field_name='outlet_plug_date',
-        lookup_expr='gte',
-        label="Çıkış Fişi Başlangıç Tarihi",
-        widget=forms.DateInput(attrs={
-            'class': 'form-control',
-            'type': 'date',
-            'placeholder': 'Başlangıç Tarihi'
+    district = django_filters.ChoiceFilter(
+        field_name='inventory__district',
+        choices=DISTRICT_CHOICES,
+        label='İlçe',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
         })
     )
-    
-    # Çıkış Fişi Tarihi Bitiş filtresi
-    outlet_plug_date_end = django_filters.DateFilter(
-        field_name='outlet_plug_date',
-        lookup_expr='lte',
-        label="Çıkış Fişi Bitiş Tarihi",
-        widget=forms.DateInput(attrs={
-            'class': 'form-control',
-            'type': 'date',
-            'placeholder': 'Bitiş Tarihi'
-        })
+
+    # Adres Filter (icontains)
+    address = django_filters.CharFilter(
+        field_name='inventory__address',
+        lookup_expr='icontains',
+        label='Adres',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
     )
+
+    class Meta:
+        model = Order
+        fields = ['well_number','serial_number','district','address' ]
     
     def filter_serial_number(self, queryset, name, value):
         if value:
@@ -193,61 +220,55 @@ class OrderFilter(django_filters.FilterSet):
                 Q(disassembled_engine__serialnumber__icontains=value)
             )
         return queryset
-
-    class Meta:
-        model = Order
-        fields = ['well_number','serial_number', 'outlet_plug_date_start', 'outlet_plug_date_end']
-
+    
 class SeconhandFilter(django_filters.FilterSet):
 
-    pump = django_filters.ModelChoiceFilter(
-        field_name='pump',
-        queryset=Pump.objects.none(),  # başlangıçta boş
-        label='Pompa',
+    # Motor Gücü Filter (Exact match)
+    engine_power = django_filters.NumberFilter(
+        field_name='engine__engine_power__engine_power',
+        lookup_expr='exact',
+        label='Motor Gücü',
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Motor gücü'
+        })
+    )
+
+    # Motor Tipi Filter
+    engine_type = django_filters.ChoiceFilter(
+        field_name='engine__engine_type',
+        choices=ENGINE_TYPE,
+        label='Motor Tipi',
         widget=forms.Select(attrs={'class': 'form-select select2'})
     )
 
-    engine = django_filters.ModelChoiceFilter(
-        field_name='engine',
-        queryset=Engine.objects.none(),  # başlangıçta boş
-        label='Motor',
-        widget=forms.Select(attrs={'class': 'form-select select2'})
+    # Motor Seri No Filter
+    serialnumber = django_filters.CharFilter(
+        field_name='engine__serialnumber',
+        lookup_expr='icontains',
+        label='Motor Seri No',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Motor Seri No'})
     )
 
+    # Pompa Tipi Filter
+    pump_type = django_filters.CharFilter(
+        field_name='pump__pump_type',
+        lookup_expr='icontains',
+        label='Pompa Tipi',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pompa Tipi'})
+    )
+
+    # Depo No Filter
     row_identifier = django_filters.CharFilter(
         field_name='row_identifier',
         lookup_expr='icontains',
         label='Depo No',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Depo No'
-        })
-    )
-
-    created_at = django_filters.DateFromToRangeFilter(
-        label='Oluşturulma Tarihi',
-        widget=django_filters.widgets.RangeWidget(attrs={
-            'type': 'date',
-            'class': 'form-control'
-        })
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Depo No'})
     )
 
     class Meta:
         model = Seconhand
-        fields = ['pump', 'engine', 'row_identifier', 'created_at']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Seconhand'te kullanılan pompalar
-        self.filters['pump'].queryset = Pump.objects.filter(
-            id__in=Seconhand.objects.filter(pump__isnull=False).values_list('pump', flat=True).distinct()
-        )
-
-        # Seconhand'te kullanılan motorlar
-        self.filters['engine'].queryset = Engine.objects.filter(
-            id__in=Seconhand.objects.filter(engine__isnull=False).values_list('engine', flat=True).distinct()
-        )
+        fields = ['engine_power', 'engine_type', 'serialnumber', 'pump_type', 'row_identifier']
 
 class WorkshopExitSlipFilter(django_filters.FilterSet):
     # Tarih sıralaması

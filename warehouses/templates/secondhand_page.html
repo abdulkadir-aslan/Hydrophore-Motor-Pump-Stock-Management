@@ -108,21 +108,28 @@
         <div class="card mb-4">
             <div class="card-body">
                 <form method="get" class="row g-2">
-                    <div class="col-md-3">
-                        {{ filter.form.pump.label_tag }}
-                        {{ filter.form.pump }}
+                    <div class="col-md-1">
+                        {{ filter.form.engine_power.label_tag }}
+                        {{ filter.form.engine_power }}
+                    </div>
+
+                    <div class="col-md-2">
+                        {{ filter.form.engine_type.label_tag }}
+                        {{ filter.form.engine_type }}
                     </div>
 
                     <div class="col-md-3">
-                        {{ filter.form.engine.label_tag }}
-                        {{ filter.form.engine }}
+                        {{ filter.form.serialnumber.label_tag }}
+                        {{ filter.form.serialnumber }}
                     </div>
-
                     <div class="col-md-3">
+                        {{ filter.form.pump_type.label_tag }}
+                        {{ filter.form.pump_type }}
+                    </div>
+                    <div class="col-md-2">
                         {{ filter.form.row_identifier.label_tag }}
                         {{ filter.form.row_identifier }}
                     </div>
-
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">
                             Filtrele
@@ -228,31 +235,5 @@
 </div>
 </div>
 
-<script>
-$(document).ready(function () {
-
-    function initSelect2(context = document) {
-        $(context).find('select.select2').each(function () {
-            if (!$(this).hasClass('select2-hidden-accessible')) {
-                $(this).select2({
-                    width: '100%',
-                    placeholder: 'Seçiniz...',
-                    allowClear: true,
-                    dropdownParent: $(this).closest('.modal').length
-                        ? $(this).closest('.modal')
-                        : $('body')
-                });
-            }
-        });
-    }
-
-    initSelect2();
-
-    $('.modal').on('shown.bs.modal', function () {
-        initSelect2(this);
-    });
-
-});
-</script>
 
 {% endblock %}

@@ -18,19 +18,34 @@
         <div class="card mb-4">
             <div class="card-body">
                 <form method="get" class="row g-2">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         {{ filter.form.well_number.label_tag }}
                         {{ filter.form.well_number }}
                     </div>
 
-                    <div class="col-md-3">
-                        {{ filter.form.engine.label_tag }}
-                        {{ filter.form.engine }}
+                    <div class="col-md-2">
+                        {{ filter.form.serialnumber.label_tag }}
+                        {{ filter.form.serialnumber }}
                     </div>
 
-                    <div class="col-md-3">
-                        {{ filter.form.pump.label_tag }}
-                        {{ filter.form.pump }}
+                    <div class="col-md-2">
+                        {{ filter.form.pump_type.label_tag }}
+                        {{ filter.form.pump_type }}
+                    </div>
+
+                    <div class="col-md-2">
+                        {{ filter.form.district.label_tag }}
+                        {{ filter.form.district }}
+                    </div>
+
+                    <div class="col-md-2">
+                        {{ filter.form.address.label_tag }}
+                        {{ filter.form.address }}
+                    </div>
+
+                    <div class="col-md-1">
+                        {{ filter.form.ordering.label_tag }}
+                        {{ filter.form.ordering }}
                     </div>
 
                     <div class="col-md-1 d-flex align-items-end">
@@ -69,7 +84,7 @@
                       <tr>
                         <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
                         <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong>{{item.well_number}}</strong></td>
-                        <td ><span style="text-transform:uppercase;">{{item.district}}</span> </td>
+                        <td >{{item.get_district_display}}</span> </td>
                         <td>{{item.address}} </td>
                         <td>{{item.disassembly_depth}} </td>
                         <td>{{item.mounting_depth}} </td>

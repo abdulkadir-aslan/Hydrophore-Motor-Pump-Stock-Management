@@ -3,7 +3,7 @@ from .models import Pump,Inventory,WorkshopExitSlip, Engine,Seconhand,Repair,Unu
 
 class SeconhandAdmin(admin.ModelAdmin):
     list_display = ('row_identifier', 'pump',  'engine', 'created_at')
-    list_filter = ('pump', 'engine')
+    list_filter = ('engine__location',)
     search_fields = ('row_identifier', 'created_at')
 
 class RepairAdmin(admin.ModelAdmin):
