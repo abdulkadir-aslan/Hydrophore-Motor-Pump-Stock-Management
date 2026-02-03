@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from django.db import transaction
 from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
-from .filters import InventoryFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
+from .filters import InventoryFilter,NewPumpFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
 from .forms import *
 
 def handle_deletion(request, model, object_id, redirect_url, success_message, error_message, protected_error_message):
@@ -533,7 +533,9 @@ def new_warehouse_engine(request):
         'total': filtered_qs.count(),
         'items': page_obj,  
         'query_string': request.GET.urlencode(),
-        'form' : form
+        'form' : form,
+        'null_list': Seconhand.objects.filter(engine__isnull=True,pump__isnull=True)
+
     }
     return render(request, "new_warehouse_engine.html",context)
 
@@ -552,21 +554,46 @@ def new_warehouse_pump(request):
     else:
         form = WarehousePumpForm()
     
-    pump_list = NewWarehousePump.objects.all()
-    paginator = Paginator(pump_list, 10)  
-    page_number = request.GET.get('page')  
-    page_obj = paginator.get_page(page_number)
+    queryset = NewWarehousePump.objects.all()
 
-    query_string = request.GET.urlencode()
+    inventory_filter = NewPumpFilter(request.GET, queryset=queryset)
+    
+    filtered_qs = inventory_filter.qs
+
+    page_obj = paginate_items(request, filtered_qs)
 
     context = {
-        'total': pump_list.count(),
-        'items': page_obj,  
-        'fuel': page_obj,   
-        'query_string': query_string,
-        'form' : form
+        'filter': inventory_filter,
+        'items': page_obj,
+        'total': filtered_qs.count(),
+        'query_string': request.GET.urlencode(),
+        'form' : form,
+        'null_list': Seconhand.objects.filter(engine__isnull=True,pump__isnull=True)
     }
+    
     return render(request, "new_warehouse_pump.html",context)
+
+def transfer_warehouse(request):
+    if request.method == "POST":
+        item = get_object_or_404(Seconhand,row_identifier=request.POST.get("row_identifier"))
+        if request.POST.get("modal_value") == "pump":
+            pump = get_object_or_404(NewWarehousePump,pump=request.POST.get("pump_value"))
+            item.pump = pump.pump
+            pump.quantity -=1
+            pump.save()
+            messages.success(request, f"*{request.POST.get('row_identifier')}* Sırasına {item.pump} Pompa Eklendi.")
+            item.save()
+            return redirect('new_warehouse_pump')
+        elif request.POST.get("modal_value") == "engine":
+            engine = get_object_or_404(Engine,pk=request.POST.get("engine_value"))
+            item.engine = engine
+            engine.location = "3"
+            engine.save()
+            messages.success(request, f"*{request.POST.get('row_identifier')}* Sırasına {item.engine} Motor Eklendi.")
+            item.save()
+        else:
+            messages.warning(request, f"Değer Girilmedi..")
+    return redirect('new_warehouse_engine')
 
 def new_warehouse_pump_delete(request, id):
     return handle_deletion(
@@ -711,7 +738,7 @@ def all_order_page(request):
 
 def order_page(request):
     if request.method == "POST":
-        well_number = request.POST.get("well_number").strip()
+        well_number = request.POST.get("well_number").strip().upper()
         if well_number:
             try:
                 well = Inventory.objects.get(well_number=well_number)

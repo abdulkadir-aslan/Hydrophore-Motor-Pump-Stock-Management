@@ -150,6 +150,14 @@
                                 <ul class="pagination justify-content-end px-4">
                                     {% if items.has_previous %}
                                         <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page=1">
+                                                İlk
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% if items.has_previous %}
+                                        <li class="page-item">
                                             <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
                                                 ← Önceki
                                             </a>
@@ -163,14 +171,14 @@
                                                     {{ page_number }}
                                                 </a>
                                             </li>
-                                        {% elif page_number == items.paginator.ELLIPSIS %}
-                                            <li class="page-item disabled"><span class="page-link">…</span></li>
-                                        {% else %}
+                                        {% elif page_number > items.number|add:-3 and page_number < items.number|add:3 %}
                                             <li class="page-item">
                                                 <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
                                                     {{ page_number }}
                                                 </a>
                                             </li>
+                                        {% elif page_number == items.paginator.ELLIPSIS %}
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
                                         {% endif %}
                                     {% endfor %}
 
@@ -178,6 +186,14 @@
                                         <li class="page-item">
                                             <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
                                                 Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% if items.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.paginator.num_pages }}">
+                                                Son
                                             </a>
                                         </li>
                                     {% endif %}

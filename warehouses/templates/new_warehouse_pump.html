@@ -17,6 +17,24 @@
           <a class="nav-link active" href="{% url 'new_warehouse_pump' %}"><i class="bx bx-add-to-queue me-1"></i> Pompa</a>
         </li>
       </ul>
+      <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <!-- Kuyu Numarası Filtreleme -->
+                    <div class="col-md-2">
+                        {{ filter.form.pump_type.label_tag }}
+                        {{ filter.form.pump_type }}
+                    </div>
+
+                    <!-- Filtrele Butonu -->
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal" data-action="add">
@@ -62,8 +80,41 @@
                 </div>
             </div>
         </div>
-
-        <!-- Pompa Listesi -->
+        <div class="modal fade" id="transfer" tabindex="-1" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel2">2.El Depoya Aktar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formAuthentication" action="{% url 'transfer_warehouse' %}" class="mb-3" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="nameSmall" class="form-label">Sıra Seç</label>
+                                <select name="row_identifier" class="form-select " required="" >
+                                    <option value="" selected="">---------</option>
+                                    {% for item in null_list %}
+                                        <option value="{{ item.row_identifier }}">{{item.row_identifier}}</option>
+                                    {% endfor %}
+                                    
+                                </select>
+                                <input type="hidden" id="pump_value" name="pump_value" class="form-control" value=""  />
+                                <input type="hidden"  name="modal_value" class="form-control" value="pump"  />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Kapat
+                        </button>
+                        <button type="submit" class="btn btn-primary">2.El Depoya Aktar</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
         <div class="table-responsive text-nowrap">
           <div class="container">
             <table class="table table-striped mt32 customers-list">
@@ -95,48 +146,74 @@
                         <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'new_warehouse_pump_delete' item.id %}">
                             <i class='tf-icons bx bx-trash'></i>
                         </button>
+                        <button title="2. El Depoya Aktar" class='btn btn-icon btn-outline-warning transfer btn-flat'
+                            data-id="{{ item.pump.id }}" >
+                            <i class='tf-icons bx bx-right-arrow'></i>
+                        </button>
                       </td>
                     </tr>
                   {% endfor %}
                 </tbody>
             </table>
-            <nav aria-label="Page navigation example">
+            
+             <nav aria-label="Page navigation example">
                 <hr>
                 <div class="row">
                     <div class="col-sm-12 col-md-5">
                         <div class="container-fluid">
                             <a class="navbar-brand mb-0 h1">
-                                {{ fuel.paginator.count }} Kayıttan {{ fuel.number|to_start|add:1 }}- 
-                                {% widthratio fuel.number 1 10 %} arası
+                                {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
                             </a>
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-7">
                         <ul class="pagination justify-content-end px-4">
-                            {% if fuel.has_previous %}
+                            {% if items.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?{{ query_string }}&page={{ fuel.previous_page_number }}">
+                                    <a class="page-link" href="?{{ query_string }}&page=1">
+                                        İlk
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
                                         ← Önceki
                                     </a>
                                 </li>
                             {% endif %}
 
-                            {% for page_number in fuel.adjusted_elided_pages %}
-                                {% if page_number == fuel.paginator.ELLIPSIS %}
-                                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                                {% else %}
-                                    <li class="page-item {% if page_number == fuel.number %}active{% endif %}">
+                            {% for page_number in items.paginator.page_range %}
+                                {% if page_number == items.number %}
+                                    <li class="page-item active">
                                         <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
                                             {{ page_number }}
                                         </a>
                                     </li>
+                                {% elif page_number > items.number|add:-3 and page_number < items.number|add:3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number == items.paginator.ELLIPSIS %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
                                 {% endif %}
                             {% endfor %}
 
-                            {% if fuel.has_next %}
+                            {% if items.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?{{ query_string }}&page={{ fuel.next_page_number }}">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
                                         Sonraki →
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.paginator.num_pages }}">
+                                        Son
                                     </a>
                                 </li>
                             {% endif %}
@@ -218,6 +295,12 @@ $(document).ready(function () {
 
         // Modalı aç
         $('#smallModal').modal('show');
+    });
+    $('.transfer').on('click', function () {
+        var pumpId = $(this).data('id'); 
+
+        $('#pump_value').val(pumpId);
+        $('#transfer').modal('show');
     });
 
     initSelect2();

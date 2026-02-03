@@ -18,6 +18,38 @@
         </ul>
     
         <div class="card">
+             <!--=== Filtreleme === -->
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <div class="col-md-2">
+                        {{ filter.form.mounted_hydrophore.label_tag }}
+                        {{ filter.form.mounted_hydrophore }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter.form.district.label_tag }}
+                        {{ filter.form.district }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter.form.neighborhood.label_tag }}
+                        {{ filter.form.neighborhood }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter.form.district_personnel.label_tag }}
+                        {{ filter.form.district_personnel }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter.form.dispatch_slip_number.label_tag }}
+                        {{ filter.form.dispatch_slip_number }}
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <hr>
             <div class="table-responsive text-nowrap">
                 <div class="container">
                     <table class="table table-striped mt32 customers-list">

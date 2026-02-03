@@ -239,11 +239,15 @@ def new_outbound_work_order(request, id):
     )
 
 def all_outbound_work_order(request):
-    item = OutboundWorkOrder.objects.filter(status="passive").order_by('-id')
-    page_obj = paginate_items(request, item)
+    queryset = OutboundWorkOrder.objects.filter(status="passive").order_by('-id')
+    hydrophore_filter = OutboundWorkOrderFilter(request.GET, queryset=queryset)
+    filtered_qs = hydrophore_filter.qs
+    
+    page_obj = paginate_items(request, filtered_qs)
     
     contex = {
-        'total': item.count(),  
+        'filter': hydrophore_filter,
+        'total': queryset.count(),  
         'items': page_obj, 
         'query_string': request.GET.urlencode(),
     }

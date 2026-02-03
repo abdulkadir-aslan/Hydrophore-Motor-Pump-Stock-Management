@@ -101,6 +101,41 @@
           </div>
         </div>  
         </div>
+        <div class="modal fade" id="transfer" tabindex="-1" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel2">2.El Depoya Aktar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formAuthentication" action="{% url 'transfer_warehouse' %}" class="mb-3" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="nameSmall" class="form-label">Sıra Seç</label>
+                                <select name="row_identifier" class="form-select " required="" >
+                                    <option value="" selected="">---------</option>
+                                    {% for item in null_list %}
+                                        <option value="{{ item.row_identifier }}">{{item.row_identifier}}</option>
+                                    {% endfor %}
+                                    
+                                </select>
+                                <input type="hidden" id="engine_value" name="engine_value" class="form-control" value=""  />
+                                <input type="hidden"  name="modal_value" class="form-control" value="engine"  />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Kapat
+                        </button>
+                        <button type="submit" class="btn btn-primary">2.El Depoya Aktar</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
         <div class="table-responsive text-nowrap">
           <div class="container">
             <table class="table table-striped mt32 customers-list">
@@ -138,6 +173,10 @@
                           class="btn btn-icon btn-outline-danger delete btn-flat"
                           data-href="{% url 'engine_delete' item.id %}?next={{ request.get_full_path }}">
                             <i class='tf-icons bx bx-trash'></i>
+                        </button>
+                        <button title="2. El Depoya Aktar" class='btn btn-icon btn-outline-warning transfer btn-flat'
+                            data-id="{{ item.id }}" >
+                            <i class='tf-icons bx bx-right-arrow'></i>
                         </button>
                       </td>
                     </tr>
@@ -251,6 +290,12 @@ $(document).ready(function () {
 
     $('.modal').on('shown.bs.modal', function () {
         initSelect2(this);
+    });
+    $('.transfer').on('click', function () {
+        var pumpId = $(this).data('id'); 
+
+        $('#engine_value').val(pumpId);
+        $('#transfer').modal('show');
     });
 
 });

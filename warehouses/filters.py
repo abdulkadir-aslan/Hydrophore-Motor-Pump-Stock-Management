@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Inventory,Engine,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
+from .models import Inventory,NewWarehousePump,Engine,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
 
 class InventoryFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(
@@ -155,11 +155,27 @@ class GeneralEngineFilter(django_filters.FilterSet):
         model = Engine
         fields = ['serialnumber', 'engine_mark','engine_power', 'engine_type']
 
+class NewPumpFilter(django_filters.FilterSet):
+
+    pump_type = django_filters.CharFilter(
+        field_name='pump__pump_type',
+        lookup_expr='icontains',
+        label='Pompa Tipi',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Pompa tipi'
+        })
+    )
+
+    class Meta:
+        model = NewWarehousePump
+        fields = ['pump_type', ]
+        
 class PumpFilter(django_filters.FilterSet):
 
     pump_type = django_filters.CharFilter(
         field_name='pump_type',
-        lookup_expr='iexact',
+        lookup_expr='icontains',
         label='Pompa Tipi',
         widget=forms.TextInput(attrs={
             'class': 'form-control',

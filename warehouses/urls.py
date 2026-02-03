@@ -45,6 +45,7 @@ urlpatterns = [
 
     # Yeni Depo Sayfası
     path("yeni_depo_motor/", new_warehouse_engine, name="new_warehouse_engine"),
+    path("depo_aktarma/", transfer_warehouse, name="transfer_warehouse"),
     path("yeni_depo_pompa_sil/<int:id>/", new_warehouse_pump_delete, name="new_warehouse_pump_delete"),
     path("yeni_depo_pompa/", new_warehouse_pump, name="new_warehouse_pump"),
 

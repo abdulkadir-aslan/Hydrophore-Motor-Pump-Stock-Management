@@ -131,7 +131,8 @@ class Inventory(models.Model):
     comment = models.TextField(verbose_name="Açıklama", blank=True)
 
     def save(self, *args, **kwargs):
-        self.address = self.address.upper()  # 'adress' -> 'address'
+        self.address = self.address.upper()
+        self.well_number = self.well_number.upper()
         super(Inventory, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -311,6 +312,7 @@ class Order(models.Model):
     class Meta:
         verbose_name = "İş Emri"
         verbose_name_plural = "İş Emirleri"
+        ordering = ['outlet_plug_date']
 
 class Repair(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE,null=True, blank=True)
