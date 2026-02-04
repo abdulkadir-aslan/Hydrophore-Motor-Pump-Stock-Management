@@ -255,7 +255,7 @@ class SeconhandFilter(django_filters.FilterSet):
         field_name='engine__engine_type',
         choices=ENGINE_TYPE,
         label='Motor Tipi',
-        widget=forms.Select(attrs={'class': 'form-select select2'})
+        widget=forms.Select(attrs={'class': 'form-select '})
     )
 
     # Motor Seri No Filter

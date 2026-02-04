@@ -425,7 +425,7 @@ def repair_edit(request, id):
         # -------- PERT --------
         if engine_choice == "unusable" or pump_choice == "unusable":
             Unusable.objects.create(
-                well_number=repair.well_number,
+                well_number=repair.order.inventory,
                 engine=repair.engine if engine_choice == "unusable" else None,
                 pump=repair.pump if pump_choice == "unusable" else None
             )
@@ -507,7 +507,7 @@ def contractor_warehouse(request):
 def unusable(request):
     
     context = {
-        'unusable' : Unusable.objects.all()
+        'items' : Unusable.objects.all()
     }
     return render(request, "unusable_page.html",context)
 
