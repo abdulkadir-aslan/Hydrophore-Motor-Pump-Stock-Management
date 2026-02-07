@@ -58,5 +58,5 @@ urlpatterns = [
     path("is_emirleri/", order_page, name="order_page"),
     path("is_emiri_duzenle/<int:id>/", order_edit, name="order_edit"),
     path("yeni_is_emiri/<int:id>/", new_order, name="new_order"),
-    path("is_emiri_sil/<int:id>/", order_delete, name="order_delete"),
+    path("is_emiri_sil/", order_delete, name="order_delete"),
 ]

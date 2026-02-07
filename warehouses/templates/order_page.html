@@ -99,8 +99,11 @@
                                         <a class='btn btn-icon btn-outline-success  btn-flat' href="{% url 'order_edit' item.id  %}">
                                             <i class='tf-icons bx bx-edit'></i>
                                         </a>
-                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'order_delete' item.id %}">
-                                                <i class='tf-icons bx bx-trash'></i>
+                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat'
+                                            data-id="{{ item.id }}" 
+                                            data-pump="{{ item.pump_info }}"
+                                            data-engine="{{ item.engine_info }}">
+                                            <i class='tf-icons bx bx-trash'></i>
                                         </button>
                                     </td>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
@@ -136,6 +139,47 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    <!-- Modal Delete -->
+                    <div class="modal fade" id="transfer" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-sm" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">İş Emri Silinecek</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form id="formAuthentication" action = "{% url 'order_delete' %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <input type="hidden" id="order_value" name="order_value" class="form-control" value=""  />
+                                            <div class="col mb-3">
+                                                <label for="pumpSelect" class="form-label">Pompa Sıra Seç</label>
+                                                <select id="pumpSelect" name="pump_row_identifier" class="form-select" >
+                                                    <option value="" selected="">---------</option>
+                                                    {% for item in null_list %}
+                                                        <option value="{{ item.row_identifier }}">{{item.row_identifier}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col mb-3">
+                                                <label for="engineSelect" class="form-label">Motor Sıra Seç</label>
+                                                <select id="engineSelect" name="engine_row_identifier" class="form-select" >
+                                                    <option value="" selected="">---------</option>
+                                                    {% for item in null_list %}
+                                                        <option value="{{ item.row_identifier }}">{{item.row_identifier}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Kapat</button>
+                                        <button type="submit" class="btn btn-danger">Sil</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     <nav aria-label="Page navigation example">
                         <hr>
                         <div class="row">
@@ -206,17 +250,53 @@
         </div>
     </div>
 </div>
-
 <script>
-    document.querySelectorAll('.delete').forEach(button => {
-      button.addEventListener('click', function() {
-          const deleteUrl = button.getAttribute('data-href');
-            if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
-              window.location.href = deleteUrl;  
-          }
-      });
-  });
+    // Silme butonuna tıklama olayını dinle
+    document.querySelectorAll('.delete').forEach(function(button) {
+        button.addEventListener('click', function() {
+            // Silme butonundan verileri al
+            var pumpInfo = button.getAttribute('data-pump');
+            var engineInfo = button.getAttribute('data-engine');
+            var orderValue = button.getAttribute('data-id');
+
+            // Modalı al
+            var modal = new bootstrap.Modal(document.getElementById('transfer'));
+
+            // Pompa ve motor seçim alanlarını al
+            var pumpSelect = document.getElementById('pumpSelect');
+            var engineSelect = document.getElementById('engineSelect');
+
+            // Pompa ve motor alanlarını sıfırla
+            pumpSelect.selectedIndex = 0;
+            engineSelect.selectedIndex = 0;
+
+            $('#order_value').val(orderValue);
+
+            // Pompa ve motor seçim alanlarının 'required' özelliğini kaldır
+            pumpSelect.removeAttribute('required');
+            engineSelect.removeAttribute('required');
+        // Pompa bilgisi yoksa, pompa alanını gizle
+            if (pumpInfo === "None" || pumpInfo === null || pumpInfo === "") {
+                pumpSelect.parentElement.style.display = 'none'; // Pompa alanını gizle
+            } else {
+                pumpSelect.parentElement.style.display = 'block'; // Pompa alanını göster
+                pumpSelect.setAttribute('required', 'required');
+            }
+
+            // Motor bilgisi yoksa, motor alanını gizle
+            if (engineInfo === "None" || engineInfo === null || engineInfo === "") {
+                engineSelect.parentElement.style.display = 'none'; // Motor alanını gizle
+            } else {
+                engineSelect.parentElement.style.display = 'block'; // Motor alanını göster
+                engineSelect.setAttribute('required', 'required');
+            }
+            // Modali göster
+            modal.show();
+        });
+    });
 </script>
+
+
 {% endblock content %}
 
 

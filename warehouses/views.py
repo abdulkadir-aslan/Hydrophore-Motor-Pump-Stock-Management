@@ -770,6 +770,7 @@ def order_page(request):
         'items': page_obj,
         'query_string': request.GET.urlencode(),
         'filter': order_filter,
+        'null_list': Seconhand.objects.filter(engine__isnull=True,pump__isnull=True)
     }
     return render(request, "order_page.html", context)
 
@@ -789,22 +790,48 @@ def order_edit(request, id):
             form = OrderEditForm(instance=order)
     return render(request, 'order_edit.html', {'form': form,'order':order})
 
-def order_delete(request, id):
-    try:
-        return handle_deletion(
-            request,
-            Order,
-            id,
-            "order_page",
-            "{} Kuyusu için iş emri başarıyla silindi.",
-            "İş emri bulunamadı.",
-            "*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
-        )
-    except Order.DoesNotExist:
-        messages.warning(request, "İş Emri kaydı bulunamadı.")
-    except ValueError as e:
-        messages.warning(request, str(e))
-        
+def order_delete(request):
+    order = Order.objects.get(pk=request.POST['order_value'])
+    if order.mounted_engine:
+        engine = order.mounted_engine
+        if order.engine_info:
+            seconhand = Seconhand.objects.select_for_update().get(
+                        row_identifier= request.POST['engine_row_identifier']
+                    )
+            seconhand.engine = engine
+            seconhand.save()
+
+            engine.location = "3"
+        else:
+            engine.location = "5"
+        engine.save()
+
+    if order.mounted_pump:
+        pump = order.mounted_pump
+
+        if order.pump_info:
+            seconhand = Seconhand.objects.select_for_update().get(
+                row_identifier=request.POST['pump_row_identifier']
+            )
+
+            # ❗ DOLUysa hata
+            if seconhand.pump is not None:
+                raise ValueError(
+                    f"{order.pump_info} Bu ikinci el kaydında pompa tanımlı olduğundan dolayı iş emri silinemiyor."
+                )
+
+            # BOŞSA ata
+            seconhand.pump = pump
+            seconhand.save()
+
+        else:
+            warehouse_pump = NewWarehousePump.objects.select_for_update().get(
+                pump=pump
+            )
+            warehouse_pump.quantity += 1
+            warehouse_pump.save()
+    messages.success(request, f"*{order.inventory}* Kuyu için iş emri kaydı başarıyla silindi.")
+    order.delete()
     return redirect('order_page')
 
 def workshop_exit_slip(request):
