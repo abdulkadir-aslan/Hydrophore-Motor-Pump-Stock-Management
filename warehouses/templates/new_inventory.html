@@ -71,6 +71,10 @@
                 {% if request.resolver_match.url_name in 'inventory_edit' %}
                   <input type="hidden" name="engine" value="{{ form.engine.value }}">
                 {% else %}
+                  <input type="hidden"
+                            name="engine_row_identifier"
+                            id="engine_row_identifier"
+                            value="">
                   <div id="defaultFormControlHelp" class="form-text">
                     İstediğiniz değerde motor değeri listede görünmüyorsa <a href="{% url 'seconhand' %}">2.El Depo</a>  sekmesinden ekleyebilirsiniz.
                   </div>
@@ -99,10 +103,14 @@
                             value="{{ form.pump.value }}">
                   {% else %}
                     {{ form.pump }}
+                    <input type="hidden"
+                            name="pump_row_identifier"
+                            id="pump_row_identifier"
+                            value="">
+                    {% endif %}
                     <div id="defaultFormControlHelp" class="form-text">
                       İstediğiniz değerde pompa değeri listede görünmüyorsa <a href="{% url 'seconhand' %}">2.El Depo</a>  sekmesinden ekleyebilirsiniz.
                     </div>
-                  {% endif %}
                 </div>
                 {% if request.resolver_match.url_name in 'inventory_edit' %}
                   <div class="col-md-1 mb-3">
@@ -181,6 +189,37 @@
     $('#pump_select').select2({
         dropdownParent: $('#smallModal'),
         width: '100%'
+    });
+
+    $('#select-pump').select2({
+        width: '100%'
+    });
+
+    $('#select-engine').select2({
+        width: '100%'
+    });
+    
+     // Sayfa açıldığında, eğer pump'ın bir değeri varsa, pump_row_identifier'ı güncelle
+    const selectedPumpText = $('#select-pump option:selected').text();
+    if (selectedPumpText) {
+        $('#pump_row_identifier').val(selectedPumpText);  // Seçilen metni hidden input'a ekle
+    }
+    // Sayfa açıldığında, eğer engine'in bir değeri varsa, engine_row_identifier'ı güncelle
+    const selectedEngineText = $('#select-engine option:selected').text();
+    if (selectedEngineText) {
+        $('#engine_row_identifier').val(selectedEngineText);  // Seçilen metni hidden input'a ekle
+    }
+
+    // Pump seçeneği değiştiğinde çalışacak olan fonksiyon
+    $('#select-pump').on('change', function() {
+        var selectedPumpText = $('#select-pump option:selected').text();
+        $('#pump_row_identifier').val(selectedPumpText);  // Hidden input'u güncelle
+    });
+
+    // Engine seçeneği değiştiğinde çalışacak olan fonksiyon
+    $('#select-engine').on('change', function() {
+        var selectedEngineText = $('#select-engine option:selected').text();
+        $('#engine_row_identifier').val(selectedEngineText);  // Hidden input'u güncelle
     });
 
     // Modal açıldığında mevcut pump seçili gelsin

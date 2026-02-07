@@ -1,4 +1,5 @@
 from django.db import models,transaction
+from django.utils import timezone
 
 class PumpType(models.Model):
     type = models.CharField(verbose_name="Pompa Tipi", unique=True, max_length=50)
@@ -147,6 +148,7 @@ class OutboundWorkOrder(models.Model):
     )
 
     dispatch_date = models.DateField(
+        default=timezone.now,
         verbose_name='Çıkış Fişi Tarihi'
     )
 
@@ -214,6 +216,7 @@ class WorkshopExit(models.Model):
     )
 
     workshop_dispatch_date = models.DateField(
+        default=timezone.now,
         null=True, blank=True,
         verbose_name='Fiş Tarihi'
     )
@@ -285,6 +288,7 @@ class RepairReturn(models.Model):
 
     repair_return_date = models.DateField(
         null=True, blank=True,
+        default=timezone.now,
         verbose_name='Fiş Tarihi'
     )
 

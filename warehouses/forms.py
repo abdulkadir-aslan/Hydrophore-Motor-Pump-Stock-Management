@@ -44,6 +44,11 @@ class EngineForm(ModelForm):
             'serialnumber': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Seri Numarası'}),
             'comment': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
         }
+    def clean_serialnumber(self):
+        serialnumber = self.cleaned_data.get('serialnumber')
+        if serialnumber:
+            return serialnumber.replace(" ", "").upper()
+        return serialnumber
 
 class PumpEditForm(ModelForm):
     class Meta:

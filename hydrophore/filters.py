@@ -14,10 +14,28 @@ class HydrophoreFilter(django_filters.FilterSet):
             'placeholder': 'Hidrofor numarası'
         })
     )
+    
+    district = django_filters.ChoiceFilter(
+        field_name='district',
+        choices=Hydrophore.DISTRICT_CHOICES,
+        label='İlçe',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
+
+    # Adres Filter (icontains)
+    neighborhood = django_filters.CharFilter(
+        field_name='neighborhood',
+        lookup_expr='icontains',
+        label='Adres',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
+    )
+
 
     class Meta:
         model = Hydrophore
-        fields = ['serial_number',]
+        fields = ['serial_number','district','neighborhood']
 
 class HydrophoreAllFilter(django_filters.FilterSet):
 

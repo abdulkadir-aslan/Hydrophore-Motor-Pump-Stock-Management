@@ -269,26 +269,29 @@ def inventory_edit(request, pk):
         'selected_pump': inventory.pump
     })
 
+def seconhand_row_edit(request,model,data):
+    if model == "engine":
+        datas = data.split("-")
+        row = Seconhand.objects.get(row_identifier=datas[0].strip())
+        row.engine = None
+        row.save()
+    elif model == "pump":
+        datas = data.split("-")
+        row = Seconhand.objects.get(row_identifier=datas[0].strip())
+        row.pump = None
+        row.save()
+    else:
+        messages.warning(request, "Formda hatalar var tekrar giriniz.")
+        return redirect("add_inventory")
+
 def add_inventory(request):
     if request.method == 'POST':
         form = InventoryForm(request.POST)
         if form.is_valid(): 
             obj = form.save()  
-            try:
-                engine_locations_update(obj.engine.id,"1")
-            except Engine.DoesNotExist:
-                messages.warning(request, "Motor bulunamadı.")
-            try:
-                warehouse_pump = NewWarehousePump.objects.get(pump=obj.pump)
-                if warehouse_pump.quantity > 0:
-                    warehouse_pump.quantity -= 1  # quantity'yi 1 azalt
-                    warehouse_pump.save()
-                else:
-                    messages.warning(request, "Pompa stoğu zaten 0.")
-            except NewWarehousePump.DoesNotExist:
-                messages.warning(request, "Pompa stoğu bulunamadı.")
-
-            messages.success(request, "Kayıt başarıyla eklendi ve ilgili alanlar güncellendi.")
+            seconhand_row_edit(request,"engine",form.data["engine_row_identifier"])
+            seconhand_row_edit(request,"pump",form.data["pump_row_identifier"])
+            messages.success(request, f"*{obj.well_number}* Kuyu kaydı başarıyla eklendi ve ilgili alanlar güncellendi.")
             return redirect('inventory')
         else:
             messages.warning(request, form.errors.as_ul())
@@ -482,8 +485,6 @@ def repair_delete(request, id):
     )
     
 def contractor_warehouse(request):
-    queryset = Engine.objects.filter(location="6")
-    page_obj = paginate_items(request, queryset)
     if request.method == "POST":
         form = EngineForm(request.POST)
         if form.is_valid():
@@ -496,8 +497,15 @@ def contractor_warehouse(request):
             messages.warning(request, form.errors.as_ul())
     else:
         form = EngineForm()
+    
+    queryset = Engine.objects.filter(location="6")
+    engine_filter = GeneralEngineFilter(request.GET, queryset=queryset)
+    filtered_qs = engine_filter.qs
+    page_obj = paginate_items(request, filtered_qs)
+    
     contex = {
-        'total': queryset.count(),
+        'filter': engine_filter,
+        'total': filtered_qs.count(),
         'items': page_obj, 
         'query_string': request.GET.urlencode(),
         'form' : form
@@ -708,7 +716,6 @@ def new_order(request, id):
 
         else:
             messages.warning(request, form.errors.as_ul())
-
     else:
         form = OrderForm()
 

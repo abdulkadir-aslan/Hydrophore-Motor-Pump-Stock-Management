@@ -62,6 +62,37 @@
                 </div>  
             </div>
         </ul>
+        <!--=== Filtreleme === -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <div class="col-md-2">
+                        {{ filter.form.engine_type.label_tag }}
+                        {{ filter.form.engine_type }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.engine_power.label_tag }}
+                        {{ filter.form.engine_power }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.engine_mark.label_tag }}
+                        {{ filter.form.engine_mark }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter.form.serialnumber.label_tag }}
+                        {{ filter.form.serialnumber }}
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <div class="card">
             <div class="table-responsive text-nowrap">
                 <div class="container">
@@ -73,9 +104,8 @@
                             <th>Motor Gücü</th>
                             <th>Markası</th>
                             <th>Seri Numarası</th>
-                            <th>Locasyon</th>
                             <th>Açıklama</th>
-                            <th>Actions</th>
+                            {% comment %} <th>Actions</th> {% endcomment %}
                         </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
@@ -86,11 +116,8 @@
                             <td>{{item.engine_power}} </td>
                             <td>{{item.engine_mark}}</td>
                             <td>{{item.serialnumber}}</td>
-                            <td>
-                                <span class="badge bg-label-primary me-1">{{item.get_location_display}}</span>
-                            </td>
                             <td>{{item.comment}}</td>
-                            <td>
+                            {% comment %} <td>
                                 <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
                                     <i class='tf-icons bx bx-edit'></i>
                                 </button>
@@ -100,8 +127,12 @@
                                 data-href="{% url 'engine_delete' item.id %}?next={{ request.get_full_path }}">
                                     <i class='tf-icons bx bx-trash'></i>
                                 </button>
-                            </td>
+                            </td> {% endcomment %}
                             </tr>
+                        {% empty %}
+                                <tr class="table-primary">
+                                <td colspan="11" class="text-center "><strong> Kayıt Bulunamadı </strong></td>
+                                </tr>
                         {% endfor %}
                         </tbody>
                     </table>

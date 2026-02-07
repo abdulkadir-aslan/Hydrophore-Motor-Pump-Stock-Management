@@ -64,6 +64,10 @@
                                         </span>
                                     </td>
                                 </tr>
+                            {% empty %}
+                                <tr class="table-primary">
+                                <td colspan="11" class="text-center "><strong> Kayıt Bulunamadı </strong></td>
+                                </tr>
                             {% endfor %}
                         </tbody>
                     </table>

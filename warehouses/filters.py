@@ -310,7 +310,7 @@ class WorkshopExitSlipFilter(django_filters.FilterSet):
     # Kuyu No arama
     well_no = django_filters.CharFilter(
         field_name='well_no',
-        lookup_expr='icontains',
+        lookup_expr='exact',
         label='Kuyu No',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu No'})
     )
