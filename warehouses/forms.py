@@ -158,42 +158,46 @@ class InventoryEditForm(ModelForm):
                 self.fields['engine'].queryset = Engine.objects.filter(pk=self.instance.engine.pk)
                 self.fields['engine'].initial = self.instance.engine
 
-class EngineChoiceField(forms.ModelChoiceField):
+class SeconhandEngineChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        # obj = Engine instance
-        seconhand = obj.seconhand_set.first()
-        if seconhand:
-            return f"{seconhand.row_identifier} - {obj}"
-        return str(obj)
+        return f"{obj.row_identifier} - {obj.engine}"
 
-class PumpChoiceField(forms.ModelChoiceField):
+
+class SeconhandPumpChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        seconhand = obj.seconhand_set.first()
-        if seconhand:
-            return f"{seconhand.row_identifier} - {obj}"
-        return str(obj)
+        return f"{obj.row_identifier} - {obj.pump}"
 
 class InventoryForm(ModelForm):
-    engine = EngineChoiceField(
-        queryset=Engine.objects.none(),
+    seconhand_engine = SeconhandEngineChoiceField(
+        queryset=Seconhand.objects.filter(engine__isnull=False),
+        required=True,
+        label="Motor",
         widget=forms.Select(attrs={
             'class': 'form-select select2',
             'id': 'select-engine'
         })
     )
 
-    pump = PumpChoiceField(
-        queryset=Pump.objects.none(),
+    seconhand_pump = SeconhandPumpChoiceField(
+        queryset=Seconhand.objects.filter(pump__isnull=False),
+        required=True,
+        label="Pompa",
         widget=forms.Select(attrs={
             'class': 'form-select select2',
             'id': 'select-pump'
         })
     )
+
+
+    
     class Meta:
         model = Inventory  
-        fields = ["well_number", "district", "address", "disassembly_depth",
-                  "mounting_depth", "tank_info", "pipe_type", "cable",
-                  "engine", "pump", "flow", "comment"]
+        fields = [
+            "well_number", "district", "address",
+            "disassembly_depth", "mounting_depth",
+            "tank_info", "pipe_type", "cable",
+            "flow", "comment"
+        ]
         widgets = {
             "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
             "district": forms.Select(attrs={'class': 'form-select','id': 'select-district'}),
@@ -203,46 +207,52 @@ class InventoryForm(ModelForm):
             "tank_info": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Depo Bilgisi'}),
             "pipe_type": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Boru Tipi'}),
             "cable": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kablo'}),
-            "engine": forms.Select(attrs={'class': 'form-select select2','id': 'select-engine', 'data-show-subtext': 'true', 'data-live-search': 'true'}),
-            "pump": forms.Select(attrs={'class': 'form-select select2','id': 'select-pump'}),
             "flow": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Debi'}),
             'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
         }
         
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-        # Seconhand tablosunda dolu engine kayıtlarını al
-        engine_ids = Seconhand.objects.exclude(engine__isnull=True).values_list('engine', flat=True).distinct()
-        self.fields['engine'].queryset = Engine.objects.filter(id__in=engine_ids)
-        
-        # Seconhand tablosunda dolu pump kayıtlarını al
-        pump_ids = Seconhand.objects.exclude(pump__isnull=True).values_list('pump', flat=True).distinct()
-        self.fields['pump'].queryset = Pump.objects.filter(id__in=pump_ids)
-        
     def clean_well_number(self):
         well_number = self.cleaned_data.get('well_number')
         if Inventory.objects.filter(well_number=well_number).exists():
             raise forms.ValidationError("Bu Kuyu Numarası zaten mevcut.")
         return well_number
-
-    def clean_engine(self):
-        engine = self.cleaned_data.get('engine')
-        if Inventory.objects.filter(engine=engine).exists():
+    
+    def clean_seconhand_engine(self):
+        seconhand = self.cleaned_data.get('seconhand_engine')
+        if seconhand and Inventory.objects.filter(engine=seconhand.engine).exists():
             raise forms.ValidationError("Bu motor daha önce kullanılmış.")
-        return engine
+        return seconhand
 
     def clean(self):
         cleaned_data = super().clean()
-        disassembly_depth = cleaned_data.get("disassembly_depth")
-        mounting_depth = cleaned_data.get("mounting_depth")
+        d = cleaned_data.get("disassembly_depth")
+        m = cleaned_data.get("mounting_depth")
 
-        if disassembly_depth and mounting_depth:
-            if disassembly_depth > mounting_depth:
-                raise forms.ValidationError(
-                    "Demontaj derinliği, montaj derinliğinden büyük olamaz."
-                )
+        if d and m and d > m:
+            raise forms.ValidationError(
+                "Demontaj derinliği, montaj derinliğinden büyük olamaz."
+            )
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        seconhand_engine = self.cleaned_data.get("seconhand_engine")
+        seconhand_pump = self.cleaned_data.get("seconhand_pump")
+
+        if seconhand_engine:
+            instance.engine = seconhand_engine.engine
+            instance.engine.location = "1"
+            instance.engine.save()
+            
+        if seconhand_pump:
+            instance.pump = seconhand_pump.pump
+
+        if commit:
+            instance.save()
+
+        return instance
 
 class WarehousePumpForm(ModelForm):
     class Meta:

@@ -67,10 +67,11 @@
             <div class="row">
               <div class="col-md-{% if request.resolver_match.url_name in 'inventory_edit' %}5 {% else %}6 {% endif %} mb-3">
                 <label for="engine" class="form-label">Motor</label>
-                {{ form.engine }}
                 {% if request.resolver_match.url_name in 'inventory_edit' %}
+                  {{ form.engine }}
                   <input type="hidden" name="engine" value="{{ form.engine.value }}">
                 {% else %}
+                {{ form.seconhand_engine }}
                   <input type="hidden"
                             name="engine_row_identifier"
                             id="engine_row_identifier"
@@ -102,7 +103,7 @@
                             id="id_hidden_pump"
                             value="{{ form.pump.value }}">
                   {% else %}
-                    {{ form.pump }}
+                    {{ form.seconhand_pump  }}
                     <input type="hidden"
                             name="pump_row_identifier"
                             id="pump_row_identifier"

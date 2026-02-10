@@ -288,7 +288,7 @@ def add_inventory(request):
     if request.method == 'POST':
         form = InventoryForm(request.POST)
         if form.is_valid(): 
-            obj = form.save()  
+            obj = form.save()
             seconhand_row_edit(request,"engine",form.data["engine_row_identifier"])
             seconhand_row_edit(request,"pump",form.data["pump_row_identifier"])
             messages.success(request, f"*{obj.well_number}* Kuyu kaydı başarıyla eklendi ve ilgili alanlar güncellendi.")
