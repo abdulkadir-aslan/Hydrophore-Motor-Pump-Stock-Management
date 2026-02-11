@@ -253,6 +253,12 @@
                 <div data-i18n="Documentation">Atölye Çıkış Fişleri</div>
               </a>
             </li>
+            <li class="menu-item {% if url_name == 'work_order_reporting' %}active {% endif %}">
+              <a href="{% url 'work_order_reporting' %}"  class="menu-link">
+                <i class="menu-icon tf-icons bx bx-file"></i>
+                <div data-i18n="Documentation">İş Emri Raporlama</div>
+              </a>
+            </li>
           </ul>
           {% endwith %}
         </aside>

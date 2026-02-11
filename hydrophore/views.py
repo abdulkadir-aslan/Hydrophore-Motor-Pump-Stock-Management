@@ -280,8 +280,8 @@ def outbound_work_order_edit(request,pk):
                     disassembled.location = "2"
                     mounted.save()
                     disassembled.save()
-
-                    order.save()  
+                    order.save()
+                    create_workshop_exit_slip("hydrophore",order)
                     WorkshopExit.objects.create(
                         hydrophore=disassembled,
                         outbound_work_order=order,

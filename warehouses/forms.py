@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from .models import *
+from hydrophore.models import OutboundWorkOrder
 
 class MarkForm(ModelForm):
     class Meta:
@@ -118,6 +119,35 @@ class PumpForm(ModelForm):
         
         return cleaned_data
 
+class OperationForm(forms.Form):
+
+    OPERATION_TYPE_CHOICES = [
+        ("", "Seçiniz"),
+        ("installation", "Montaj"),
+        ("dismantling", "Demontaj"),
+        ("length_extension", "Boy Ekleme"),
+        ("well_cancellation", "Kuyu İptal"),
+    ]
+
+    operation_type = forms.ChoiceField(
+        label="İşlem Türü",
+        choices=OPERATION_TYPE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            "class": "form-select"
+        })
+    )
+
+    description = forms.CharField(
+        label="Açıklama",
+        required=False,
+        widget=forms.Textarea(attrs={
+            "class": "form-control",
+            "rows": 2,
+            "placeholder": "Açıklama"
+        })
+    )
+
 class InventoryEditForm(ModelForm):
     district = forms.ChoiceField(
         choices=DISTRICT_CHOICES,
@@ -137,7 +167,7 @@ class InventoryEditForm(ModelForm):
         model = Inventory  
         fields = ["well_number", "district", "address", "disassembly_depth",
                   "mounting_depth", "tank_info", "pipe_type", "cable",
-                  "engine", "pump", "flow", "comment"]
+                  "engine", "pump", "flow", "comment","status"]
         widgets = {
             "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
             "district": forms.Select(attrs={'class': 'form-select'}),
@@ -149,6 +179,7 @@ class InventoryEditForm(ModelForm):
             "cable": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kablo'}),
             "flow": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Debi'}),
             'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
+            "status": forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -161,7 +192,6 @@ class InventoryEditForm(ModelForm):
 class SeconhandEngineChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return f"{obj.row_identifier} - {obj.engine}"
-
 
 class SeconhandPumpChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -188,15 +218,13 @@ class InventoryForm(ModelForm):
         })
     )
 
-
-    
     class Meta:
         model = Inventory  
         fields = [
             "well_number", "district", "address",
             "disassembly_depth", "mounting_depth",
             "tank_info", "pipe_type", "cable",
-            "flow", "comment"
+            "flow", "comment","status",
         ]
         widgets = {
             "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
@@ -209,6 +237,7 @@ class InventoryForm(ModelForm):
             "cable": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kablo'}),
             "flow": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Debi'}),
             'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
+            "status": forms.Select(attrs={'class': 'form-select'}),
         }
         
 
@@ -332,18 +361,26 @@ class OrderForm(forms.ModelForm):
         }
     def clean_outlet_plug(self):
         outlet_plug = self.cleaned_data.get("outlet_plug")
-        if outlet_plug:
-            qs = Order.objects.filter(outlet_plug=outlet_plug)
 
-            # edit formu için (kendi kaydını hariç tut)
+        if outlet_plug:
+            # Order içinde kontrol
+            qs = Order.objects.filter(outlet_plug=outlet_plug)
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
 
             if qs.exists():
-                raise forms.ValidationError("Bu çıkış fişi daha önce kullanılmıştır.")
+                raise forms.ValidationError(
+                    "Bu çıkış fişi daha önce kullanılmıştır."
+                )
 
-            return outlet_plug
+            # Hydrophore içinde kontrol
+            if OutboundWorkOrder.objects.filter(dispatch_slip_number=outlet_plug).exists():
+                raise forms.ValidationError(
+                    "Bu çıkış numarası *HİDROFOR* işlemlerinde kullanılmıştır."
+                )
 
+        return outlet_plug
+    
     def clean_entrance_plug(self):
         entrance_plug = self.cleaned_data.get("entrance_plug")
         if entrance_plug:
@@ -356,7 +393,7 @@ class OrderForm(forms.ModelForm):
                 raise forms.ValidationError("Bu atölye fişi daha önce kullanılmıştır.")
 
             return entrance_plug
-        
+
 class OrderEditForm(forms.ModelForm):
     class Meta:
         model = Order

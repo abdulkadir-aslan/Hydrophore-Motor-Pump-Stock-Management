@@ -8,6 +8,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
 from .filters import InventoryFilter,NewPumpFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
 from .forms import *
+from hydrophore.models import OutboundWorkOrder,WorkshopExit,RepairReturn
 
 def handle_deletion(request, model, object_id, redirect_url, success_message, error_message, protected_error_message):
     try:
@@ -682,9 +683,31 @@ def create_repair_if_needed(request, order):
     Repair.objects.create(**repair_data)
     return redirect("order_page")
 
+def transactions(request,id):
+    inventory = get_object_or_404(Inventory, id=id)
+    form = OperationForm(request.POST or None)
+    if request.method == "POST":
+        if form.data["operation_type"] == "well_cancellation":
+            Repair.objects.create(
+                pump =inventory.pump,
+                engine =inventory.engine,
+            )
+            inventory.engine = None
+            inventory.pump = None
+            inventory.status = "passive"
+            inventory.comment = form.data["description"]
+            inventory.save()
+            messages.success(request, f"*{inventory.well_number}* Kuyu numarası iptal edildi.\n Motor ve Pompa tamir depoya gönderildi.")
+            return redirect("repair_page")
+    
+    return render(request, "transactions.html", {
+        "form": form,
+        "inventory": inventory,
+        "end_order" : Order.objects.filter(inventory=inventory).order_by("id").first()
+    })
+    
 def new_order(request, id):
     inventory = get_object_or_404(Inventory, id=id)
-
     if request.method == "POST":
         form = OrderForm(request.POST)
         operation_type = request.POST.get("operation_type")
@@ -749,6 +772,9 @@ def order_page(request):
         if well_number:
             try:
                 well = Inventory.objects.get(well_number=well_number)
+                if well.status == "passive":
+                    messages.info(request, "Bu kuyu numarası *PASİF* durumda iş emri oluşturamazsınız.")
+                    return redirect("order_page")
                 active_order = Order.objects.filter(inventory=well, status="active").exists()
                 if active_order:
                     messages.info(request, "Bu kuyu numarasında aktif iş emri mevcut.")
@@ -932,3 +958,37 @@ def create_workshop_exit_slip(modalname, modal):
         )
 
     return
+
+def work_order_reporting(request):
+    order = None
+    hydrophore = None
+    repair = None
+    workshop = None
+    repair_return = None
+
+    if request.method == 'POST':
+        item = request.POST.get("number")
+
+        order = Order.objects.filter(outlet_plug=item).first()
+        hydrophore = OutboundWorkOrder.objects.filter(dispatch_slip_number=item).first()
+
+        if order:
+            repair = Repair.objects.filter(order=order).first()
+
+        elif hydrophore:
+            workshop = WorkshopExit.objects.filter(outbound_work_order=hydrophore).first()
+            if workshop:
+                repair_return = RepairReturn.objects.filter(workshop_exit=workshop).first()
+
+        else:
+            messages.warning(request, "Çıkış fiş numarası bulunamadı.")
+
+    context = {
+        'order': order,
+        'hydrophore': hydrophore,
+        'repair': repair,
+        'workshop': workshop,
+        'repair_return': repair_return,
+    }
+
+    return render(request, 'work_order_reporting.html', context)

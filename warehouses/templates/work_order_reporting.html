@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Raporlar /</span>İş Emri Raporlama</h4>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+            <li class="nav-item me-2">
+            </li>
+            {% comment %} <li class="nav-item me-2">
+                <a class="nav-link" href="{% url 'new_workshop_exit_slip' %}">
+                    <i class="bx bx-add-to-queue me-1"></i> Ekle
+                </a>
+            </li> {% endcomment %}
+        </ul>
+        <div class="card mb-4">
+            <h5 class="card-header">İş Emri Rapolama</h5>
+            <div class="card-body" >
+                <form  method="POST">
+                    {% csrf_token %}
+                    <div class="row gx-3 gy-2 align-items-center" >
+                        <div class="col-md-3"  >
+                            <label for="defaultFormControlInput" class="form-label">Çıkış Fiş Numarası</label>
+                            <input type="text"  class="form-control" name="number" placeholder="Çıkış fiş numarası "  autofocus="" required>
+                        </div>
+                        <div class="col-md-3" >
+                            <label class="form-label" for="showToastPlacement">&nbsp;</label>
+                            <button type="submit"  class="btn btn-primary d-block ">Ara</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="defaultFormControlHelp" class="form-text">
+                    Raporlamak istediğiniz çıkış fişi numarasını giriniz.
+                </div>
+            </div>
+        </div>
+        {% if order or hydrophore %}
+<hr class="my-4">
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Rapor Sonucu</h5>
+    </div>
+    <div class="card-body">
+
+        <!-- MOTOR / POMPA İŞ EMRİ -->
+        {% if order %}
+        <h6 class="fw-bold text-primary">Motor / Pompa İş Emri</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-sm">
+                <tr>
+                    <th>Kuyu</th>
+                    <td>{{ order.inventory }}</td>
+                </tr>
+                <tr>
+                    <th>Çıkış Fişi</th>
+                    <td>{{ order.outlet_plug }}</td>
+                </tr>
+                <tr>
+                    <th>Çıkış Tarihi</th>
+                    <td>{{ order.outlet_plug_date }}</td>
+                </tr>
+                <tr>
+                    <th>Montaj Edilen Motor</th>
+                    <td>{{ order.mounted_engine }}</td>
+                </tr>
+                <tr>
+                    <th>Montaj Edilen Pompa</th>
+                    <td>{{ order.mounted_pump }}</td>
+                </tr>
+                <tr>
+                    <th>Demontaj Motor</th>
+                    <td>{{ order.disassembled_engine }}</td>
+                </tr>
+                <tr>
+                    <th>Demontaj Pompa</th>
+                    <td>{{ order.disassembled_pump }}</td>
+                </tr>
+                <tr>
+                    <th>Durum</th>
+                    <td>
+                        <span class="badge bg-{% if order.status == 'active' %}success{% else %}secondary{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Açıklama</th>
+                    <td>{{ order.comment }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- TAMİR -->
+        {% if repair %}
+        <h6 class="fw-bold text-warning">Tamir Kaydı</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-sm">
+                <tr>
+                    <th>Motor</th>
+                    <td>{{ repair.engine }}</td>
+                </tr>
+                <tr>
+                    <th>Pompa</th>
+                    <td>{{ repair.pump }}</td>
+                </tr>
+                <tr>
+                    <th>Motor Durumu</th>
+                    <td>{{ repair.engine_info }}</td>
+                </tr>
+                <tr>
+                    <th>Pompa Durumu</th>
+                    <td>{{ repair.pump_info }}</td>
+                </tr>
+                <tr>
+                    <th>Durum</th>
+                    <td>{{ repair.get_status_display }}</td>
+                </tr>
+                <tr>
+                    <th>Kayıt Tarihi</th>
+                    <td>{{ repair.created_at }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- HİDROFOR ÇIKIŞ İŞ EMRİ -->
+        {% if hydrophore %}
+        <h6 class="fw-bold text-info">Hidrofor Çıkış İş Emri</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-sm">
+                <tr>
+                    <th>Takılan Hidrofor</th>
+                    <td>{{ hydrophore.mounted_hydrophore }}</td>
+                </tr>
+                <tr>
+                    <th>Sökülen Hidrofor</th>
+                    <td>{{ hydrophore.disassembled_hydrophore }}</td>
+                </tr>
+                <tr>
+                    <th>İlçe</th>
+                    <td>{{ hydrophore.district }}</td>
+                </tr>
+                <tr>
+                    <th>Mahalle</th>
+                    <td>{{ hydrophore.neighborhood }}</td>
+                </tr>
+                <tr>
+                    <th>Çıkış Fişi</th>
+                    <td>{{ hydrophore.dispatch_slip_number }}</td>
+                </tr>
+                <tr>
+                    <th>Çıkış Tarihi</th>
+                    <td>{{ hydrophore.dispatch_date }}</td>
+                </tr>
+                <tr>
+                    <th>Saha Personeli</th>
+                    <td>{{ hydrophore.district_personnel }}</td>
+                </tr>
+                <tr>
+                    <th>Durum</th>
+                    <td>{{ hydrophore.get_status_display }}</td>
+                </tr>
+                <tr>
+                    <th>Açıklama</th>
+                    <td>{{ hydrophore.comment }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- ATÖLYE ÇIKIŞ -->
+        {% if workshop %}
+        <h6 class="fw-bold text-secondary">Atölye Çıkışı</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-sm">
+                <tr>
+                    <th>Hidrofor</th>
+                    <td>{{ workshop.hydrophore }}</td>
+                </tr>
+                <tr>
+                    <th>Atölye Fiş No</th>
+                    <td>{{ workshop.workshop_dispatch_slip_number }}</td>
+                </tr>
+                <tr>
+                    <th>Tarih</th>
+                    <td>{{ workshop.workshop_dispatch_date }}</td>
+                </tr>
+                <tr>
+                    <th>Durum</th>
+                    <td>{{ workshop.get_status_display }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- TAMİRDEN DÖNÜŞ -->
+        {% if repair_return %}
+        <h6 class="fw-bold text-success">Tamirden Dönüş</h6>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <tr>
+                    <th>Hidrofor</th>
+                    <td>{{ repair_return.hydrophore }}</td>
+                </tr>
+                <tr>
+                    <th>Fiş No</th>
+                    <td>{{ repair_return.repair_return_slip_number }}</td>
+                </tr>
+                <tr>
+                    <th>Tarih</th>
+                    <td>{{ repair_return.repair_return_date }}</td>
+                </tr>
+                <tr>
+                    <th>Durum</th>
+                    <td>{{ repair_return.get_status_display }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endif %}
+
+    </div>
+</div>
+
+{% endblock content %}

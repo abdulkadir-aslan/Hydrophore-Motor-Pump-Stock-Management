@@ -83,7 +83,11 @@
                       {% for item in items %}
                       <tr>
                         <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
-                        <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong>{{item.well_number}}</strong></td>
+                        <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong>
+                            {% if item.status == 'passive' %}
+                            <span class="badge bg-label-danger me-1">Pasif</span>
+                            {% endif %} 
+                            {{item.well_number}}</strong></td>
                         <td >{{item.get_district_display}}</span> </td>
                         <td>{{item.address}} </td>
                         <td>{{item.disassembly_depth}} </td>

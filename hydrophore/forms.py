@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import ModelForm
+from warehouses.models import Order
 from .models import RepairReturn,Power,PumpType,Hydrophore,OutboundWorkOrder,DistrictFieldPersonnel,WorkshopExit
 
 class PumpTypeForm(ModelForm):
@@ -150,16 +151,27 @@ class OutboundWorkOrderForm(ModelForm):
         }
 
     def clean_dispatch_slip_number(self):
-        slip_number = self.cleaned_data.get('dispatch_slip_number')
+        slip_number = self.cleaned_data.get("dispatch_slip_number")
+
         if slip_number:
+            # Order içinde kontrol
             qs = OutboundWorkOrder.objects.filter(dispatch_slip_number=slip_number)
-            # Güncellenen objeyi dahil etmemek için instance kontrolü
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
-            if qs.exists():
-                raise forms.ValidationError("Bu çıkış fişi numarası zaten kullanılıyor.")
-        return slip_number
 
+            if qs.exists():
+                raise forms.ValidationError(
+                    "Bu çıkış fişi daha önce kullanılmıştır."
+                )
+
+            # Hydrophore içinde kontrol
+            if Order.objects.filter(outlet_plug=slip_number).exists():
+                raise forms.ValidationError(
+                    "Bu çıkış numarası *DALGIÇ* işlemlerinde kullanılmıştır."
+                )
+
+        return slip_number
+    
     def clean(self):
         cleaned_data = super().clean()
         disassembled_hydrophore = cleaned_data.get('disassembled_hydrophore')

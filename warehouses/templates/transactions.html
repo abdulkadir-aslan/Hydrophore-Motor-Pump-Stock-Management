@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">İş Emirleri /</span> Yeni İş Emri
+</h4>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-body">
+
+                <!-- Kuyu Bilgisi -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Kuyu Bilgisi</label>
+                        <input type="text"
+                            class="form-control"
+                            value="{{ inventory }} - {{ inventory.district|upper }} - {{ inventory.address }}"
+                            disabled>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                Kuyuda yapılan son iş tarihi <span class="text-danger">*</span> / Montaj Edilen Motor / Montaj Edilen Pompa
+                            </label>
+                            <input type="text" class="form-control" value="{{end_order.outlet_plug_date}} / ({{end_order.mounted_engine}} ) / ({{end_order.mounted_pump}})" readonly>
+                    </div>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            {{ form.operation_type.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.operation_type }}
+                    </div>
+
+                    <div class="col-md-6 mb-3" id="description-wrapper" style="display: none;">
+                        <label class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                    </div>
+                    <!-- BUTONLAR -->
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            İş Emri Oluştur
+                        </button>
+                        <a href="{% url 'order_page' %}" class="btn btn-secondary">
+                            Vazgeç
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const operationSelect = document.querySelector('select[name="operation_type"]');
+        const descriptionWrapper = document.getElementById("description-wrapper");
+        const descriptionTextarea = descriptionWrapper.querySelector("textarea");
+
+        function toggleDescription() {
+            const selectedValue = operationSelect.value;
+
+            if (selectedValue === "length_extension" || selectedValue === "well_cancellation") {
+                descriptionWrapper.style.display = "block";
+                descriptionTextarea.required = true;
+            } else {
+                descriptionWrapper.style.display = "none";
+                descriptionTextarea.required = false;
+                descriptionTextarea.value = ""; // gizlenince temizle
+            }
+        }
+
+        // Sayfa yüklenince kontrol et (POST sonrası için önemli)
+        toggleDescription();
+
+        // Select değişince tetikle
+        operationSelect.addEventListener("change", toggleDescription);
+    });
+</script>
+    
+{% endblock %}

@@ -123,13 +123,19 @@ class Inventory(models.Model):
     tank_info = models.CharField(verbose_name="Depo Bilgisi", max_length=50, null=False, blank=False)
     pipe_type = models.CharField(verbose_name="Boru Tipi", max_length=50, null=False, blank=False)
     cable = models.CharField(verbose_name="Kablo", max_length=15, null=False, blank=False)
-    engine = models.ForeignKey(Engine, verbose_name="Motor", on_delete=models.CASCADE, null=True)
-    pump = models.ForeignKey(Pump, verbose_name="Pompa", on_delete=models.PROTECT, null=True)
+    engine = models.ForeignKey(Engine, verbose_name="Motor", on_delete=models.CASCADE, null=True, blank=True)
+    pump = models.ForeignKey(Pump, verbose_name="Pompa", on_delete=models.PROTECT, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)  # 'create_at' -> 'created_at'
     updated_at = models.DateTimeField(auto_now=True)  # 'update_at' -> 'updated_at'
     flow = models.CharField(verbose_name="Debi", max_length=50, null=True, blank=True)
     comment = models.TextField(verbose_name="Açıklama", blank=True)
-
+    status = models.CharField(
+        verbose_name="Durum",
+        choices=STATUS,
+        default="active",
+        max_length=7
+    )
+    
     def save(self, *args, **kwargs):
         self.address = self.address.upper()
         self.well_number = self.well_number.upper()
@@ -269,41 +275,40 @@ class Repair(models.Model):
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             order = self.order
-            inventory = order.inventory
+            if order:
+                inventory = order.inventory
+                # ---------- ENGINE GERİ AL ----------
+                if self.engine:
+                    # Inventory'deki mevcut motor (mounted olan)
+                    current_engine = inventory.engine
 
-            # ---------- ENGINE GERİ AL ----------
-            if self.engine:
-                # Inventory'deki mevcut motor (mounted olan)
-                current_engine = inventory.engine
+                    # Eski motoru geri koy
+                    inventory.engine = self.engine
 
-                # Eski motoru geri koy
-                inventory.engine = self.engine
+                    # Mounted motoru tekrar order’a bağla
+                    order.mounted_engine = current_engine
 
-                # Mounted motoru tekrar order’a bağla
-                order.mounted_engine = current_engine
+                    # Location geri al
+                    engine = Engine.objects.get(id=self.engine.id)
+                    engine.location = "1"
+                    engine.save()
+                # ---------- PUMP GERİ AL ----------
+                if self.pump:
+                    current_pump = inventory.pump
+                    inventory.pump = self.pump
+                    order.mounted_pump = current_pump
+                # ---------- ORDER ----------
+                order.status = "active"
 
-                # Location geri al
+                inventory.save()
+                order.save()
+            else:
                 engine = Engine.objects.get(id=self.engine.id)
                 engine.location = "1"
                 engine.save()
-
-            # ---------- PUMP GERİ AL ----------
-            if self.pump:
-                current_pump = inventory.pump
-                inventory.pump = self.pump
-                order.mounted_pump = current_pump
-
-            # ---------- ORDER ----------
-            order.status = "active"
-
-            inventory.save()
-            order.save()
-
             # ---------- ASIL SİLME ----------
             super().delete(*args, **kwargs)
 
-    def __str__(self):
-        return self.order.inventory.well_number 
     class Meta:
         verbose_name = "Tamir Depo"
         verbose_name_plural = "Tamir Depolar"
