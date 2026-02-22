@@ -1,0 +1,36 @@
+<div class="modal-header">
+    <h4 class="modal-title" id="exampleModalLabel2">Atölye'ye Gelen Bilgileri</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<hr>
+<form method="POST" action="{% url 'form_control' %}">
+    {% csrf_token %}
+<div class="modal-body">
+    <div class="row g-2">
+        <input type="hidden" name="id" value="{{order.id}}" >
+        <div class="col mb-0">
+            {% if order.operation_engine == "engine" or order.operation_engine == "engine_pump" %}
+            <label class="form-label" >Kuyudaki Motor</label>
+            <input type="text" class="form-control"  value="{{order.inventory.engine}}" readonly>
+            {% endif %}
+        </div>
+        <div class="col mb-0">
+            {% if order.operation_engine == "pump" or order.operation_engine == "engine_pump" %}
+            <label  class="form-label">Kuyudaki Pompa</label>
+            <input  type="text" class="form-control" value="{{order.inventory.pump}}" readonly>
+            {% endif %}
+        </div>
+    </div>
+    <br>
+    <div id="defaultFormControlHelp" class="form-text">
+    Gelen Motor veya Pompa Yukarıdaki değerler ile aynı değilse <a href="{% url 'inventory_edit' order.inventory.id %}?next=/is_emirleri/">Kuyu Depo</a>  sekmesinden düzenleyebilirsiniz.
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+    Kapat
+    </button>
+    <button type="submit" class="btn btn-primary">Atölyeye Kaydet</button>
+</div>
+</form>
+

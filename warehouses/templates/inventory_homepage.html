@@ -11,7 +11,7 @@
           <li class="nav-item me-2">
           </li>
           <li class="nav-item me-2">
-            <a class="nav-link "  href="{% url 'add_inventory' %}"><i class="bx bx-add-to-queue me-1"></i> Ekle</a>
+            <a class="nav-link "  href="{% url 'add_inventory' %}?next={{ request.get_full_path }}"><i class="bx bx-add-to-queue me-1"></i> Ekle</a>
           </li>
       </ul> 
       <!--=== Filtreleme === -->
@@ -101,7 +101,7 @@
                         <td>{{item.comment}}</td>
                         <td>{{item.create_at}}</td>
                         <td>
-                          <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'inventory_edit' item.id  %}">
+                          <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'inventory_edit' item.id  %}?next={{ request.get_full_path }}">
                             <i class='tf-icons bx bx-edit'></i>
                           </button>
                           <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'delete_inventory' item.id %}">

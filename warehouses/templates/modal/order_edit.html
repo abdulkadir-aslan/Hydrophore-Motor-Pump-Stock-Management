@@ -1,0 +1,231 @@
+<div class="modal-header">
+  <h4 class="modal-title" id="modalCenterTitle">İş Emri</h4>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<hr>
+<form method="POST" action="{% url 'order_show' order.pk %}">
+   {% csrf_token %}
+<div class="modal-body">
+  <style>
+    .custom-table td {
+      /* Hücre içi metin taşmasını önle ve alt satıra kır */
+      white-space: normal !important;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      /* Gerekirse kelime bölme için */
+      hyphens: auto;
+    }
+    .custom-table {
+    width: 100%;
+    table-layout: fixed;
+    word-wrap: break-word;
+   }
+   .custom-table td.label {
+      width: 11%;
+      text-align: left;
+      padding-right: 0.3rem;
+   }
+   .custom-table td.colon {
+      width: 2%;
+      text-align: center;
+      padding: 0;
+   }
+   .custom-table td.value {
+      width: 13%;
+      text-align: left;
+      padding-left: 0.3rem;
+   }
+   /* Sağ kolon */
+   .custom-table td.label-right {
+      width: 10%;
+      text-align: left;
+      padding-right: 0.3rem;
+   }
+   .custom-table td.colon-right {
+      width: 2%;
+      text-align: center;
+      padding: 0;
+   }
+   .custom-table td.value-right {
+      width: 13%;
+      text-align: left;
+      padding-left: 0.3rem;
+   }
+  </style>
+   <table class="table table-borderless custom-table" style="width: 100%; table-layout: fixed;">
+   <tbody>
+      <tr>
+         <td class="label" style=" background-color: #BDE8F5;"><b>Başvuru Bilgileri</b></td>
+         <td class="colon" style=" background-color: #BDE8F5;"></td>
+         <td class="value" style=" background-color: #BDE8F5;"><b>{{order.created_at}}</b></td>
+         <td class="label-right" style=" background-color: #BDE8F5;">
+         {% if order.status == "passive" %}
+            <span class="badge bg-label-danger me-1">PASİF</span>
+         {% else %}
+            <span class="badge bg-label-success me-1">AKTİF</span>
+         {% endif %}
+         <span class="badge bg-label-success me-1"></span>
+         </td>
+         <td class="colon-right" style=" background-color: #BDE8F5;"></td>
+         <td class="value-right" style=" background-color: #BDE8F5;"><b>No : E{{order.work_order_plug}}</b></td>
+      </tr>
+
+      <tr>
+         <td class="label">Kuyu No</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.inventory}}</td>
+
+         <td class="label-right">Adres</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.inventory.get_district_display}}</td>
+      </tr>
+      <tr>
+         <td class="label">İlçe</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.inventory.address}}</td>
+
+         <td class="label-right">Kayıt Tarihi</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.inventory.created_at}}</td>
+      </tr>
+      <tr>
+         <td class="label">D Derinliği</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.inventory.disassembly_depth}}</td>
+
+         <td class="label-right">M Derinliği</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.inventory.mounting_depth}}</td>
+      </tr>
+      <tr>
+         <td class="label">Depo Bil.</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.inventory.tank_info}}</td>
+
+         <td class="label-right">Boru Tipi</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.inventory.pipe_type}}</td>
+      </tr>
+      <tr>
+         <td class="label">Kablo</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.inventory.cable}}</td>
+
+         <td class="label-right">Motor</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.inventory.engine}}</td>
+      </tr>
+      <tr>
+         <td class="label">Pompa</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.inventory.pump}}</td>
+
+
+         <td class="label-right">Debi</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.inventory.flow}}</td>
+      </tr>
+      <tr>
+         <td class="label">Açıklama</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.inventory.comment}}</td>
+
+         <td class="label-right"></td>
+         <td class="colon-right"></td>
+         <td class="value-right"></td>
+      </tr>
+
+      <tr>
+         <td class="label" style=" background-color: {% if order.disassembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>Demontaj Bilgileri</b></td>
+         <td class="colon" style=" background-color: {% if order.disassembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>
+         <td class="value" style=" background-color: {% if order.disassembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="label-right" style=" background-color: {% if order.disassembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>
+         <td class="colon-right" style=" background-color: {% if order.disassembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>
+         <td class="value-right" style=" background-color: {% if order.disassembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"><b>No : D{{order.disassembly_plug}}</b></td>
+      </tr>
+      <tr>
+         <td class="label"title="Demontaj Edilen Motor">D. Motor</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.disassembled_engine}}</td>
+
+
+         <td class="label-right" title="Demontaj Edilen Pompa">D. Pompa</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.disassembled_pump}}</td>
+      </tr>
+
+      <tr>
+         <td class="label" style=" background-color: {% if order.entrance_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %} "><b>Atölye Bilgiler</b></td>
+         <td class="colon" style=" background-color: {% if order.entrance_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="value" style=" background-color: {% if order.entrance_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>{{order.entrance_plug_date}}</b></td>
+         <td class="label-right" style=" background-color: {% if order.entrance_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="colon-right" style=" background-color: {% if order.entrance_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="value-right" style=" background-color: {% if order.entrance_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>No : AG{{order.entrance_plug}}</b></td>
+      </tr>
+      <tr>
+         <td class="label" style=" background-color: {% if repair.status == 'passive' %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>Tamir Bilgiler</b></td>
+         <td class="colon" style=" background-color: {% if repair.status == 'passive' %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="value" style=" background-color: {% if repair.status == 'passive' %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b></b></td>
+         <td class="label-right" style=" background-color: {% if repair.status == 'passive' %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="colon-right" style=" background-color: {% if repair.status == 'passive' %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="value-right" style=" background-color: {% if repair.status == 'passive' %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>No : TG{{order.entrance_plug}}</b></td>
+      </tr>
+      <tr>
+         <td class="label">Motor Durumu</td>
+         <td class="colon">:</td>
+         <td class="value">{{repair.engine_info}}</td>
+
+         <td class="label-right">Pompa Durumu</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{repair.pump_info}}</td>
+      </tr>
+
+      <tr>
+         <td class="label" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>Çıkış Fişi Bilgileri</b></td>
+         <td class="colon" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>
+         <td class="value" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"><b>{{order.outlet_plug_date}}</b></td>
+         <td class="label-right" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>
+         <td class="colon-right" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="value-right" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>No : C{{order.outlet_plug}}</b></td>
+      </tr>
+      <tr>
+         <td class="label">Montaj Motor</td>
+         <td class="colon">:</td>
+         <td class="value">{{order.mounted_engine}}</td>
+
+         <td class="label-right">Montaj Pompa</td>
+         <td class="colon-right">:</td>
+         <td class="value-right">{{order.mounted_pump}}</td>
+      </tr>
+      <tr>
+         <td class="label" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>Montaj Bilgileri</b></td>
+         <td class="colon" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>
+         <td class="value" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"><b></b></td>
+         <td class="label-right" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>
+         <td class="colon-right" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
+         <td class="value-right" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>No : M{{order.assembly_plug}}</b></td>
+      </tr>
+      <tr>
+         <td colspan="6">
+            <hr>
+            <label class="form-label">Açıklama</label>
+            <textarea name="comment"  cols="30" rows="1" class="form-control" placeholder="Açıklama" >{{order.comment}}</textarea>
+         </td>
+      </tr>
+   </tbody>
+   </table>
+
+</div>
+  <div class="modal-footer">
+   {% if order.operation_type == "1" and order.situation == "dismantling" or order.operation_type == "5" and order.situation == "installation" %}      <button 
+         type="button" class="btn btn-danger js-delete" data-href="{% url 'delete_order' order.id %}">İş Emrini Sil
+      </button>
+   {% else %}
+      <button 
+         type="button" class="btn btn-danger js-go-back" data-href="{% url 'order_go_back' order.id %}">Bir İşlem Geri Git
+      </button>
+   {% endif %}   
+    <button type="button" class="btn btn-outline-secondary ms-auto" data-bs-dismiss="modal">Kapat</button>
+    <button type="submit" class="btn btn-primary">Düzenle</button>
+  </div>
+</form>

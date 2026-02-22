@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Inventory,NewWarehousePump,Engine,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
+from .models import Inventory,NewWarehousePump,Engine,WORK_ORDER_CHOİCES,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
 
 class InventoryFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(
@@ -216,6 +216,15 @@ class OrderFilter(django_filters.FilterSet):
             'class': 'form-select'
         })
     )
+    
+    operation_type = django_filters.ChoiceFilter(
+        field_name='operation_type',
+        choices=WORK_ORDER_CHOİCES,
+        label='İşlem Türü',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
 
     # Adres Filter (icontains)
     address = django_filters.CharFilter(
@@ -227,7 +236,7 @@ class OrderFilter(django_filters.FilterSet):
 
     class Meta:
         model = Order
-        fields = ['well_number','serial_number','district','address' ]
+        fields = ['well_number','operation_type','serial_number','district','address' ]
     
     def filter_serial_number(self, queryset, name, value):
         if value:

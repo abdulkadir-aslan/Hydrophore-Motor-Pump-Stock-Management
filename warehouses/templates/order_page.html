@@ -3,6 +3,10 @@
 {% load static %}
 {% load tag_library %}
 
+{% block javascript %}
+<script src="{% static 'js/modal.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>Aktif İş Emirleri</h4>
 <div class="row">
@@ -45,13 +49,17 @@
                     </div>
 
                     <!-- Montaj Edilen Motor Filtreleme -->
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         {{ filter.form.serial_number.label_tag }}
                         {{ filter.form.serial_number }}
                     </div>
 
-                    <!-- Demontaj Edilen Motor Filtreleme -->
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        {{ filter.form.operation_type.label_tag }}
+                        {{ filter.form.operation_type }}
+                    </div>
+
+                    <div class="col-md-2">
                         {{ filter.form.district.label_tag }}
                         {{ filter.form.district }}
                     </div>
@@ -76,107 +84,75 @@
                     <table class="table table-striped mt32 customers-list">
                         <thead>
                             <tr>
-                                <th></th>
                                 <th>#</th>
-                                <th>Ç. Fişi </th>
-                                <th>Ç. Fişi Trh.</th>
+                                <th></th>
+                                <th title= "İş Emri Numarası">İş Emri Num. </th>
                                 <th>Kuyu No</th>
                                 <th>İlçe</th>
                                 <th>Mahalle</th>
-                                <th>M. Motor</th>
-                                <th>M. Pompa</th>
-                                <th>D. Motor</th>
-                                <th>D. Pompa</th>
-                                <th>G. Fişi</th>
-                                <th>G. Fişi Trh.</th>
+                                <th>İşlem</th>
+                                <th>Son Durum</th>
+                                <th>Oluşturma Tarihi</th>
                                 <th>Açıklama</th>
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
                             {% for item in items %}
                                 <tr>
-                                    <td>
-                                        <a class='btn btn-icon btn-outline-success  btn-flat' href="{% url 'order_edit' item.id  %}">
-                                            <i class='tf-icons bx bx-edit'></i>
-                                        </a>
-                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat'
-                                            data-id="{{ item.id }}" 
-                                            data-pump="{{ item.pump_info }}"
-                                            data-engine="{{ item.engine_info }}">
-                                            <i class='tf-icons bx bx-trash'></i>
-                                        </button>
-                                    </td>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
-                                    <td>{{ item.outlet_plug }}</td>
                                     <td>
-                                        <span class="{% if item.outlet_plug_date|day_diff >= 2 %} badge bg-label-danger me-1 {% endif %}">
-                                            {{ item.outlet_plug_date }}
-                                        </span>
+                                        <button type="button" class="btn btn-icon btn-outline-primary " data-bs-toggle="dropdown" aria-expanded="false">
+                                             <i class="bx bxs-printer"></i> 
+                                        </button> 
+                                        <div class="dropdown-menu" style="">
+                                                <a class="dropdown-item" onclick="window.open('{% url 'order_cikis_pdf' item.id %}', '_blank')">
+                                                <i class="bx bx-file me-1"></i> Çıkış Fişi</a> 
+                                                <a class="dropdown-item" href="/update_car/1093/">
+                                                    <i class="bx bx-edit-alt me-1"></i> Tamir Çıkışı Fişi
+                                                </a>
+                                        </div>
+                                        <button type="button"
+                                            class="btn btn-icon btn-outline-info js-update-book btn-flat"
+                                            data-url="{% url 'order_show' pk=item.id %}" title="İşlem Detayları">
+                                            <span class="glyphicon glyphicon-pencil"></span> 
+                                            <i class='tf-icons bx bx-show'></i>
+                                        </button>
+                                        {% if item.operation_type == "4" %}
+                                            <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
+                                                data-href="{% url 'repair_edit' item.id %}?next={{ request.get_full_path }}">
+                                                <i class='tf-icons bx bx-edit'></i>
+                                            </button>
+                                        {% elif item.operation_type == "5" %}
+                                            <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
+                                                data-href="{% url 'new_assembly_order' item.id %}?next={{ request.get_full_path }}">
+                                                <i class='tf-icons bx bx-edit'></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="button"
+                                                class="btn btn-icon btn-outline-success js-update-book btn-flat"
+                                                data-url="{% url 'order_edit' pk=item.id %}" title="İş Emri Düzenle">
+                                                <span class="glyphicon glyphicon-pencil"></span> 
+                                                <i class=' tf-icons bx bx-edit'></i>
+                                            </button>
+                                        {% endif %}
+                                        
                                     </td>
+                                    <td>E{{ item.work_order_plug }}</td>
                                     <td>{{ item.inventory.well_number }}</td>
                                     <td>{{ item.inventory.district|upper }}</td>
                                     <td>{{item.inventory.address}}</td>
-                                    <td>
-                                        {% if item.engine_info %}
-                                        {{item.engine_info}}-{{item.mounted_engine}}
-                                        {% else %}
-                                        {{item.mounted_engine}}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if item.pump_info %}
-                                        {{item.pump_info}}-{{item.mounted_pump}}
-                                        {% else %}
-                                        {{item.mounted_pump}}
-                                        {% endif %}
-                                    </td>
-                                    <td>{{item.disassembled_engine}}</td>
-                                    <td>{{item.disassembled_pump}}</td>
-                                    <td>{{item.entrance_plug}}</td>
-                                    <td>{{item.entrance_plug_date}}</td>
+                                    <td><span class="badge bg-label-success me-1">{{item.get_situation_display}}</span></td>
+                                    <td><span class="badge bg-label-primary me-1">{{item.get_operation_type_display}}</span></td>
+                                    <td>{{item.created_at}}</td>
                                     <td>{{item.comment}}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                    <!-- Modal Delete -->
-                    <div class="modal fade" id="transfer" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-sm" role="document">
+                    {% comment %} Edit Modal {% endcomment %}
+                    <div class="modal fade" id="modal-book">
+                        <div class="modal-dialog modal-lg">
                             <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">İş Emri Silinecek</h4>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form id="formAuthentication" action = "{% url 'order_delete' %}" method="POST">
-                                    {% csrf_token %}
-                                    <div class="modal-body">
-                                        <div class="row">
-                                            <input type="hidden" id="order_value" name="order_value" class="form-control" value=""  />
-                                            <div class="col mb-3">
-                                                <label for="pumpSelect" class="form-label">Pompa Sıra Seç</label>
-                                                <select id="pumpSelect" name="pump_row_identifier" class="form-select" >
-                                                    <option value="" selected="">---------</option>
-                                                    {% for item in null_list %}
-                                                        <option value="{{ item.row_identifier }}">{{item.row_identifier}}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                            <div class="col mb-3">
-                                                <label for="engineSelect" class="form-label">Motor Sıra Seç</label>
-                                                <select id="engineSelect" name="engine_row_identifier" class="form-select" >
-                                                    <option value="" selected="">---------</option>
-                                                    {% for item in null_list %}
-                                                        <option value="{{ item.row_identifier }}">{{item.row_identifier}}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Kapat</button>
-                                        <button type="submit" class="btn btn-danger">Sil</button>
-                                    </div>
-                                </form>
                             </div>
                         </div>
                     </div>
@@ -250,53 +226,15 @@
         </div>
     </div>
 </div>
+
 <script>
-    // Silme butonuna tıklama olayını dinle
-    document.querySelectorAll('.delete').forEach(function(button) {
+    document.querySelectorAll('.edit').forEach(button => {
         button.addEventListener('click', function() {
-            // Silme butonundan verileri al
-            var pumpInfo = button.getAttribute('data-pump');
-            var engineInfo = button.getAttribute('data-engine');
-            var orderValue = button.getAttribute('data-id');
-
-            // Modalı al
-            var modal = new bootstrap.Modal(document.getElementById('transfer'));
-
-            // Pompa ve motor seçim alanlarını al
-            var pumpSelect = document.getElementById('pumpSelect');
-            var engineSelect = document.getElementById('engineSelect');
-
-            // Pompa ve motor alanlarını sıfırla
-            pumpSelect.selectedIndex = 0;
-            engineSelect.selectedIndex = 0;
-
-            $('#order_value').val(orderValue);
-
-            // Pompa ve motor seçim alanlarının 'required' özelliğini kaldır
-            pumpSelect.removeAttribute('required');
-            engineSelect.removeAttribute('required');
-        // Pompa bilgisi yoksa, pompa alanını gizle
-            if (pumpInfo === "None" || pumpInfo === null || pumpInfo === "") {
-                pumpSelect.parentElement.style.display = 'none'; // Pompa alanını gizle
-            } else {
-                pumpSelect.parentElement.style.display = 'block'; // Pompa alanını göster
-                pumpSelect.setAttribute('required', 'required');
-            }
-
-            // Motor bilgisi yoksa, motor alanını gizle
-            if (engineInfo === "None" || engineInfo === null || engineInfo === "") {
-                engineSelect.parentElement.style.display = 'none'; // Motor alanını gizle
-            } else {
-                engineSelect.parentElement.style.display = 'block'; // Motor alanını göster
-                engineSelect.setAttribute('required', 'required');
-            }
-            // Modali göster
-            modal.show();
+            const editUrl = button.getAttribute('data-href');
+            window.location.href = editUrl; 
         });
     });
 </script>
-
-
 {% endblock content %}
 
 

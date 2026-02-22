@@ -45,7 +45,7 @@
                                             <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'repair_delete' item.id %}">
                                                 <i class='tf-icons bx bx-trash'></i>
                                             </button>
-                                            <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'repair_edit' item.id  %}">
+                                            <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'repair_edit' item.order.id %}?next={{ request.get_full_path }}">
                                                 <i class='tf-icons bx bx-edit'></i>
                                             </button>
                                         </td>

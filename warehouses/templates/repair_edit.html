@@ -19,7 +19,7 @@
 
         <form method="POST">
           {% csrf_token %}
-
+            <input type="hidden" name="next" value="{{ next }}">
           {% if repair.engine %}
           <!-- Motor Depo Seçimi -->
           <div class="mb-3">
@@ -79,7 +79,7 @@
               {% endfor %}
             </select>
           </div>
-          <a href="{% url 'engine_repair' %}" class="btn btn-secondary">
+          <a href="{{ next|default:'{% url "engine_repair" %}' }}" class="btn btn-secondary">
               Vazgeç
           </a>
           <button type="submit" class="btn btn-primary">Kaydet</button>

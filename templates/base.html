@@ -49,8 +49,7 @@
    </div> -->
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/core.js -->
-    {% block javascript %}
-    {% endblock %}  
+   
     <!-- <script src="{% static './assets/vendor/libs/jquery/jquery.js' %}"></script> -->
     <script src="{% static './assets/vendor/libs/popper/popper.js' %}"></script>
     <script src="{% static './assets/vendor/js/bootstrap.js' %}"></script>
@@ -70,6 +69,7 @@
     <script src="{% static './assets/js/dashboards-analytics.js' %}"></script>
 
     <!-- Place this tag in your head or just before your close body tag. -->
+   {% block javascript %} {% endblock %}  
   </body>
 </html>
 

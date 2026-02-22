@@ -142,8 +142,8 @@ class OutboundWorkOrder(models.Model):
         verbose_name='Mahalle'
     )
 
-    dispatch_slip_number = models.CharField(
-        max_length=100,
+    dispatch_slip_number = models.PositiveIntegerField(
+        unique=True,
         verbose_name='Çıkış Fişi No'
     )
 
@@ -183,7 +183,8 @@ class OutboundWorkOrder(models.Model):
             if self.mounted_hydrophore:
                 self.mounted_hydrophore.location = "1"  # Atölyede
                 self.mounted_hydrophore.save()
-
+            from warehouses.services import workshop_exit_delete
+            workshop_exit_delete(self.dispatch_slip_number)
             super().delete(using=using, keep_parents=keep_parents)
             
     def __str__(self):
@@ -206,7 +207,8 @@ class WorkshopExit(models.Model):
         OutboundWorkOrder,
         on_delete=models.PROTECT,
         related_name='workshop_exits',
-        verbose_name='Çıkış İş Emri'
+        verbose_name='Çıkış İş Emri',
+        null=True, blank=True,
     )
 
     workshop_dispatch_slip_number = models.CharField(
@@ -234,9 +236,24 @@ class WorkshopExit(models.Model):
     )
 
     def delete(self, using=None, keep_parents=False):
-        order = self.outbound_work_order
-
         with transaction.atomic():
+
+            # Eğer iş emri YOKSA
+            if not self.outbound_work_order:
+                hydrophore = self.hydrophore
+
+                # Önce WorkshopExit kaydını sil
+                super().delete(using=using, keep_parents=keep_parents)
+
+                # Sonra hidroforu sil
+                if hydrophore:
+                    hydrophore.delete()
+
+                return
+
+            # İş emri VARSA normal akış
+            order = self.outbound_work_order
+
             # Sökülen hidrofor varsa
             if order.disassembled_hydrophore:
                 dhydrophore = order.disassembled_hydrophore
@@ -244,9 +261,10 @@ class WorkshopExit(models.Model):
                 dhydrophore.save()
 
             # Takılan hidrofor
-            mhydrophore = order.mounted_hydrophore
-            mhydrophore.location = "3"  # Elektrikçide
-            mhydrophore.save()
+            if order.mounted_hydrophore:
+                mhydrophore = order.mounted_hydrophore
+                mhydrophore.location = "3"  # Elektrikçide
+                mhydrophore.save()
 
             # İş emrini geri al
             order.disassembled_hydrophore = None
@@ -254,17 +272,18 @@ class WorkshopExit(models.Model):
             order.status = "active"
             order.save()
 
-            # Asıl silme işlemi
+            # WorkshopExit sil
             super().delete(using=using, keep_parents=keep_parents)
 
-    def __str__(self):
+
+    def _str_(self):
         return f"{self.workshop_dispatch_slip_number}"
 
     class Meta:
         verbose_name = "Atölye Çıkışı"
         verbose_name_plural = "Atölye Çıkışları"
         ordering = ['-workshop_dispatch_date']
-
+        
 class RepairReturn(models.Model):
     hydrophore = models.ForeignKey(
         Hydrophore,

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from account.decorators import administrator
 from warehouses.models import (
     WorkshopExitSlip, Inventory, Pump, Engine,
-    Mark, Power, Seconhand, NewWarehousePump
+    Mark, Power, Seconhand, NewWarehousePump,Order
 )
 from hydrophore.models import Power as HydrophorePower, PumpType, Hydrophore
 from datetime import datetime, timedelta
@@ -13,10 +13,33 @@ from django.db import transaction
 from django.db.models import Max, IntegerField
 from django.db.models.functions import Cast, Substr
 
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 @login_required(login_url="login")
 def index(request):
     return render(request, "index.html")
+
+# -------------------------------------------------
+# ÇIKIŞ FİŞLERİ
+# -------------------------------------------------
+def order_cikis_pdf(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+
+    html_string = render_to_string("pdf/cikis_fisi.html", {
+        "order": order
+    })
+
+    pdf = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri('/')
+    ).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="cikis_fisi_{order.work_order_plug}.pdf"'
+    return response
 
 # -------------------------------------------------
 # GENEL YARDIMCI FONKSİYONLAR

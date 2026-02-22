@@ -1,0 +1,62 @@
+<div class="modal-header">
+        {% if order.operation_type == "1" %}
+            <h4 class="modal-title" id="exampleModalLabel2">Demontaj Bilgileri</h4>
+        {% elif order.operation_type == "3" %}
+            <h4 class="modal-title" id="exampleModalLabel2">Tamire Gönderme Bilgileri</h4>
+        {% elif order.operation_type == "6" %}
+            <h4 class="modal-title" id="exampleModalLabel2">Montaj Bilgileri</h4>
+        {% endif %}
+
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<hr>
+<form method="POST" action="{% url 'form_control' %}">
+    {% csrf_token %}
+<div class="modal-body">
+    <div class="row g-2">
+        <input type="hidden" name="id" value="{{order.id}}" >
+        {% if order.operation_type == "3" or order.operation_type == "1" %}
+            <div class="col mb-0">
+                {% if order.operation_engine == "engine" or order.operation_engine == "engine_pump" %}
+                <label class="form-label" >Kuyudaki Motor</label>
+                <input type="text" class="form-control"  value="{{order.inventory.engine}}" readonly>
+                {% endif %}
+            </div>
+            <div class="col mb-0">
+                {% if order.operation_engine == "pump" or order.operation_engine == "engine_pump" %}
+                <label  class="form-label">Kuyudaki Pompa</label>
+                <input  type="text" class="form-control" value="{{order.inventory.pump}}" readonly>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    <br>
+    <div class="row g-2">
+        <div class="col mb-0">
+        {% if order.operation_type == "1" %}
+            <label class="form-label" >Demontaj Numarası</label>
+            {{ form.disassembly_plug }}
+        {% elif order.operation_type == "3" %}
+            <label class="form-label" >Atölyeden Giden Fiş No</label>
+            {{ form.entrance_plug }}
+        {% elif order.operation_type == "6" %}
+            <label class="form-label" >Montaj Numarası</label>
+            {{ form.assembly_plug }}
+        {% endif %}
+        </div>
+        <div class="col mb-0">
+            {% if order.operation_type == "3" %}
+                <label class="form-label" >Atölyeden Giden Fiş Tarihi</label>
+                {{ form.entrance_plug_date }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+    Kapat
+    </button>
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+</div>
+</form>
+

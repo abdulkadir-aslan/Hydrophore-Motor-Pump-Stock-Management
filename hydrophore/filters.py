@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Hydrophore,OutboundWorkOrder
+from .models import Hydrophore,OutboundWorkOrder,WorkshopExit,RepairReturn
 
 class HydrophoreFilter(django_filters.FilterSet):
 
@@ -32,10 +32,19 @@ class HydrophoreFilter(django_filters.FilterSet):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
     )
 
+    pump_type = django_filters.CharFilter(
+    field_name='pump_type__type',  # PumpType modelinde name alanı varsa
+    lookup_expr='icontains',
+    label='Pompa Tipi',
+    widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Pompa tipi'
+        })
+    )
 
     class Meta:
         model = Hydrophore
-        fields = ['serial_number','district','neighborhood']
+        fields = ['serial_number','district','neighborhood', 'pump_type']
 
 class HydrophoreAllFilter(django_filters.FilterSet):
 
@@ -124,3 +133,47 @@ class OutboundWorkOrderFilter(django_filters.FilterSet):
         model = OutboundWorkOrder
         fields = ['mounted_hydrophore', 'district', 'neighborhood', 'district_personnel', 'dispatch_slip_number']
 
+class WorkshopExitFilter(django_filters.FilterSet):
+    hydrophore = django_filters.CharFilter(
+        field_name='hydrophore__serial_number',
+        label="Hidrofor No",
+        lookup_expr='iexact',  # veya 'icontains'
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Hidrofor No'
+        })
+    )
+    workshop_dispatch_slip_number = django_filters.CharFilter(
+        lookup_expr='iexact',
+        label="Atölyeden Giden Fiş No",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Atölyeden Giden Fiş No'
+        })
+    )
+    class Meta:
+        model = WorkshopExit
+        fields = ['hydrophore', 'workshop_dispatch_slip_number',]
+        
+class RepairReturnFilter(django_filters.FilterSet):
+    hydrophore = django_filters.CharFilter(
+        field_name='hydrophore__serial_number',
+        label="Hidrofor No",
+        lookup_expr='iexact',  # veya 'icontains'
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Hidrofor No'
+        })
+    )
+    repair_return_slip_number = django_filters.CharFilter(
+        lookup_expr='iexact',
+        label="Tamirden Gelen Fiş No",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Tamirden Gelen Fiş No'
+        })
+    )
+    class Meta:
+        model = RepairReturn
+        fields = ['hydrophore', 'repair_return_slip_number',]
+        

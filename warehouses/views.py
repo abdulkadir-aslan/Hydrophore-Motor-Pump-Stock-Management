@@ -3,12 +3,13 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import ProtectedError,Q,Sum,Count
 from django.db.utils import IntegrityError
-from django.db import transaction
 from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
 from .filters import InventoryFilter,NewPumpFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
 from .forms import *
 from hydrophore.models import OutboundWorkOrder,WorkshopExit,RepairReturn
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 def handle_deletion(request, model, object_id, redirect_url, success_message, error_message, protected_error_message):
     try:
@@ -252,22 +253,26 @@ def inventory_homepage(request):
 
 def inventory_edit(request, pk):
     inventory = get_object_or_404(Inventory, pk=pk)
-
+    # next'i al
+    next_url = request.GET.get('next')
+    
     if request.method == 'POST':
+        # POST'tan tekrar al
+        next_url = request.POST.get('next')
         form = InventoryEditForm(request.POST, instance=inventory)
         if form.is_valid():
             form.save()
             messages.success(request, "Kuyu bilgileri güncellendi.")
-            return redirect('inventory')
+            return redirect(next_url or 'inventory')
         else:
             messages.warning(request, form.errors.as_ul())
     else:
         form = InventoryEditForm(instance=inventory)
-
     return render(request, 'new_inventory.html', {
         'form': form,
         'pump_list': Pump.objects.all(),
-        'selected_pump': inventory.pump
+        'selected_pump': inventory.pump,
+        'next': next_url
     })
 
 def seconhand_row_edit(request,model,data):
@@ -286,7 +291,9 @@ def seconhand_row_edit(request,model,data):
         return redirect("add_inventory")
 
 def add_inventory(request):
+    next_url = request.GET.get('next')
     if request.method == 'POST':
+        next_url = request.GET.get('next')
         form = InventoryForm(request.POST)
         if form.is_valid(): 
             obj = form.save()
@@ -299,7 +306,7 @@ def add_inventory(request):
     else:
         form = InventoryForm()
 
-    context = {'form': form}
+    context = {'form': form ,'next': next_url}
     return render(request, 'new_inventory.html', context)
 
 def delete_inventory(request, id):
@@ -415,10 +422,15 @@ def all_repair(request):
     return render(request, "repair_page.html",contex)
 
 def repair_edit(request, id):
-    repair = get_object_or_404(Repair, pk=id)
-    engine = Engine.objects.filter(location="6",engine_type=repair.engine.engine_type,engine_power=repair.engine.engine_power)
+    repair = get_object_or_404(Repair, order__pk=id)
+    if repair.engine:
+        engine = Engine.objects.filter(location="6",engine_type=repair.engine.engine_type,engine_power=repair.engine.engine_power)
+    else:
+        engine =None
     row_identifier = Seconhand.objects.filter(engine__isnull=True,pump__isnull=True)
+    next_url = request.GET.get('next')
     if request.method == "POST":
+        next_url = request.POST.get('next')
         engine_choice = request.POST.get("engine")
         pump_choice = request.POST.get("pump")
 
@@ -444,7 +456,7 @@ def repair_edit(request, id):
             row = Seconhand.objects.get(id=engine_row_id)
             row.engine = repair.engine
             row.save()
-            repair.engine_info = f"{row.row_identifier} - 2.El Depo"
+            repair.engine_info = f"2.El Depo | {row.row_identifier}"
             if repair.engine:
                 engine_locations_update(repair.engine.id, "3")
 
@@ -452,7 +464,7 @@ def repair_edit(request, id):
             row = Seconhand.objects.get(id=pump_row_id)
             row.pump = repair.pump
             row.save()
-            repair.pump_info = f"{row.row_identifier} - 2.El Depo"
+            repair.pump_info = f"2.El Depo | {row.row_identifier}"
 
         #---------- Mütahit ------
         if engine_choice == "contractor" and engine_contractor_row_id and engine_row_id:
@@ -460,18 +472,27 @@ def repair_edit(request, id):
             row.engine = Engine.objects.get(id=engine_contractor_row_id)
             row.save()
             engine_locations_update(row.engine.id, "3")
-            repair.engine_info = f"Mütahit Depo({row.engine.serialnumber}) -> {row.row_identifier}"
+            repair.engine_info = f"Mütahit Depo | {row.engine.serialnumber} | {row.row_identifier}"
             if repair.engine:
                 engine_locations_update(repair.engine.id, "6")
         
         repair.status = 'passive'
         repair.save()
-        messages.success(request, "Veriler istenilen depoya aktarıldı.")
-        return redirect("engine_repair")
+        order = repair.order
+        if order.situation == "dismantling":
+            order.operation_type = "5"
+            messages.success(request, "Tamir bilgileri eklendi.\n Malzemler İlgili depoya aktarıldı.\n Montaj emri oluşturuldu.")
+        else:
+            order.operation_type = "10"
+            order.status ="passive"
+            messages.success(request, "Tamir bilgileri eklendi.\n Malzemler İlgili depoya aktarıldı.\n İş emri kapandı.")
+        order.save()
+        return redirect(next_url or "engine_repair")
 
     return render(request, "repair_edit.html", {
-        "repair": repair,"engine":engine,
-        "row_identifier": row_identifier
+        "repair": repair,"engine":engine ,
+        "row_identifier": row_identifier,
+        'next': next_url
     })
 
 def repair_delete(request, id):
@@ -615,6 +636,204 @@ def new_warehouse_pump_delete(request, id):
         "*{0}* Pompa kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+#------------İş Emirleri----------
+def delete_order(request, id):
+    return handle_deletion(
+        request,
+        Order,
+        id,
+        'order_page',
+        "*E{0}* Nolu İş Emri kaydı başarıyla silindi.",
+        "İş Emri kaydı bulunamadı.",
+        "*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
+    )
+
+def form_control(request):#*
+    if request.method != "POST":
+        messages.warning(request, "Hatalı seçim yapıldı.")
+        return redirect("order_page")
+
+    order = get_object_or_404(Order, pk=request.POST["id"])
+
+    if order.operation_type == "1": #Demontaj
+        """1 -> 2"""
+        form = DisassemblyForm(request.POST, instance=order)
+        if form.is_valid():
+            item = form.save()
+            order.complete_disassembly(item.disassembly_plug)
+            messages.success(request, "Demontaj bilgileri eklendi.\n Malzemler kurtarıcı depoya aktarıldı.")
+        else:
+            messages.warning(request, form.errors.as_ul())
+            return redirect("order_page")
+
+    elif order.operation_type == "2":
+        """2 -> 3"""
+        order.arrive_workshop()
+        messages.success(request, "Kurtarıcı bilgileri eklendi.\n Malzemler Atölye depoya aktarıldı.")
+    
+    elif order.operation_type == "3":
+        """3 -> 4"""
+        form = OrderEditForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            order.start_repair()
+            messages.success(request, "Atölye bilgileri eklendi.\n Malzemler Tamir depoya aktarıldı.")
+        else:
+            messages.warning(request, form.errors.as_ul())
+            return redirect("order_page")
+        
+    elif order.operation_type == "6": #Montaj
+        """6 -> 10"""
+        form = MountingForm(request.POST, instance=order)
+        if form.is_valid():
+            item = form.save()
+            order.complete_assembly(item.assembly_plug)
+            create_workshop_exit_slip("diver",order)
+            messages.success(request, "Montaj bilgileri eklendi.\n İş Emri Kapatıldı.")
+        else:
+            messages.warning(request, form.errors.as_ul())
+            return redirect("order_page")
+
+    return redirect("order_page")
+
+def order_page(request):
+    if request.method == "POST":
+        well_number = request.POST.get("well_number").strip().upper()
+        if well_number:
+            try:
+                well = Inventory.objects.get(well_number=well_number)
+                if well.status == "passive":
+                    messages.info(request, "Bu kuyu numarası *PASİF* durumda iş emri oluşturamazsınız.")
+                    return redirect("order_page")
+                active_order = Order.objects.filter(inventory=well, status="active").exists()
+                if active_order:
+                    messages.info(request, "Bu kuyu numarasında aktif iş emri mevcut.")
+                else:
+                    return redirect("transactions", id=well.id)
+            except Inventory.DoesNotExist:
+                messages.warning(request, "Bu kuyu numarası bulunamadı.")
+                return redirect("order_page")
+
+    queryset = Order.objects.filter(status="active").select_related('inventory')
+    order_filter = OrderFilter(request.GET, queryset=queryset)
+    filtered_qs = order_filter.qs
+
+    page_obj = paginate_items(request, filtered_qs)
+    context = {
+        'total': filtered_qs.count(),
+        'items': page_obj,
+        'query_string': request.GET.urlencode(),
+        'filter': order_filter,
+    }
+    return render(request, "order_page.html", context)
+
+def order_show(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    data = dict()
+    repair = Repair.objects.filter(order=order).first()
+    if request.POST:
+        order.comment = request.POST.get('comment', None)
+        order.save()
+        messages.success(request,"İş emrine açıklama eklendi.")
+        return redirect("order_page")
+    context = {
+        'order': order,
+        'repair' : repair if repair else None,
+        }
+    data['html_form'] = render_to_string('modal/order_edit.html', context, request=request, )
+    return JsonResponse(data)
+
+def order_edit(request, pk):#*
+    order = get_object_or_404(Order, pk=pk)
+    data = {}
+    context = {"order": order}
+
+    if order.operation_type == "1":
+        form = DisassemblyForm()
+        context['form'] = form
+        data['html_form'] = render_to_string('modal/disassembly.html', context, request=request)
+
+    elif order.operation_type == "2":
+        data['html_form'] = render_to_string('modal/workshop.html', context, request=request)
+
+    elif order.operation_type == "3":
+        form = OrderEditForm()
+        context['form'] = form
+        data['html_form'] = render_to_string('modal/disassembly.html', context, request=request)
+    
+    elif order.operation_type == "6":
+        form = MountingForm()
+        context['form'] = form
+        data['html_form'] = render_to_string('modal/disassembly.html', context, request=request)
+
+
+    return JsonResponse(data)
+
+@transaction.atomic
+def seconhand_order_go_back(request, id):
+    order = get_object_or_404(Order, pk=id)
+
+    if request.method == "POST":
+
+        engine_row_id = request.POST.get("engine_secondhand_row")
+        pump_row_id = request.POST.get("pump_secondhand_row")
+
+        # ENGINE
+        if engine_row_id and order.mounted_engine:
+            try:
+                item = Seconhand.objects.filter(id=engine_row_id).first()
+                if item:
+                    item.engine = order.mounted_engine
+                    item.save()
+                    engine_locations_update(item.engine.id, "3")
+                else:
+                    messages.warning(request, "Seçilen motor satırı bulunamadı.")
+            except Exception as e:
+                messages.error(request, f"Motor geri alınırken hata oluştu: {e}")
+
+        # PUMP
+        if pump_row_id and order.mounted_pump:
+            try:
+                item = Seconhand.objects.filter(id=pump_row_id).first()
+                if item:
+                    item.pump = order.mounted_pump
+                    item.save()
+                else:
+                    messages.warning(request, "Seçilen pompa satırı bulunamadı.")
+            except Exception as e:
+                messages.error(request, f"Pompa geri alınırken hata oluştu: {e}")
+
+        # Order temizleme
+        order.mounted_engine = None
+        order.mounted_pump = None
+        order.outlet_plug = None
+        order.operation_type = "5"
+        order.save()
+        messages.success(request,"İş emri geri alındı.")
+        return redirect("order_page")
+
+    return render(request, "seconhand_order_go_back.html", {
+        "order": order,
+        "row_identifier": Seconhand.objects.filter(
+            engine__isnull=True,
+            pump__isnull=True
+        )
+    })
+    
+def order_go_back(request, pk):#*
+    order = get_object_or_404(Order, pk=pk)
+    if order.operation_type == "1":
+        return redirect("seconhand_order_go_back",id=order.id)
+    elif order.operation_type == "6" and order.situation == "dismantling":
+        return redirect("seconhand_order_go_back",id=order.id)
+        
+    success, message = order.go_back()
+    if success:
+        messages.success(request, message)
+    else:
+        messages.warning(request, message)
+    return redirect("order_page")
+
 def handle_engine(order):
     if not order.mounted_engine:
         raise ValueError("Motor seçilmedi.")
@@ -624,7 +843,6 @@ def handle_engine(order):
         order.engine_info = item.row_identifier
         item.engine = None
         item.save()
-    order.disassembled_engine = order.inventory.engine
     engine.location = "1" 
     engine.save()
 
@@ -633,7 +851,6 @@ def handle_pump(order, pump_display):
         raise ValueError("Pompa seçilmedi.")
 
     row_identifier = pump_display.split("-")[0].strip()
-    order.disassembled_pump = order.inventory.pump
     try:
         item = Seconhand.objects.get(
             pump_id=order.mounted_pump,
@@ -653,102 +870,49 @@ def handle_pump(order, pump_display):
         except NewWarehousePump.DoesNotExist:
             raise ValueError("Seçilen pompa bulunamadı.")
 
-def create_repair_if_needed(request, order):
-    if not order.entrance_plug:
-        return
-    inventory = order.inventory
-
-    repair_data = {
-        "order": order,
-        "pump": None,
-        "engine": None,
-    }
-    if order.mounted_engine:
-        repair_data["engine"] = inventory.engine
-        engine_locations_update(inventory.engine.id,"2")
-        inventory.engine = order.mounted_engine
-
-    if order.mounted_pump:
-        repair_data["pump"] = inventory.pump
-        inventory.pump = order.mounted_pump
-
-    if not repair_data["engine"] and not repair_data["pump"]:
-        messages.warning(request,"Tamir depoya aktarmak için motor veya pompa bulunamadı.")
-    
-    order.status = "passive"
-    inventory.save()
-    order.save()
-    create_workshop_exit_slip("diver",order)
-    messages.success(request, "İş Emri Kapandı.")
-    Repair.objects.create(**repair_data)
-    return redirect("order_page")
-
-def transactions(request,id):
-    inventory = get_object_or_404(Inventory, id=id)
-    form = OperationForm(request.POST or None)
+def new_assembly_order(request, id):
+    order = get_object_or_404(Order, id=id)
     if request.method == "POST":
-        if form.data["operation_type"] == "well_cancellation":
-            Repair.objects.create(
-                pump =inventory.pump,
-                engine =inventory.engine,
-            )
-            inventory.engine = None
-            inventory.pump = None
-            inventory.status = "passive"
-            inventory.comment = form.data["description"]
-            inventory.save()
-            messages.success(request, f"*{inventory.well_number}* Kuyu numarası iptal edildi.\n Motor ve Pompa tamir depoya gönderildi.")
-            return redirect("repair_page")
-    
-    return render(request, "transactions.html", {
-        "form": form,
-        "inventory": inventory,
-        "end_order" : Order.objects.filter(inventory=inventory).order_by("id").first()
-    })
-    
-def new_order(request, id):
-    inventory = get_object_or_404(Inventory, id=id)
-    if request.method == "POST":
-        form = OrderForm(request.POST)
-        operation_type = request.POST.get("operation_type")
+        form = AssemblyForm(request.POST, instance=order)
         if form.is_valid():
             try:
                 with transaction.atomic():
                     order = form.save(commit=False)
-                    order.inventory = inventory
-                    if operation_type == "engine":
+                    if order.operation_engine == "engine":
                         order.mounted_pump = None
                         handle_engine(order)
                         
-                    elif operation_type == "pump":
+                    elif order.operation_engine == "pump":
                         order.mounted_engine = None
                         handle_pump(order,request.POST.get("mounted_pump_display"))
                     else:
                         handle_engine(order)
                         handle_pump(order,request.POST.get("mounted_pump_display"))
                     
-                    create_repair_if_needed(request,order)
+                    if order.situation == "dismantling":
+                        order.operation_type = "6"
+                        messages.success(request, " Çıkış Fişi bilgileri eklendi.\n Montaj bilgilerine aktarıldı.")
+                    else:
+                        order.operation_type = "1"
+                        messages.success(request, "Malzemeler Kuyuya Gönderildi.")
                     order.save()
-                    messages.success(request, "İş emri başarıyla oluşturuldu.")
                     return redirect("order_page")
 
             except ValueError as ve:
                 messages.error(request, f"Hata: {str(ve)}")
             except Exception as e:
                 messages.error(request, f"İşlem sırasında beklenmedik hata oluştu: {str(e)}")
-
         else:
             messages.warning(request, form.errors.as_ul())
     else:
-        form = OrderForm()
+        form = AssemblyForm()
 
     return render(request, "new_order.html", {
+        "order" :order,
         "form": form,
-        "inventory": inventory,
         "seconhand": Seconhand.objects.all(),
         "new_engine": Engine.objects.filter(location=5),
         "new_pump": NewWarehousePump.objects.filter(quantity__gt=0),
-        "end_order" : Order.objects.filter(inventory=inventory).order_by("id").first()
     })
 
 def all_order_page(request):
@@ -766,99 +930,81 @@ def all_order_page(request):
     }
     return render(request, "all_order_page.html", context)
 
-def order_page(request):
+def transactions(request,id):
+    inventory = get_object_or_404(Inventory, id=id)
+    form = OperationForm(request.POST or None)
     if request.method == "POST":
-        well_number = request.POST.get("well_number").strip().upper()
-        if well_number:
-            try:
-                well = Inventory.objects.get(well_number=well_number)
-                if well.status == "passive":
-                    messages.info(request, "Bu kuyu numarası *PASİF* durumda iş emri oluşturamazsınız.")
-                    return redirect("order_page")
-                active_order = Order.objects.filter(inventory=well, status="active").exists()
-                if active_order:
-                    messages.info(request, "Bu kuyu numarasında aktif iş emri mevcut.")
-                else:
-                    return redirect("new_order", id=well.id)
-            except Inventory.DoesNotExist:
-                messages.warning(request, "Bu kuyu numarası bulunamadı.")
-                return redirect("order_page")
-
-        queryset = Order.objects.filter(status="passive").select_related('inventory').order_by("-id")
-
-    queryset = Order.objects.filter(status="active").select_related('inventory')
-    order_filter = OrderFilter(request.GET, queryset=queryset)
-    filtered_qs = order_filter.qs
-
-    page_obj = paginate_items(request, filtered_qs)
-    context = {
-        'total': filtered_qs.count(),
-        'items': page_obj,
-        'query_string': request.GET.urlencode(),
-        'filter': order_filter,
-        'null_list': Seconhand.objects.filter(engine__isnull=True,pump__isnull=True)
-    }
-    return render(request, "order_page.html", context)
-
-def order_edit(request, id):
-    order = get_object_or_404(Order, pk=id)
-    if request.method == 'POST':
-        form = OrderEditForm(request.POST, instance=order)
         if form.is_valid():
             order = form.save(commit=False)
-            create_repair_if_needed(request,order)
-            order.save()
-            messages.success(request, "İş Emri Güncellendi.")
-            return redirect('order_page')
+            order.inventory = inventory
+            item = form.cleaned_data.get("situation")
         else:
             messages.warning(request, form.errors.as_ul())
-    else:
-            form = OrderEditForm(instance=order)
-    return render(request, 'order_edit.html', {'form': form,'order':order})
-
-def order_delete(request):
-    order = Order.objects.get(pk=request.POST['order_value'])
-    if order.mounted_engine:
-        engine = order.mounted_engine
-        if order.engine_info:
-            seconhand = Seconhand.objects.select_for_update().get(
-                        row_identifier= request.POST['engine_row_identifier']
-                    )
-            seconhand.engine = engine
-            seconhand.save()
-
-            engine.location = "3"
+            return redirect("order_page")
+        
+        if item == "installation":
+            order.operation_type = "5"
+        elif item == "dismantling":
+            order.operation_type = "1"
+        elif item == "length_extension":
+            order.operation_type = "8"
+        elif item == "well_cancellation":
+            order.operation_type = "9"
         else:
-            engine.location = "5"
-        engine.save()
+            messages.warning(request, "Hatalı seçim yapıldı.")
+            return redirect("order_page")
+        
+        order.save()
+        messages.success(request, f"*{inventory.well_number}* Nolu kuyu için *E{order.work_order_plug}* iş emri oluşturuldu.")
+        return redirect("order_page")
 
-    if order.mounted_pump:
-        pump = order.mounted_pump
+    return render(request, "transactions.html", {
+        "form": form,
+        "inventory": inventory,
+        "end_order" : Order.objects.filter(inventory=inventory).order_by("id").first()
+    })
 
-        if order.pump_info:
-            seconhand = Seconhand.objects.select_for_update().get(
-                row_identifier=request.POST['pump_row_identifier']
-            )
+def create_workshop_exit_slip(modalname, modal):
+    if modalname == 'hydrophore':
+        workshop_exit_slip = WorkshopExitSlip.objects.create(
+            date=modal.dispatch_date,
+            slip_no=modal.dispatch_slip_number,
+            well_no="",
+            district=modal.get_district_display(),
+            address=modal.neighborhood,
+            motor_type="HİDROFOR",
+            hydrofor_no=modal.mounted_hydrophore.serial_number if modal.mounted_hydrophore else None,
+            brand=modal.mounted_hydrophore.engine_brand if modal.mounted_hydrophore else None,
+            power=modal.mounted_hydrophore.engine_power if modal.mounted_hydrophore else None,
+            pump_type=modal.mounted_hydrophore.pump_type if modal.mounted_hydrophore else None,
+            pump_brand="",
+            submersible=None,
+            motor=None,
+            pump=None,
+            hydrofor="1",
+            overall_status="",
+        )
+    elif modalname == 'diver':
+        workshop_exit_slip = WorkshopExitSlip.objects.create(
+            date=modal.outlet_plug_date,
+            slip_no=modal.outlet_plug,
+            well_no=modal.inventory.well_number,
+            district=modal.inventory.get_district_display(),
+            address=modal.inventory.address,
+            motor_type=modal.mounted_engine.get_engine_type_display() if modal.mounted_engine else None,
+            hydrofor_no=modal.mounted_engine.serialnumber if modal.mounted_engine else None,
+            brand=modal.mounted_engine.engine_mark if modal.mounted_engine else None,
+            power=modal.mounted_engine.engine_power if modal.mounted_engine else None,
+            pump_type=modal.mounted_pump.pump_type if modal.mounted_pump else None,
+            pump_brand=modal.mounted_pump.pump_mark if modal.mounted_pump else None,
+            submersible="1" if modal.mounted_engine and modal.mounted_pump else None,
+            motor="2.EL-"+modal.engine_info if modal.engine_info else None,
+            pump="2.EL-"+modal.pump_info if modal.pump_info else None,
+            hydrofor=None,
+            overall_status=modal.comment,
+        )
 
-            # ❗ DOLUysa hata
-            if seconhand.pump is not None:
-                raise ValueError(
-                    f"{order.pump_info} Bu ikinci el kaydında pompa tanımlı olduğundan dolayı iş emri silinemiyor."
-                )
-
-            # BOŞSA ata
-            seconhand.pump = pump
-            seconhand.save()
-
-        else:
-            warehouse_pump = NewWarehousePump.objects.select_for_update().get(
-                pump=pump
-            )
-            warehouse_pump.quantity += 1
-            warehouse_pump.save()
-    messages.success(request, f"*{order.inventory}* Kuyu için iş emri kaydı başarıyla silindi.")
-    order.delete()
-    return redirect('order_page')
+    return
 
 def workshop_exit_slip(request):
     order_list = WorkshopExitSlip.objects.all()
@@ -915,49 +1061,6 @@ def workshop_exit_slip_delete(request, id):
         error_message="İş emri bulunamadı.",
         protected_error_message="*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
     )
-
-def create_workshop_exit_slip(modalname, modal):
-    if modalname == 'hydrophore':
-        workshop_exit_slip = WorkshopExitSlip.objects.create(
-            date=modal.dispatch_date,
-            slip_no=modal.dispatch_slip_number,
-            well_no="",
-            district=modal.get_district_display(),
-            address=modal.neighborhood,
-            motor_type="HİDROFOR",
-            hydrofor_no=modal.mounted_hydrophore.serial_number if modal.mounted_hydrophore else None,
-            brand=modal.mounted_hydrophore.engine_brand if modal.mounted_hydrophore else None,
-            power=modal.mounted_hydrophore.engine_power if modal.mounted_hydrophore else None,
-            pump_type=modal.mounted_hydrophore.pump_type if modal.mounted_hydrophore else None,
-            pump_brand="",
-            submersible=None,
-            motor=None,
-            pump=None,
-            hydrofor="1",
-            overall_status="",
-        )
-
-    elif modalname == 'diver':
-        workshop_exit_slip = WorkshopExitSlip.objects.create(
-            date=modal.outlet_plug_date,
-            slip_no=modal.outlet_plug,
-            well_no=modal.inventory.well_number,
-            district=modal.inventory.get_district_display(),
-            address=modal.inventory.address,
-            motor_type=modal.mounted_engine.get_engine_type_display() if modal.mounted_engine else None,
-            hydrofor_no=modal.mounted_engine.serialnumber if modal.mounted_engine else None,
-            brand=modal.mounted_engine.engine_mark if modal.mounted_engine else None,
-            power=modal.mounted_engine.engine_power if modal.mounted_engine else None,
-            pump_type=modal.mounted_pump.pump_type if modal.mounted_pump else None,
-            pump_brand=modal.mounted_pump.pump_mark if modal.mounted_pump else None,
-            submersible="1" if modal.mounted_engine and modal.mounted_pump else None,
-            motor="2.EL-"+modal.engine_info if modal.engine_info else None,
-            pump="2.EL-"+modal.pump_info if modal.pump_info else None,
-            hydrofor=None,
-            overall_status=modal.comment,
-        )
-
-    return
 
 def work_order_reporting(request):
     order = None

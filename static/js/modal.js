@@ -1,96 +1,88 @@
-$(function () {
-    var loadForm = function () {
-      var btn = $(this);
-      $.ajax({
-        url: btn.attr("data-url"),
-        type: 'get',
-        dataType: 'json',
-        beforeSend: function () {
-          $("#modal-book").modal("show");
-        },
-        success:  function (data) {
-          if (data.form_close) {
-            window.location.reload()
-            // $("#book-table tbody").html(data.html_book_list);  // <-- Replace the table body
-            $("#modal-book").modal("hide");
-          }
-          else {
-            $("#modal-book .modal-content").html(data.html_form);
-          }
+document.addEventListener("DOMContentLoaded", function () {
 
-          
-        }
-        
-      });
-    };
-  
-    function loadUpdateForm(book_id) {
-      var data_url = "/books/"+book_id+"/update/";
-      var btn = $(this);
-      $.ajax({
-        url: data_url,
-        type: 'get',
-        dataType: 'json',
-        beforeSend: function () {
-          $("#modal-book").modal("show");
-        },
-        success: function (data) {
-          $("#modal-book .modal-content").html(data.html_form);
-        }
-      });
-    }
-  
-    var saveCreateFormAndUpdate = function () {
-      var form = $(this);
-      $.ajax({
-        url: form.attr("action"),
-        data: form.serialize(),
-        type: form.attr("method"),
-        dataType: 'json',
-        success: function (data) {
-          if (data.form_is_valid) {
-            loadUpdateForm(data.book_id);
-          }
-          else {
-            $("#modal-book .modal-content").html(data.html_form);
-          }
-        }
-      });
-      return false;
-    };
-  
-    var saveForm = function () {
-      var form = $(this);
-      $.ajax({
-        url: form.attr("action"),
-        data: form.serialize(),
-        type: form.attr("method"),
-        dataType: 'json',
-        success: function (data) {
-          if (data.form_is_valid) {
-            window.location.reload()
-            // $("#book-table tbody").html(data.html_book_list);  // <-- Replace the table body
-            $("#modal-book").modal("hide");  // <-- Close the modal
-          }
-          else {
-            $("#modal-book .modal-content").html(data.html_form);
-          }
-        }
-      });
-      return false;
-    };
-  
-    // Create book
-    $(".js-create-book").click(loadForm);
-    $("#modal-book").on("submit", ".js-book-create-form", saveCreateFormAndUpdate);
-  
-    // Update book
-    $("#book-table").on("click", ".js-update-book", loadForm);
-    $("#modal-book").on("submit", ".js-book-update-form", saveForm);
-  
-    // Delete book
-    $("#book-table").on("click", ".js-delete-book", loadForm);
-    $("#modal-book").on("submit", ".js-book-delete-form", saveForm);
-  
+  const modalElement = document.getElementById("modal-book");
+  const modal = new bootstrap.Modal(modalElement);
+
+  // Edit butonuna tıklama
+  document.addEventListener("click", function (e) {
+    const button = e.target.closest(".js-update-book");
+    if (!button) return;
+
+    const url = button.getAttribute("data-url");
+
+    fetch(url, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      modalElement.querySelector(".modal-content").innerHTML = data.html_form;
+      modal.show();
+    })
+    .catch(() => {
+      alert("Form yüklenirken hata oluştu.");
+    });
   });
-  
+
+  // Modal içindeki form submit
+  // modalElement.addEventListener("submit", function (e) {
+  //   if (!e.target.classList.contains("js-book-update-form")) return;
+
+  //   e.preventDefault();
+
+  //   const form = e.target;
+  //   const formData = new FormData(form);
+
+  //   fetch(form.action, {
+  //     method: "POST",
+  //     body: formData,
+  //     headers: {
+  //       "X-Requested-With": "XMLHttpRequest"
+  //     }
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     if (data.form_is_valid) {
+  //       modal.hide();
+  //       window.location.reload();
+  //     } else {
+  //       modalElement.querySelector(".modal-content").innerHTML = data.html_form;
+  //     }
+  //   })
+  //   .catch(() => {
+  //     alert("Kaydetme sırasında hata oluştu.");
+  //   });
+  // });
+
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Geri git butonuna tıklama
+  document.addEventListener("click", function (e) {
+    const backButton = e.target.closest(".js-go-back");
+    if (!backButton) return;
+
+    // Yönlendirme yapılacak URL'yi al
+    const url = backButton.getAttribute("data-href");
+    if (confirm("Bu İş Emri Önceki Adıma Dönecek Onaylıyormusunuz!")) {
+      // Yönlendirme işlemini gerçekleştir
+      window.location.href = url;
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Geri git butonuna tıklama
+  document.addEventListener("click", function (e) {
+    const backButton = e.target.closest(".js-delete");
+    if (!backButton) return;
+
+    // Yönlendirme yapılacak URL'yi al
+    const url = backButton.getAttribute("data-href");
+    if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+      // Yönlendirme işlemini gerçekleştir
+      window.location.href = url;
+    }
+  });
+});

@@ -29,19 +29,33 @@
                 </div>
                 <form method="post">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            {{ form.operation_type.label }}
-                            <span class="text-danger">*</span>
-                        </label>
-                        {{ form.operation_type }}
+                    <div class="row">
+                        <div class="mb-3 col-md-6">
+                            <label class="form-label fw-bold">
+                                {{ form.work_order_plug.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.work_order_plug }}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                            <label class="form-label fw-bold">
+                                {{ form.situation.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.situation }}
+                        </div>
                     </div>
-
+                    <div class="col-md-6 mb-3" id="engine-wrapper" style="display: none;">
+                        <label class="form-label">
+                            {{ form.operation_engine.label }}
+                        </label>
+                        {{ form.operation_engine }}
+                    </div>
                     <div class="col-md-6 mb-3" id="description-wrapper" style="display: none;">
                         <label class="form-label">
-                            {{ form.description.label }}
+                            {{ form.comment.label }}
                         </label>
-                        {{ form.description }}
+                        {{ form.comment }}
                     </div>
                     <!-- BUTONLAR -->
                     <div class="text-end mt-3">
@@ -60,29 +74,44 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const operationSelect = document.querySelector('select[name="operation_type"]');
+        const operationSelect = document.querySelector('select[name="situation"]');
+        
         const descriptionWrapper = document.getElementById("description-wrapper");
         const descriptionTextarea = descriptionWrapper.querySelector("textarea");
 
-        function toggleDescription() {
+        const engineWrapper = document.getElementById("engine-wrapper");
+        const engineSelect = engineWrapper.querySelector("select");
+
+        function toggleFields() {
             const selectedValue = operationSelect.value;
 
+            // DESCRIPTION KONTROL
             if (selectedValue === "length_extension" || selectedValue === "well_cancellation") {
                 descriptionWrapper.style.display = "block";
                 descriptionTextarea.required = true;
             } else {
                 descriptionWrapper.style.display = "none";
                 descriptionTextarea.required = false;
-                descriptionTextarea.value = ""; // gizlenince temizle
+                descriptionTextarea.value = "";
+            }
+
+            // ENGINE KONTROL
+            if (selectedValue === "installation" || selectedValue === "dismantling") {
+                engineWrapper.style.display = "block";
+                engineSelect.required = true;
+            } else {
+                engineWrapper.style.display = "none";
+                engineSelect.required = false;
+                engineSelect.value = "";
             }
         }
 
-        // Sayfa yüklenince kontrol et (POST sonrası için önemli)
-        toggleDescription();
+        // Sayfa yüklenince çalıştır
+        toggleFields();
 
-        // Select değişince tetikle
-        operationSelect.addEventListener("change", toggleDescription);
+        // Değişince çalıştır
+        operationSelect.addEventListener("change", toggleFields);
     });
 </script>
-    
+ 
 {% endblock %}

@@ -119,34 +119,50 @@ class PumpForm(ModelForm):
         
         return cleaned_data
 
-class OperationForm(forms.Form):
-
-    OPERATION_TYPE_CHOICES = [
-        ("", "Seçiniz"),
-        ("installation", "Montaj"),
-        ("dismantling", "Demontaj"),
-        ("length_extension", "Boy Ekleme"),
-        ("well_cancellation", "Kuyu İptal"),
-    ]
-
-    operation_type = forms.ChoiceField(
-        label="İşlem Türü",
-        choices=OPERATION_TYPE_CHOICES,
-        required=True,
-        widget=forms.Select(attrs={
-            "class": "form-select"
-        })
-    )
-
-    description = forms.CharField(
-        label="Açıklama",
-        required=False,
-        widget=forms.Textarea(attrs={
+class OperationForm(ModelForm):
+    class Meta:
+        model = Order
+        fields = ['work_order_plug', 'comment', 'situation', 'operation_engine']
+        widgets = {
+            'work_order_plug':forms.NumberInput(attrs={
             "class": "form-control",
-            "rows": 2,
-            "placeholder": "Açıklama"
-        })
-    )
+            "placeholder": "İş Emri No"
+            }),
+            'comment':forms.Textarea(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Açıklama', 
+                'rows': 2,  
+            }),
+            'situation': forms.Select(attrs={
+                'class': 'form-select',
+                "required": "required", 
+            }),
+            'operation_engine':forms.Select(attrs={
+                'class': 'form-select ', 
+            }),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Son kullanılan work_order_plug değerini bul
+        last_order = Order.objects.order_by('-work_order_plug').first()
+        if last_order and last_order.work_order_plug is not None:
+            # Alan int olduğu için direkt +1
+            next_value = last_order.work_order_plug + 1
+        else:
+            next_value = 1  # Eğer veri yoksa 1 ile başla
+
+        # Form açıldığında default value olarak ata
+        self.fields['work_order_plug'].initial = next_value
+
+    def clean_work_order_plug(self):
+        work_order_plug = self.cleaned_data.get('work_order_plug')
+
+        # Aynı değer var mı kontrol et
+        if Order.objects.filter(work_order_plug=work_order_plug).exists():
+            raise forms.ValidationError("Bu İş Emri Numarası Daha Önce Kullanılmış!")
+
+        return work_order_plug
 
 class InventoryEditForm(ModelForm):
     district = forms.ChoiceField(
@@ -307,26 +323,20 @@ class WarehousePumpForm(ModelForm):
             warehouse_pump.save()
         return warehouse_pump
 
-class OrderForm(forms.ModelForm):
+class AssemblyForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = [
-            "inventory",
             "outlet_plug",
             "outlet_plug_date",
-            "entrance_plug",
-            "entrance_plug_date",
             "mounted_engine",
             "mounted_pump",
-            "comment",
         ]
 
         widgets = {
-            "inventory": forms.Select(attrs={
-                "class": "form-select"
-            }),
-            "outlet_plug": forms.TextInput(attrs={
+            "outlet_plug": forms.NumberInput(attrs={
                 "class": "form-control",
+                "required":"required",
                 "placeholder": "Çıkış fişi"
             }),
             "outlet_plug_date": forms.DateInput(
@@ -335,20 +345,9 @@ class OrderForm(forms.ModelForm):
                     "type": "date",
                     "required": "required",
                 },
-                format='%Y-%m-%d',
+                format='%Y-%m-%d'
             ),
-            "entrance_plug": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Atölyeden Giden Fiş"
-            }),
-            "entrance_plug_date": forms.DateInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "date",
-                },
-                format='%Y-%m-%d',
-            ),
-            "mounted_engine": forms.Select(attrs={
+             "mounted_engine": forms.Select(attrs={
                 "class": "form-select",
                 "required": "required",
             }),
@@ -356,9 +355,26 @@ class OrderForm(forms.ModelForm):
                 "class": "form-select",
                 "required": "required",
             }),
-            'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
-
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Sadece ilk açılışta çalışsın (POST değilken)
+        if not self.is_bound and not self.instance.pk:
+
+            order_max = Order.objects.aggregate(
+                max_val=Max("outlet_plug")
+            )["max_val"] or 0
+
+            outbound_max = OutboundWorkOrder.objects.aggregate(
+                max_val=Max("dispatch_slip_number")
+            )["max_val"] or 0
+
+            next_number = max(order_max, outbound_max) + 1
+
+            self.initial["outlet_plug"] = next_number
+    
     def clean_outlet_plug(self):
         outlet_plug = self.cleaned_data.get("outlet_plug")
 
@@ -378,46 +394,60 @@ class OrderForm(forms.ModelForm):
                 raise forms.ValidationError(
                     "Bu çıkış numarası *HİDROFOR* işlemlerinde kullanılmıştır."
                 )
-
         return outlet_plug
-    
-    def clean_entrance_plug(self):
-        entrance_plug = self.cleaned_data.get("entrance_plug")
-        if entrance_plug:
-            qs = Order.objects.filter(entrance_plug=entrance_plug)
 
-            if self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
-
-            if qs.exists():
-                raise forms.ValidationError("Bu atölye fişi daha önce kullanılmıştır.")
-
-            return entrance_plug
-
-class OrderEditForm(forms.ModelForm):
+class DisassemblyForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['outlet_plug', 'entrance_plug', 'outlet_plug_date', 'entrance_plug_date','comment']
+        fields = ['disassembly_plug',]
         widgets = {
-            'outlet_plug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Çıkış Fişi', 'required': 'required'}),
-            'entrance_plug': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş', }),
-            'outlet_plug_date': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'Çıkış Fişi Tarihi', 'type': 'date', 'required': 'required'},format='%Y-%m-%d'),
-            'entrance_plug_date': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş Tarihi', 'type': 'date', },format='%Y-%m-%d'),
-            'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
+            'disassembly_plug': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Demontaj Numarası', 'required': 'required'}),
         }
-    def clean_outlet_plug(self):
-        outlet_plug = self.cleaned_data.get("outlet_plug")
-        if outlet_plug:
-            qs = Order.objects.filter(outlet_plug=outlet_plug)
+        
+    def clean_disassembly_plug(self):
+        disassembly_plug = self.cleaned_data.get("disassembly_plug")
+        if disassembly_plug:
+            qs = Order.objects.filter(disassembly_plug=disassembly_plug)
 
             # edit formu için (kendi kaydını hariç tut)
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
 
             if qs.exists():
-                raise forms.ValidationError("Bu çıkış fişi daha önce kullanılmıştır.")
+                raise forms.ValidationError(f"*{disassembly_plug}* Bu Demontaj numarası daha önce kullanılmıştır.")
 
-            return outlet_plug
+            return disassembly_plug
+
+class MountingForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['assembly_plug',]
+        widgets = {
+            'assembly_plug': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Montaj Numarası', 'required': 'required'}),
+        }
+        
+    def clean_assembly_plug(self):
+        assembly_plug = self.cleaned_data.get("assembly_plug")
+        if assembly_plug:
+            qs = Order.objects.filter(assembly_plug=assembly_plug)
+
+            # edit formu için (kendi kaydını hariç tut)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                raise forms.ValidationError(f"*{assembly_plug}* Bu Montaj numarası daha önce kullanılmıştır.")
+
+            return assembly_plug
+
+class OrderEditForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['entrance_plug','entrance_plug_date']
+        widgets = {
+            'entrance_plug': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş','required': 'required' }),
+            'entrance_plug_date': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş Tarihi', 'type': 'date', },format='%Y-%m-%d'),
+        }
 
     def clean_entrance_plug(self):
         entrance_plug = self.cleaned_data.get("entrance_plug")
@@ -428,7 +458,7 @@ class OrderEditForm(forms.ModelForm):
                 qs = qs.exclude(pk=self.instance.pk)
 
             if qs.exists():
-                raise forms.ValidationError("Bu atölye fişi daha önce kullanılmıştır.")
+                raise forms.ValidationError(f"*{entrance_plug}* Bu atölye fişi daha önce kullanılmıştır.")
 
             return entrance_plug
 
@@ -478,3 +508,4 @@ class WorkshopExitSlipForm(forms.ModelForm):
             'maintenance_status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bakım Durumu'}),
             'overall_status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Genel Durum'}),
         }
+

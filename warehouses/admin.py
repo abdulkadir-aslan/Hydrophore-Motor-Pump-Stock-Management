@@ -13,8 +13,7 @@ class RepairAdmin(admin.ModelAdmin):
     
 class UnusableAdmin(admin.ModelAdmin):
     list_display = ( 'pump',  'engine', 'created_at')
-    list_filter = ('pump', 'engine')
-    search_fields = ( 'created_at',)
+    search_fields = ('pump', 'engine')
     
 class EngineAdmin(admin.ModelAdmin):
     list_display = ( 'engine_type','engine_power','engine_mark','serialnumber','location')

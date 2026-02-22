@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const district = this.value;
 
         // AJAX ile personelleri al
-        fetch(`/ajax/get_personnel/?district=${district}`)
+        fetch(`/ajax/personel_getir/?district=${district}`)
             .then(response => response.json())
             .then(data => {
                 // Mevcut seçenekleri temizle

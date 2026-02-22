@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% block javascript %}
+<script src="{% static 'js/modal.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>Kapanan İş Emirleri</h4>
@@ -59,6 +62,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th></th>
                                 <th>Ç. Fişi </th>
                                 <th>Ç. Fişi Trh.</th>
                                 <th>Kuyu No</th>
@@ -77,6 +81,24 @@
                             {% for item in items %}
                                 <tr>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-icon btn-outline-primary " data-bs-toggle="dropdown" aria-expanded="false">
+                                             <i class="bx bxs-printer"></i> 
+                                        </button> 
+                                        <div class="dropdown-menu" style="">
+                                                <a class="dropdown-item" onclick="window.open('{% url 'order_cikis_pdf' item.id %}', '_blank')">
+                                                <i class="bx bx-file me-1"></i> Çıkış Fişi</a> 
+                                                <a class="dropdown-item" href="/update_car/1093/">
+                                                    <i class="bx bx-edit-alt me-1"></i> Tamir Çıkışı Fişi
+                                                </a>
+                                        </div>
+                                        <button type="button"
+                                            class="btn btn-icon btn-outline-info js-update-book btn-flat"
+                                            data-url="{% url 'order_show' pk=item.id %}" title="İşlem Detayları">
+                                            <span class="glyphicon glyphicon-pencil"></span> 
+                                            <i class='tf-icons bx bx-show'></i>
+                                        </button>
+                                    </td>
                                     <td>{{ item.outlet_plug }}</td>
                                     <td>{{ item.outlet_plug_date }}</td>
                                     <td>{{ item.inventory.well_number }}</td>
@@ -109,6 +131,13 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% comment %} Edit Modal {% endcomment %}
+                    <div class="modal fade" id="modal-book">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                            </div>
+                        </div>
+                    </div>
                     <nav aria-label="Page navigation example">
                         <hr>
                         <div class="row">

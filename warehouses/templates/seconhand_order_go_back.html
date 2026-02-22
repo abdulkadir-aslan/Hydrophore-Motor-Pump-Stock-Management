@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">İş Emirleri /</span>Malzemlerin Aktarılacağı 2. El Depo Seç
+</h4>
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Motor</label>
+          <input type="text" value="{{ order.mounted_engine }}" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Pompa</label>
+          <input type="text" value="{{ order.mounted_pump }}" class="form-control" readonly>
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+          {% if order.operation_engine == "engine"  or order.operation_engine == "engine_pump" %}
+          <!-- Motor 2.El Satır Seçimi -->
+          <div class="mb-3" >
+            <label class="form-label">Motor 2.El Satır Seç</label>
+            <select class="form-select select2" name="engine_secondhand_row" required>
+              <option value="">-----</option>
+              {% for item in row_identifier %}
+                {% if item.engine is None %}
+                  <option value="{{ item.id }}">{{ item }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+          {% if order.operation_engine == "pump"  or order.operation_engine == "engine_pump" %}
+          <!-- Pompa 2.El Satır Seçimi -->
+          <div class="mb-3">
+            <label class="form-label">Pompa 2.El Satır Seç</label>
+            <select class="form-select select2" name="pump_secondhand_row" required>
+              <option value="">-----</option>
+              {% for item in row_identifier %}
+                  <option value="{{ item.id }}">{{ item }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endif %}
+          <a href="{% url 'order_page' %}" class="btn btn-secondary">
+              Vazgeç
+          </a>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        function initSelect2(context = document) {
+            $(context).find('select.select2').each(function () {
+                if (!$(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2({
+                        width: '100%',
+                        placeholder: 'Seçiniz...',
+                        allowClear: true,
+                        dropdownParent: $(this).closest('.modal').length
+                            ? $(this).closest('.modal')
+                            : $('body')
+                    });
+                }
+            });
+        }
+
+        initSelect2();
+
+        $('.modal').on('shown.bs.modal', function () {
+            initSelect2(this);
+        });
+
+    });
+</script>
+
+{% endblock %}

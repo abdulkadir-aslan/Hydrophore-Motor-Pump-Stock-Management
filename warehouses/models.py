@@ -187,82 +187,183 @@ class Seconhand(models.Model):
         verbose_name = "2.El Depo"
         verbose_name_plural = "2.El Depolar"
 
+WORK_ORDER_CHOİCES = (
+    ('1','Demontaj Bekliyor'),
+    ('2','Kurtarıcıda'),
+    ('3','Atölyede'),
+    ('4','Tamire Gönderildi'), #
+    ('5','Çıkış Fişi Oluştur'),
+    ('6','Montaj Bekliyor'),
+    ('7','Montaj Yapıldı'), #
+    ('8','Boy Ekleme Bekliyor'),
+    ('9','Kuyu İptal'),
+    ('10','Kapandı'),
+)
+
+OPERATION_TYPE_CHOICES = (
+        ("installation", "Yerinde Montaj"),
+        ("dismantling", "Demontaj"),
+        ("length_extension", "Boy Ekleme"),
+        ("well_cancellation", "Kuyu İptal"),
+    )
+
+OPERATION_ENGINE_CHOICES = (
+        ("engine", "Motor"),
+        ("pump", "Pompa"),
+        ("engine_pump", "Motor + Pompa"),
+    )
+
 class Order(models.Model):
-    inventory = models.ForeignKey(
-        Inventory, verbose_name="Kuyu Bilgisi",on_delete=models.PROTECT, null=False, blank=True
-    )
-
-    outlet_plug = models.CharField(
-        verbose_name="Çıkış Fişi",
-        unique=True,null=True,
-        max_length=10
-    )
-
-    entrance_plug = models.CharField(
-        verbose_name="Atölyeden Giden Fiş",
-        unique=True,null=True,blank=True,
-        max_length=10
-    )
-
-    mounted_engine = models.ForeignKey(
-        Engine, verbose_name="Montaj Edilen Motor", on_delete=models.PROTECT,
-        related_name="mounted_engine_orders",
-        null=True, blank=True
-    )
-
-    mounted_pump = models.ForeignKey(
-        Pump,verbose_name="Montaj Edilen Pompa", on_delete=models.PROTECT,
-        related_name="mounted_pump_orders",
-        null=True, blank=True
-    )
-
-    disassembled_engine = models.ForeignKey(
-        Engine,verbose_name="Demontaj Edilen Motor", on_delete=models.PROTECT,
-        null=True, blank=True
-    )
-
-    disassembled_pump = models.ForeignKey(
-        Pump,verbose_name="Demontaj Edilen Pompa", on_delete=models.PROTECT,
-        null=True, blank=True
-    )
-
-    outlet_plug_date = models.DateField(
-        default=timezone.now, verbose_name="Çıkış Fişi Tarihi", blank=True, null=True
-    )
-
-    entrance_plug_date = models.DateField(
-        verbose_name="Atölyeden Giden Fiş Tarihi", blank=True, null=True
-    )
-
-    status = models.CharField(
-        verbose_name="Durum",
-        choices=STATUS,
-        default="active",
-        max_length=7
-    )
-
-    engine_info = models.CharField(
-        verbose_name="Motor Durumu",
-        max_length=50,
-        blank=True, null=True
-    )
-
-    pump_info = models.CharField(
-        verbose_name="Pompa Durumu",
-        max_length=50,
-        blank=True, null=True
-    )
-    
+    inventory = models.ForeignKey(Inventory, verbose_name="Kuyu Bilgisi",on_delete=models.PROTECT, null=False)
+    work_order_plug = models.PositiveIntegerField(verbose_name="İş Emri Fişi",unique=True,null=True,)
+    outlet_plug = models.PositiveIntegerField(verbose_name="Çıkış Fişi",unique=True,null=True,blank=True,)
+    disassembly_plug = models.PositiveIntegerField(verbose_name="Demontaj Fişi",unique=True,null=True,blank=True,)
+    assembly_plug = models.PositiveIntegerField(verbose_name="Montaj Fişi",unique=True,null=True,blank=True,)
+    entrance_plug = models.PositiveIntegerField(verbose_name="Atölyeden Giden Fiş",unique=True,null=True,blank=True,)
+    mounted_engine = models.ForeignKey(Engine, verbose_name="Montaj Edilen Motor", on_delete=models.PROTECT,related_name="mounted_engine_orders",null=True, blank=True)
+    mounted_pump = models.ForeignKey(Pump,verbose_name="Montaj Edilen Pompa", on_delete=models.PROTECT,related_name="mounted_pump_orders",null=True, blank=True)
+    disassembled_engine = models.ForeignKey(Engine,verbose_name="Demontaj Edilen Motor", on_delete=models.PROTECT,null=True, blank=True)
+    disassembled_pump = models.ForeignKey(Pump,verbose_name="Demontaj Edilen Pompa", on_delete=models.PROTECT,null=True, blank=True)
+    outlet_plug_date = models.DateField(default=timezone.now,verbose_name="Çıkış Fişi Tarihi", blank=True, null=True)
+    entrance_plug_date = models.DateField(default=timezone.now,verbose_name="Atölyeden Giden Fiş Tarihi", blank=True, null=True)
+    status = models.CharField(verbose_name="Durum",choices=STATUS,default="active",max_length=7)
+    operation_type = models.CharField(verbose_name="İşlem Türü",choices=WORK_ORDER_CHOİCES,max_length=15,blank=True, null=True)
+    operation_engine  = models.CharField(verbose_name="Dalgıç işlem Türü",choices=OPERATION_ENGINE_CHOICES,max_length=50,blank=True, null=True)
+    engine_info = models.CharField(verbose_name="Motor Durumu",max_length=50,blank=True, null=True)
+    pump_info = models.CharField(verbose_name="Pompa Durumu",max_length=50,blank=True, null=True)
+    situation = models.CharField(verbose_name="İş Emri Durumu",choices=OPERATION_TYPE_CHOICES,max_length=20,blank=True, null=True)
+    created_at = models.DateTimeField(auto_now=True) 
     comment = models.TextField(verbose_name="Açıklama", blank=True, null=True)
     
     def __str__(self):
-        return f"{self.inventory}"
+        return f"{self.work_order_plug}"
     
     class Meta:
         verbose_name = "İş Emri"
         verbose_name_plural = "İş Emirleri"
-        ordering = ['outlet_plug_date']
+        ordering = ['-work_order_plug']
 
+    # ==================== STATE METHODS ====================
+
+    def complete_disassembly(self, disassembly_plug):
+        """1 -> 2  & 1 -> 6"""
+        self.disassembly_plug = disassembly_plug
+        if self.situation == "dismantling":
+            self.operation_type = "2"
+        elif self.situation == "installation":
+            self.operation_type = "6"
+        self.save()
+    
+    def arrive_workshop(self):
+        """2 -> 3"""
+        self.operation_type = "3"
+        inventory = self.inventory
+        if self.operation_engine in ["engine","engine_pump"]:
+            self.disassembled_engine = self.inventory.engine
+            if self.situation == "installation":
+                inventory.engine = self.mounted_engine
+        if self.operation_engine in ["pump","engine_pump"]:
+            self.disassembled_pump = self.inventory.pump
+            if self.situation == "installation":
+                inventory.pump = self.mounted_pump
+        inventory.save()
+        self.save()
+
+    def start_repair(self):
+        """3 -> 4"""
+        self.operation_type = "4"
+        self.save()
+        Repair.objects.create(
+            order=self,
+            engine=self.disassembled_engine,
+            pump=self.disassembled_pump,
+        )
+
+    def activate_repair_transfer(self):
+        """5 -> 4 : Activate repair transfer"""
+        from .services import activate_repair_transfer
+        return activate_repair_transfer(self)
+
+    def complete_assembly(self, assembly_plug):
+        """1 -> 2"""
+        self.assembly_plug = assembly_plug
+        if self.situation == "dismantling":
+            self.operation_type = "10"
+            self.status = "passive"
+            inventory = self.inventory
+            if self.operation_engine in ["engine","engine_pump"]:
+                inventory.engine = self.mounted_engine
+            if self.operation_engine in ["pump","engine_pump"]:
+                inventory.pump = self.mounted_pump
+            inventory.save()
+        elif self.situation == "installation":
+            self.operation_type = "2"
+        
+        self.save()
+        
+    def go_back(self):
+        """Order geri alma işlemi"""
+        if self.operation_type == "2":
+            if self.situation == "installation":
+                from .services import workshop_exit_delete
+                workshop_exit_delete(self.outlet_plug)
+                self.assembly_plug = None
+                self.operation_type = "6"
+            else:
+                self.disassembly_plug = None
+                self.operation_type = "1"
+
+        elif self.operation_type == "3":
+            inventory = self.inventory
+            if self.situation == "installation":
+                if self.operation_engine in ["pump","engine_pump"]:
+                    inventory.engine = self.disassembled_engine
+                if self.operation_engine in ["engine","engine_pump"]:
+                    inventory.pump = self.disassembled_pump
+                inventory.save()
+            self.disassembled_engine = None
+            self.disassembled_pump = None
+            self.operation_type = "2"
+
+        elif self.operation_type == "4":
+            repair = Repair.objects.filter(order=self).first()
+            if repair:
+                repair.delete()
+            self.entrance_plug = None
+            self.entrance_plug_date = None
+            self.operation_type = "3"
+
+        elif self.operation_type == "5":
+            success, message = self.activate_repair_transfer()
+            if not success:
+                return False, message
+        
+        elif self.operation_type == "6" and self.situation == "installation":
+            self.disassembly_plug = None
+            self.operation_type = "1"
+
+        elif self.operation_type == "10" :
+            if self.situation == "dismantling":
+                from .services import workshop_exit_delete
+                self.assembly_plug = None
+                self.status = "active"
+                self.operation_type = "6"
+                inventory = self.inventory
+                if self.operation_engine in ["engine","engine_pump"]:
+                    inventory.engine = self.disassembled_engine
+                if self.operation_engine in ["pump","engine_pump"]:
+                    inventory.pump = self.disassembled_pump
+                inventory.save()
+                workshop_exit_delete(self.outlet_plug)
+                
+            elif self.situation == "installation":
+                success, message = self.activate_repair_transfer()
+                if not success:
+                    return False, message
+
+        self.save()
+        return True, "İşlem başarıyla geri alındı."
+    
 class Repair(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE,null=True, blank=True)
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE,null=True, blank=True)
@@ -321,7 +422,7 @@ class Unusable(models.Model):
     created_at = models.DateTimeField(auto_now=True) 
     
     def __str__(self):
-        return self.well_number 
+        return self.well_number.well_number 
     class Meta:
         verbose_name = "Pert Depo"
         verbose_name_plural = "Pert Depolar"

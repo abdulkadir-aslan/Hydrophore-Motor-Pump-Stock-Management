@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from .models import Hydrophore,PumpType,Power,OutboundWorkOrder,RepairReturn,WorkshopExit,DistrictFieldPersonnel
 from .forms import PumpTypeForm,RepairReturnForm,PowerForm,HydrophoreForm,OutboundWorkOrderForm,DistrictFieldPersonnelForm,WorkshopExitForm
 from warehouses.views import handle_deletion,paginate_items,IntegrityError,get_object_or_404,transaction,create_workshop_exit_slip
-from .filters import HydrophoreFilter,HydrophoreAllFilter,OutboundWorkOrderFilter
+from .filters import HydrophoreFilter,HydrophoreAllFilter,OutboundWorkOrderFilter,WorkshopExitFilter,RepairReturnFilter
 from django.contrib import messages
 from django.http import JsonResponse
 
@@ -344,13 +344,35 @@ def outbound_work_order_delete(request, id):
     )
 
 def workshop_exit(request):
-    item = WorkshopExit.objects.filter(status="active").order_by('-id')
-    page_obj = paginate_items(request, item)
+    queryset = WorkshopExit.objects.filter(status="active").order_by('-id')
+    
+    hydrophore_filter = WorkshopExitFilter(request.GET, queryset=queryset)
+    filtered_qs = hydrophore_filter.qs
+    
+    page_obj = paginate_items(request, filtered_qs)
+    
+    if request.method == "POST":
+        form = HydrophoreForm(request.POST)
+        if form.is_valid():
+            items = form.save()
+            items.location ="2"
+            items.save()
+            WorkshopExit.objects.create(
+                hydrophore = items,
+            )
+            messages.success(request, f"{items.serial_number} Hidrofor Kaydı yapıldı. İş Emri Oluşturuldu.")
+            return redirect("workshop_exit")
+        else:
+            messages.warning(request,f"Formda hatalar var. Lütfen kontrol edin: {form.errors.as_ul()}")
+    else:
+        form = HydrophoreForm()
 
     contex = {
-        'total': item.count(),  
+        'filter': hydrophore_filter,
+        'total': queryset.count(),  
         'items': page_obj, 
         'query_string': request.GET.urlencode(),
+        'form' : form
     }
     return render(request, "workshop_exit.html",contex)
 
@@ -392,22 +414,30 @@ def workshop_exit_delete(request, id):
     )
 
 def all_workshop_exit(request):
-    item = WorkshopExit.objects.filter(status="passive").order_by('-id')
-    page_obj = paginate_items(request, item)
+    queryset = WorkshopExit.objects.filter(status="passive").order_by('-id')
     
+    hydrophore_filter = WorkshopExitFilter(request.GET, queryset=queryset)
+    filtered_qs = hydrophore_filter.qs
+    
+    page_obj = paginate_items(request, filtered_qs)
     contex = {
-        'total': item.count(),  
+        'filter': hydrophore_filter,
+        'total': queryset.count(),  
         'items': page_obj, 
         'query_string': request.GET.urlencode(),
     }
     return render(request, "all_workshop_exit.html",contex)
 
 def repair_return(request):
-    item = RepairReturn.objects.filter(status="active").order_by('-id')
-    page_obj = paginate_items(request, item)
+    queryset = RepairReturn.objects.filter(status="active").order_by('-id')
+    hydrophore_filter = RepairReturnFilter(request.GET, queryset=queryset)
+    filtered_qs = hydrophore_filter.qs
+    
+    page_obj = paginate_items(request, filtered_qs)
 
     contex = {
-        'total': item.count(),  
+        'filter': hydrophore_filter,
+        'total': queryset.count(),  
         'items': page_obj, 
         'query_string': request.GET.urlencode(),
     }
@@ -453,11 +483,15 @@ def repair_return_edit(request, pk):
     return render(request, 'repair_return_edit.html', {'form': form,'repair':item})
 
 def all_repair_return(request):
-    item = RepairReturn.objects.filter(status="passive").order_by('-id')
-    page_obj = paginate_items(request, item)
+    queryset = RepairReturn.objects.filter(status="passive").order_by('-id')
+    hydrophore_filter = RepairReturnFilter(request.GET, queryset=queryset)
+    filtered_qs = hydrophore_filter.qs
     
+    page_obj = paginate_items(request, filtered_qs)
+
     contex = {
-        'total': item.count(),  
+        'filter': hydrophore_filter,
+        'total': queryset.count(),  
         'items': page_obj, 
         'query_string': request.GET.urlencode(),
     }

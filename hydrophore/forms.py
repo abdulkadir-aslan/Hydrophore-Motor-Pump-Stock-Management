@@ -58,18 +58,20 @@ class HydrophoreForm(ModelForm):
                 attrs={'class': 'form-control', 'placeholder': 'Mahalle'}
             ),
         }
-        
+
     def clean_serial_number(self):
         serial_number = self.cleaned_data.get('serial_number')
+        if serial_number:
+            serial_number = serial_number.strip().replace(" ", "").upper()
         qs = Hydrophore.objects.filter(serial_number=serial_number)
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
             raise forms.ValidationError(
-                "Bu seri numarası zaten kayıtlı. Lütfen farklı bir seri numarası giriniz."
+                f"Bu seri numarası zaten kayıtlı. Lütfen farklı bir seri numarası giriniz.\n {qs.first().get_location_display()} deposunda ordan işlem yapabilirsinzi."
             )
         return serial_number
-
+    
 class DistrictFieldPersonnelForm(ModelForm):
     class Meta:
         model = DistrictFieldPersonnel
