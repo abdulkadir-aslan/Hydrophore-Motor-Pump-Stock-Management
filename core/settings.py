@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'warehouses',
     'hydrophore',
     'django_filters',
+    'other_materials',
 ]
 
 MIDDLEWARE = [

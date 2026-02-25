@@ -217,12 +217,13 @@ class OrderFilter(django_filters.FilterSet):
         })
     )
     
-    operation_type = django_filters.ChoiceFilter(
+    operation_type = django_filters.MultipleChoiceFilter(
         field_name='operation_type',
         choices=WORK_ORDER_CHOİCES,
         label='İşlem Türü',
-        widget=forms.Select(attrs={
-            'class': 'form-select'
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-select select2',
+            'data-placeholder': 'İşlem Türü Seçiniz'
         })
     )
 

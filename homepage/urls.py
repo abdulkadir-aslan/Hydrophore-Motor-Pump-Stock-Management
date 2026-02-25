@@ -8,3 +8,4 @@ urlpatterns = [
     #Fişler
     path("order/<int:pk>/cikis-fisi-pdf/",order_cikis_pdf, name="order_cikis_pdf"),
 ]
+

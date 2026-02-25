@@ -252,6 +252,19 @@
                 </li>
               </ul>
             </li>
+            {% comment %} <li class="menu-header small text-uppercase"><span class="menu-header-text">Diğer Malzemeler </span></li>
+            <li class="menu-item {% if url_name == 'category_stock' or url_name == 'category' %}active {% endif %}">
+              <a href="{% url 'category_stock' %}"  class="menu-link">
+                <i class="menu-icon tf-icons bx bx-copy"></i>
+                <div data-i18n="Documentation">Malzeme Listesi</div>
+              </a>
+            </li>
+            <li class="menu-item {% if url_name == 'category_stock_out'  %}active {% endif %}">
+              <a href="{% url 'category_stock_out' %}"  class="menu-link">
+                <i class="menu-icon tf-icons bx bx-copy"></i>
+                <div data-i18n="Documentation">Malzeme Çıkış İşlemleri</div>
+              </a>
+            </li> {% endcomment %}
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Kapanan İş Emirleri </span></li>
             <li class="menu-item {% if url_name == 'workshop_exit_slip' %}active {% endif %}">
               <a href="{% url 'workshop_exit_slip' %}"  class="menu-link">

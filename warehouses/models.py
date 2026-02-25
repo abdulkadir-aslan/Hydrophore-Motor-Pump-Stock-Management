@@ -226,6 +226,7 @@ class Order(models.Model):
     disassembled_pump = models.ForeignKey(Pump,verbose_name="Demontaj Edilen Pompa", on_delete=models.PROTECT,null=True, blank=True)
     outlet_plug_date = models.DateField(default=timezone.now,verbose_name="Çıkış Fişi Tarihi", blank=True, null=True)
     entrance_plug_date = models.DateField(default=timezone.now,verbose_name="Atölyeden Giden Fiş Tarihi", blank=True, null=True)
+    length = models.PositiveIntegerField(verbose_name="Boru uzunluğu",null=True,blank=True)
     status = models.CharField(verbose_name="Durum",choices=STATUS,default="active",max_length=7)
     operation_type = models.CharField(verbose_name="İşlem Türü",choices=WORK_ORDER_CHOİCES,max_length=15,blank=True, null=True)
     operation_engine  = models.CharField(verbose_name="Dalgıç işlem Türü",choices=OPERATION_ENGINE_CHOICES,max_length=50,blank=True, null=True)
@@ -299,6 +300,15 @@ class Order(models.Model):
         elif self.situation == "installation":
             self.operation_type = "2"
         
+        self.save()
+    
+    def lenght(self):
+        inventory = self.inventory
+        inventory.mounting_depth += self.lenght
+        inventory.disassembly_depth += self.lenght
+        inventory.save()
+        self.operation_type = "10"
+        self.status = "passive"
         self.save()
         
     def go_back(self):

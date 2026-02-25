@@ -1,78 +1,87 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load tag_library %}
 
 {% block content %}
-<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>Tamirden Gelen İş Emirleri</h4>
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Diğer Malzemeler /</span>Malzeme Çıkış İşlemi</h4>
 <div class="row">
     <div class="col-md-12">
         <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
             <li class="nav-item me-2">
             </li>
             <li class="nav-item me-2">
-                <a class="nav-link active"  href="{% url 'repair_return' %}"><i class="bx bx-add-to-queue me-1"></i> Aktif İş Emirleri </a>
-            </li>
-            <li class="nav-item me-2">
-                <a class="nav-link "  href="{% url 'all_repair_return' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan İş Emirleri </a>
+                <a class="nav-link "  href="{% url 'all_order_page' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan İş Emirleri </a>
             </li>
         </ul>
-        <!--=== Filtreleme === -->
-        
-        <div class="card">
-            <!--=== Filtreleme === -->
-            <div class="card-body">
-                <form method="get" class="row g-2">
-                    <div class="col-md-2">
-                        {{ filter.form.hydrophore.label_tag }}
-                        {{ filter.form.hydrophore }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ filter.form.repair_return_slip_number.label_tag }}
-                        {{ filter.form.repair_return_slip_number }}
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            Filtrele
-                        </button>
+        <div class="card mb-4">
+            <h5 class="card-header">Yeni Malzeme Çıkışı Oluştur</h5>
+            <div class="card-body" >
+                <form  method="POST">
+                    {% csrf_token %}
+                    <div class="row gx-3 gy-2 align-items-center" >
+                        <div class="col-md-3"  >
+                            <label for="defaultFormControlInput" class="form-label">Çıkış Fiş Numarası</label>
+                            <input type="number"  class="form-control" name="outlet_plug" placeholder="fiş numarası "  autofocus="" required>
+                        </div>
+                        <div class="col-md-3" >
+                            <label class="form-label" for="showToastPlacement">&nbsp;</label>
+                            <button type="submit"  class="btn btn-primary d-block ">Oluştur</button>
+                        </div>
                     </div>
                 </form>
+               
             </div>
-            <hr>
+        </div>
+        <div class="card">
             <div class="table-responsive text-nowrap">
                 <div class="container">
                     <table class="table table-striped mt32 customers-list">
                         <thead>
                             <tr>
-                                <th></th>
                                 <th>#</th>
-                                <th>Hidofor No </th>
-                                <th>Atölye Ç. No</th>
-                                <th>Tamirden G. Fiş No</th>
-                                <th>Tarih</th>
-                                <th>Oluşturulma Tarihi</th>
+                                <th></th>
+                                <th title= "İş Emri Numarası">Ç. Fiş No </th>
+                                <th>Kuyu No</th>
+                                <th>İlçe</th>
+                                <th>Mahalle</th>
+                                <th>Malzeme</th>
+                                <th>Miktar </th>
+                                <th>Oluşturma Tarihi</th>
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">
                             {% for item in items %}
                                 <tr>
+                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
                                     <td>
-                                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'repair_return_edit' item.id  %}">
+                                         <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
+                                            data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
                                             <i class='tf-icons bx bx-edit'></i>
                                         </button>
-                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'repair_return_delete' item.id %}">
+                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'delete_category_stock_out' item.id %}">
                                                 <i class='tf-icons bx bx-trash'></i>
                                         </button>
                                     </td>
-                                    <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
-                                    <td>{{ item.hydrophore }}</td>
-                                    <td>{{ item.workshop_exit.workshop_dispatch_slip_number }}</td>
-                                    <td>{{ item.repair_return_slip_number }}</td>
-                                    <td>{{ item.repair_return_date }}</td>
+                                    <td>E{{ item.order.outlet_plug }}</td>
+                                    <td>{{ item.order.inventory }}</td>
+                                    <td>{{ item.order.inventory.get_district_display }}</td>
+                                    <td>{{item.order.inventory.address}}</td>
+                                    <td>{{item.stock}}</td>
+                                    <td>{{item.quantity}}</td>
                                     <td>{{item.created_at}}</td>
+                                    
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% comment %} Edit Modal {% endcomment %}
+                    <div class="modal fade" id="modal-book">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                            </div>
+                        </div>
+                    </div>
                     <nav aria-label="Page navigation example">
                         <hr>
                         <div class="row">
@@ -85,6 +94,14 @@
                             </div>
                             <div class="col-sm-12 col-md-7">
                                 <ul class="pagination justify-content-end px-4">
+                                    {% if items.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page=1">
+                                                İlk
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
                                     {% if items.has_previous %}
                                         <li class="page-item">
                                             <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
@@ -100,14 +117,14 @@
                                                     {{ page_number }}
                                                 </a>
                                             </li>
-                                        {% elif page_number == items.paginator.ELLIPSIS %}
-                                            <li class="page-item disabled"><span class="page-link">…</span></li>
-                                        {% else %}
+                                        {% elif page_number > items.number|add:-3 and page_number < items.number|add:3 %}
                                             <li class="page-item">
                                                 <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
                                                     {{ page_number }}
                                                 </a>
                                             </li>
+                                        {% elif page_number == items.paginator.ELLIPSIS %}
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
                                         {% endif %}
                                     {% endfor %}
 
@@ -115,6 +132,14 @@
                                         <li class="page-item">
                                             <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
                                                 Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% if items.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.paginator.num_pages }}">
+                                                Son
                                             </a>
                                         </li>
                                     {% endif %}
@@ -127,7 +152,15 @@
         </div>
     </div>
 </div>
+
 <script>
+      document.querySelectorAll('.edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const editUrl = button.getAttribute('data-href');
+            window.location.href = editUrl; 
+        });
+    });
+
       document.querySelectorAll('.delete').forEach(button => {
       button.addEventListener('click', function() {
           const deleteUrl = button.getAttribute('data-href');
@@ -136,12 +169,6 @@
           }
       });
   });
- document.querySelectorAll('.edit').forEach(button => {
-        button.addEventListener('click', function() {
-            const editUrl = button.getAttribute('data-href');
-            window.location.href = editUrl; 
-        });
-    });
 
 </script>
 {% endblock content %}

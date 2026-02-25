@@ -1,0 +1,36 @@
+<div class="modal-header">
+    <h4 class="modal-title" id="exampleModalLabel2">Boy Ekleme Bilgileri</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<hr>
+<form method="POST" action="{% url 'form_control' %}">
+    {% csrf_token %}
+<div class="modal-body">
+    <div class="row g-2">
+        <input type="hidden" name="id" value="{{order.id}}" >
+        <div class="col mb-0">
+            <label class="form-label" >Çıkış Fişi</label>
+            {{ form.outlet_plug }}
+        </div>
+        <div class="col mb-0">
+            <label  class="form-label">Çıkış Fişi Tarihi</label>
+            {{ form.outlet_plug_date }}
+        </div>
+    </div>
+    <div class="row g-2">
+        <div class="col mb-0">
+            <label class="form-label" >Boru Uzunluğu (mt)</label>
+            {{ form.length }}
+        </div>
+        <div class="col mb-0">
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+    Kapat
+    </button>
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+</div>
+</form>
+

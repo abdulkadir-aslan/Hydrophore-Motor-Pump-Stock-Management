@@ -22,6 +22,12 @@ from weasyprint import HTML
 def index(request):
     return render(request, "index.html")
 
+def page_not_found(request,exception):
+    return render(request,"404-error.html",status=404)
+
+def server_error(request):
+    return render(request,"404-error.html",500)
+
 # -------------------------------------------------
 # ÇIKIŞ FİŞLERİ
 # -------------------------------------------------

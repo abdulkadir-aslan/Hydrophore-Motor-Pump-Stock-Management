@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load tag_library %}
+
+{% block content%}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Diğer Malzemeler /</span>Malzeme Listesi</h4>
+<div class="row">
+    <div class="col-md-12">
+      <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
+        <li class="nav-item me-2">
+        </li>
+        <li class="nav-item me-2">
+          <a class="nav-link "  href="{% url 'category' %}"><i class="bx bx-add-to-queue me-1"></i> Kategori</a>
+        </li>
+      </ul>
+      <!--=== Filtreleme === -->
+        {% comment %} <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <div class="col-md-2">
+                        {{ filter.form.engine_type.label_tag }}
+                        {{ filter.form.engine_type }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.engine_power.label_tag }}
+                        {{ filter.form.engine_power }}
+                    </div>
+
+                    <div class="col-md-3">
+                        {{ filter.form.engine_mark.label_tag }}
+                        {{ filter.form.engine_mark }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter.form.serialnumber.label_tag }}
+                        {{ filter.form.serialnumber }}
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div> {% endcomment %}
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal">
+            Yeni Ekle
+          </button>
+        </div>
+        <div class="modal fade" id="smallModal" tabindex="-1" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel3">Yeni Malzeme Ekle</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formAuthentication"  class="mb-3" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="col mb-0">
+                        {{ form.category.label_tag }}
+                        {{ form.category }}
+                    </div>
+                    <br>
+                    <div class="col mb-0">
+                        {{ form.material_name.label_tag }}
+                        {{ form.material_name }}
+                    </div>
+                    <br>
+                    <div class="col mb-0">
+                        {{ form.quantity.label_tag }}
+                        {{ form.quantity }}
+                    </div>
+                </div>
+                <input type="hidden" id="id_quantity_value" name="quantity_value" class="form-control" value=""  />
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Kapat
+                    </button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+          </div>
+        </div>  
+        </div>
+        <div class="table-responsive text-nowrap">
+          <div class="container">
+            <table class="table table-striped mt32 customers-list">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Kategori</th>
+                    <th>Malzeme Adı</th>
+                    <th>Miktar</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                  {% for item in items %}
+                    <tr>
+                      <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
+                      <td>{{item.category.name}}</td>
+                      <td>{{item.material_name}} </td>
+                      <td>{{item.quantity}}</td>
+                    
+                      <td>
+                        <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat'
+                            data-id="{{ item.id }}"
+                            data-category="{{ item.category.id }}"
+                            data-materialname="{{ item.material_name }}"
+                            data-quantity="{{ item.quantity }}">
+                            <i class='tf-icons bx bx-edit'></i>
+                        </button>
+                        <button
+                          title="sil"
+                          class="btn btn-icon btn-outline-danger delete btn-flat"
+                          data-href="{% url 'delete_category_stock' item.id %}?next={{ request.get_full_path }}">
+                            <i class='tf-icons bx bx-trash'></i>
+                        </button>
+                        
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+                <hr>
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="container-fluid">
+                            <a class="navbar-brand mb-0 h1">
+                                {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <ul class="pagination justify-content-end px-4">
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page=1">
+                                        İlk
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
+                                        ← Önceki
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_number in items.paginator.page_range %}
+                                {% if page_number == items.number %}
+                                    <li class="page-item active">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number > items.number|add:-3 and page_number < items.number|add:3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                            {{ page_number }}
+                                        </a>
+                                    </li>
+                                {% elif page_number == items.paginator.ELLIPSIS %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
+                                        Sonraki →
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ query_string }}&page={{ items.paginator.num_pages }}">
+                                        Son
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+          </div>
+      </div>
+      </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.delete').forEach(button => {
+button.addEventListener('click', function() {
+    const deleteUrl = button.getAttribute('data-href');
+      if (confirm("Bu kaydı silmek istediğinizden emin misiniz?")) {
+        window.location.href = deleteUrl;  
+    }
+});
+});
+
+
+$(document).ready(function () {
+    function initSelect2(context = document) {
+        $(context).find('select.select2').each(function () {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2({
+                    width: '100%',
+                    placeholder: 'Seçiniz...',
+                    allowClear: true,
+                    dropdownParent: $(this).closest('.modal').length
+                        ? $(this).closest('.modal')
+                        : $('body')
+                });
+            }
+        });
+    }
+
+     // Yeni Ekle butonuna tıklanırsa formu sıfırlama
+    $('#smallModal').on('show.bs.modal', function (e) {
+        var button = $(e.relatedTarget); // Bu, modalın tetiklendiği buton
+        var action = button.data('action'); // Yeni Ekle butonunun veri-action özelliği
+
+        if (action === 'add') {
+            // Formu sıfırlıyoruz
+            $('#formAuthentication')[0].reset();
+
+            // Gizli alanları sıfırlıyoruz (örneğin, quantity_value)
+            $('#id_quantity_value').val('');
+            
+            // Select2 select'leri sıfırla
+            $('#id_category').val(null).trigger('change');
+        }
+
+        // Select2'yi tekrar başlatıyoruz
+        initSelect2(this);
+    });
+
+    // Modal açıldığında Select2'i başlat
+    $('.modal').on('shown.bs.modal', function () {
+        initSelect2(this);
+    });
+
+    // Düzenle butonuna tıklanmasıyla modal verilerini ayarlama
+    $('.edit').on('click', function () {
+        var categoryId = $(this).data('category'); // Pompa ID'si
+        var materialname = $(this).data('materialname');
+        var quantity = $(this).data('quantity'); // Miktar
+        var itemId = $(this).data('id'); // Item ID'si
+
+        // Pompa seçimini güncelleme
+        $('#id_category').val(categoryId).trigger('change'); // form.pump id'sini güncelle
+
+        // Miktar değerini güncelleme
+        $('#id_quantity').val(quantity); // form.quantity'yi güncelle
+        
+        $('#id_material_name').val(materialname);
+        
+        $('#id_quantity_value').val(quantity);
+
+        // Modalı aç
+        $('#smallModal').modal('show');
+    });
+    
+    initSelect2();
+});
+</script>
+
+{% endblock content %}

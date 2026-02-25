@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Max
 from django.forms import ModelForm
 from warehouses.models import Order
 from .models import RepairReturn,Power,PumpType,Hydrophore,OutboundWorkOrder,DistrictFieldPersonnel,WorkshopExit
@@ -133,7 +134,7 @@ class OutboundWorkOrderForm(ModelForm):
             'neighborhood': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'Mahalle'}
             ),
-            'dispatch_slip_number': forms.TextInput(
+            'dispatch_slip_number': forms.NumberInput(
                 attrs={'class': 'form-control', 'placeholder': 'Çıkış Fişi No'}
             ),
             'dispatch_date': forms.DateInput(
@@ -152,6 +153,24 @@ class OutboundWorkOrderForm(ModelForm):
             ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Sadece ilk açılışta çalışsın (POST değilken)
+        if not self.is_bound and not self.instance.pk:
+
+            order_max = Order.objects.aggregate(
+                max_val=Max("outlet_plug")
+            )["max_val"] or 0
+
+            outbound_max = OutboundWorkOrder.objects.aggregate(
+                max_val=Max("dispatch_slip_number")
+            )["max_val"] or 0
+
+            next_number = max(order_max, outbound_max) + 1
+
+            self.initial["dispatch_slip_number"] = next_number
+    
     def clean_dispatch_slip_number(self):
         slip_number = self.cleaned_data.get("dispatch_slip_number")
 

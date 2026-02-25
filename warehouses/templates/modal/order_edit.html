@@ -191,11 +191,22 @@
       <tr>
          <td class="label">Montaj Motor</td>
          <td class="colon">:</td>
-         <td class="value">{{order.mounted_engine}}</td>
-
+         <td class="value">
+            {% if order.engine_info and order.mounted_engine%}
+            {{order.engine_info}} - ({{order.mounted_engine}})
+            {% else %}
+            {{order.mounted_engine}}
+            {% endif %}
+         </td>
          <td class="label-right">Montaj Pompa</td>
          <td class="colon-right">:</td>
-         <td class="value-right">{{order.mounted_pump}}</td>
+         <td class="value-right">
+            {% if order.pump_info and order.mounted_pump%}
+            {{order.pump_info}} - ({{order.mounted_pump}})
+            {% else %}
+            {{order.mounted_pump}}
+            {% endif %}
+         </td>
       </tr>
       <tr>
          <td class="label" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>Montaj Bilgileri</b></td>

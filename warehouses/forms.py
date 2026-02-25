@@ -440,6 +440,69 @@ class MountingForm(forms.ModelForm):
 
             return assembly_plug
 
+class LenghtForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['outlet_plug','length','outlet_plug_date']
+        widgets = {
+            "outlet_plug": forms.NumberInput(attrs={
+                "class": "form-control",
+                "required":"required",
+                "placeholder": "Çıkış fişi"
+            }),
+            "length": forms.NumberInput(attrs={
+                "class": "form-control",
+                "required":"required",
+                "placeholder": "Boru Uzunluğu (mt)"
+            }),
+            "outlet_plug_date": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "required": "required",
+                },
+                format='%Y-%m-%d'
+            ),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Sadece ilk açılışta çalışsın (POST değilken)
+        if not self.is_bound and not self.instance.pk:
+
+            order_max = Order.objects.aggregate(
+                max_val=Max("outlet_plug")
+            )["max_val"] or 0
+
+            outbound_max = OutboundWorkOrder.objects.aggregate(
+                max_val=Max("dispatch_slip_number")
+            )["max_val"] or 0
+
+            next_number = max(order_max, outbound_max) + 1
+
+            self.initial["outlet_plug"] = next_number
+    
+    def clean_outlet_plug(self):
+        outlet_plug = self.cleaned_data.get("outlet_plug")
+
+        if outlet_plug:
+            # Order içinde kontrol
+            qs = Order.objects.filter(outlet_plug=outlet_plug)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                raise forms.ValidationError(
+                    "Bu çıkış fişi daha önce kullanılmıştır."
+                )
+
+            # Hydrophore içinde kontrol
+            if OutboundWorkOrder.objects.filter(dispatch_slip_number=outlet_plug).exists():
+                raise forms.ValidationError(
+                    "Bu çıkış numarası *HİDROFOR* işlemlerinde kullanılmıştır."
+                )
+        return outlet_plug
+
 class OrderEditForm(forms.ModelForm):
     class Meta:
         model = Order

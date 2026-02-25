@@ -694,7 +694,17 @@ def form_control(request):#*
             messages.warning(request, form.errors.as_ul())
             return redirect("order_page")
 
-    return redirect("order_page")
+    elif order.operation_type == "8":
+        form = LenghtForm(request.POST, instance=order)
+        if form.is_valid():
+            item = form.save()
+            order.lenght()
+            messages.success(request, "Boy ekleme bilgileri eklendi.\n İş Emri Kapandı.")
+        else:
+            messages.warning(request, form.errors.as_ul())
+            return redirect("order_page")
+        
+    return redirect(request.META.get('HTTP_REFERER', 'order_page'))
 
 def order_page(request):
     if request.method == "POST":
@@ -765,6 +775,11 @@ def order_edit(request, pk):#*
         form = MountingForm()
         context['form'] = form
         data['html_form'] = render_to_string('modal/disassembly.html', context, request=request)
+
+    elif order.operation_type == "8":
+        form = LenghtForm()
+        context['form'] = form
+        data['html_form'] = render_to_string('modal/lenght.html', context, request=request)
 
 
     return JsonResponse(data)
