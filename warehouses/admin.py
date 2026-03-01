@@ -4,16 +4,17 @@ from .models import Pump,Inventory,WorkshopExitSlip, Engine,Seconhand,Repair,Unu
 class SeconhandAdmin(admin.ModelAdmin):
     list_display = ('row_identifier', 'pump',  'engine', 'created_at')
     list_filter = ('engine__location',)
-    search_fields = ('row_identifier', 'created_at')
+    search_fields = ('row_identifier', 'created_at', 'engine__serialnumber')
 
 class RepairAdmin(admin.ModelAdmin):
     list_display = ( 'pump','engine', 'created_at')
-    list_filter = ('pump', 'engine')
-    search_fields = ( 'created_at',)
+    list_filter = ('engine__location',)
+    search_fields = ( 'created_at', 'engine__serialnumber')
     
 class UnusableAdmin(admin.ModelAdmin):
     list_display = ( 'pump',  'engine', 'created_at')
-    search_fields = ('pump', 'engine')
+    list_filter = ('engine__location',)
+    search_fields = ('pump', 'engine__serialnumber')
     
 class EngineAdmin(admin.ModelAdmin):
     list_display = ( 'engine_type','engine_power','engine_mark','serialnumber','location')

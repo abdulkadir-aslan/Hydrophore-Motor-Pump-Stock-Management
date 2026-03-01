@@ -53,6 +53,11 @@
                         {{ filter.form.serial_number.label_tag }}
                         {{ filter.form.serial_number }}
                     </div>
+                    
+                    <div class="col-md-1">
+                        {{ filter.form.user.label_tag }}
+                        {{ filter.form.user }}
+                    </div>
 
                     <div class="col-md-2">
                         {{ filter.form.operation_type.label_tag }}
@@ -65,7 +70,7 @@
                     </div>
 
                     <!-- Çıkış Fişi Başlangıç Tarihi -->
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         {{ filter.form.address.label_tag }}
                         {{ filter.form.address }}
                     </div>
@@ -86,8 +91,8 @@
                             <tr>
                                 <th>#</th>
                                 <th></th>
-                                <th title= "İş Emri Numarası">İş Emri Num. </th>
                                 <th>Kuyu No</th>
+                                <th title= "İş Emri Numarası">İş Emri Num. </th>
                                 <th>İlçe</th>
                                 <th>Mahalle</th>
                                 <th>İşlem</th>
@@ -137,8 +142,8 @@
                                         {% endif %}
                                         
                                     </td>
-                                    <td>E{{ item.work_order_plug }}</td>
                                     <td>{{ item.inventory.well_number }}</td>
+                                    <td>E{{ item.work_order_plug }}</td>
                                     <td>{{ item.inventory.district|upper }}</td>
                                     <td>{{item.inventory.address}}</td>
                                     <td><span class="badge bg-label-success me-1">{{item.get_situation_display}}</span></td>

@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect,get_object_or_404
 from .models import Category,CategoryStock,CategoryStockOut
 from .forms import CategoryForm,CategoryStockForm,CategoryStockOutForm
 from django.contrib import messages
-from warehouses.views import handle_deletion
+from warehouses.views import handle_deletion,create_workshop_exit_slip
 from warehouses.models import Order
 
 def category(request):
@@ -35,12 +35,33 @@ def delete_category(request, id):
 
 def category_stock(request):
     if request.method == "POST":
-        form = CategoryStockForm(request.POST)
+        # Eğer ID varsa, mevcut ürünü güncelliyoruz.
+        item_id = request.POST.get('item_id', None)
+        # Eğer mevcut ürün varsa, düzenlemeye çalışıyoruz.
+        if item_id:
+            items = get_object_or_404(CategoryStock, id=item_id)
+            form = CategoryStockForm(request.POST, instance=items)
+        else:
+            form = CategoryStockForm(request.POST)
+        
         if form.is_valid():
             item = form.save(commit=False)
-            if form.data["quantity_value"]:
-                item.quantity = form.data["quantity"]
-            item.save()
+            
+            # Eğer quantity_value var ise, quantity değerini formdan al
+            if form.cleaned_data.get("quantity_value"):
+                items.quantity = form.cleaned_data["quantity"]
+                
+            # Eğer material_name_value var ise, material_name değerini formdan al
+            if form.cleaned_data.get("material_name_value"):
+                items.material_name = form.cleaned_data["material_name"]
+                
+            # Eğer category_value var ise, category değerini formdan al
+            if form.cleaned_data.get("category_value"):
+                items.category = form.cleaned_data["category"]
+            if item_id:
+                items.save()
+            else:
+                item.save()
             messages.success(request, "Kayıt başarılı.")
             return redirect("category_stock")
         else:
@@ -98,6 +119,7 @@ def new_category_stock_out(request,id):
             stock = form.save(commit=False)
             stock.order = item
             stock.save()
+            create_workshop_exit_slip("other",stock)
             return redirect("category_stock_out")
         else:
             messages.warning(request, form.errors.as_ul())
@@ -105,6 +127,24 @@ def new_category_stock_out(request,id):
     return render(request, "new_category_stock_out.html", {
         "form": form,
         "item": item,
+    })
+
+def edit_category_stock_out(request,id):
+    item = get_object_or_404(CategoryStockOut, id=id)
+    if request.method == "POST":
+        form = CategoryStockOutForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+
+            return redirect("category_stock_out")
+        else:
+            messages.warning(request, form.errors.as_ul())
+
+    else:
+        form = CategoryStockOutForm( instance=item)
+    return render(request, "new_category_stock_out.html", {
+        "form": form,
+        "item": item.order,
     })
 
 def delete_category_stock_out(request, id):

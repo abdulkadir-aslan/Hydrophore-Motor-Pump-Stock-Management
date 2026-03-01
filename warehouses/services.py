@@ -5,7 +5,12 @@ from .views import engine_locations_update
 def workshop_exit_delete(slip_no):
     item = WorkshopExitSlip.objects.filter(slip_no=slip_no).first()
     if item:
-        item.delete() 
+        item.delete()
+        
+def workshop_exit_delete_id(slip_no):
+    item = WorkshopExitSlip.objects.filter(modal_id=slip_no).first()
+    if item:
+        item.delete()
 
 def activate_repair_transfer(order):
     obj = Repair.objects.filter(order=order).first()
@@ -113,6 +118,14 @@ def activate_repair_transfer(order):
         obj.save()
         if order.situation == "installation":
             order.status = "active"
+        elif order.situation == "well_cancellation":
+            order.status = "active"
+            inv = order.inventory
+            inv.engine = obj.engine
+            inv.pump = obj.pump
+            inv.status = "active"
+            inv.save()
+            
         order.operation_type = "4"
 
     return True, "İşlem başarıyla tamamlandı."

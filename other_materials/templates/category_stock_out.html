@@ -10,9 +10,7 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
             <li class="nav-item me-2">
             </li>
-            <li class="nav-item me-2">
-                <a class="nav-link "  href="{% url 'all_order_page' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan İş Emirleri </a>
-            </li>
+          
         </ul>
         <div class="card mb-4">
             <h5 class="card-header">Yeni Malzeme Çıkışı Oluştur</h5>
@@ -41,7 +39,8 @@
                             <tr>
                                 <th>#</th>
                                 <th></th>
-                                <th title= "İş Emri Numarası">Ç. Fiş No </th>
+                                <th title= "İş Emri Numarası">İş Emri </th>
+                                <th>Ç. Fiş No</th>
                                 <th>Kuyu No</th>
                                 <th>İlçe</th>
                                 <th>Mahalle</th>
@@ -56,14 +55,15 @@
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
                                     <td>
                                          <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
-                                            data-href="{% url 'engine_edit' item.id %}?next={{ request.get_full_path }}">
+                                            data-href="{% url 'edit_category_stock_out' item.id %}?next={{ request.get_full_path }}">
                                             <i class='tf-icons bx bx-edit'></i>
                                         </button>
                                         <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'delete_category_stock_out' item.id %}">
                                                 <i class='tf-icons bx bx-trash'></i>
                                         </button>
                                     </td>
-                                    <td>E{{ item.order.outlet_plug }}</td>
+                                    <td>E{{ item.order.work_order_plug }}</td>
+                                    <td>{{ item.order.outlet_plug }}</td>
                                     <td>{{ item.order.inventory }}</td>
                                     <td>{{ item.order.inventory.get_district_display }}</td>
                                     <td>{{item.order.inventory.address}}</td>
@@ -75,13 +75,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    {% comment %} Edit Modal {% endcomment %}
-                    <div class="modal fade" id="modal-book">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                            </div>
-                        </div>
-                    </div>
+                    
                     <nav aria-label="Page navigation example">
                         <hr>
                         <div class="row">

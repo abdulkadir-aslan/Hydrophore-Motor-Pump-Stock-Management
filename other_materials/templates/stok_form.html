@@ -76,7 +76,11 @@
                         {{ form.quantity }}
                     </div>
                 </div>
-                <input type="hidden" id="id_quantity_value" name="quantity_value" class="form-control" value=""  />
+                <!-- Gizli Alanlar -->
+                <input type="hidden" id="item_id" name="item_id" value="" />
+                <input type="hidden" id="id_quantity_value" name="quantity_value" class="form-control" value="" />
+                <input type="hidden" id="id_material_name_value" name="material_name_value" class="form-control" value="" />
+                <input type="hidden" id="id_category_value" name="category_value" class="form-control" value="" />
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                         Kapat
@@ -236,6 +240,9 @@ $(document).ready(function () {
 
             // Gizli alanları sıfırlıyoruz (örneğin, quantity_value)
             $('#id_quantity_value').val('');
+            $('#id_material_name_value').val('');
+            $('#id_category_value').val('');
+             $('#item_id').val('');
             
             // Select2 select'leri sıfırla
             $('#id_category').val(null).trigger('change');
@@ -252,9 +259,9 @@ $(document).ready(function () {
 
     // Düzenle butonuna tıklanmasıyla modal verilerini ayarlama
     $('.edit').on('click', function () {
-        var categoryId = $(this).data('category'); // Pompa ID'si
+        var categoryId = $(this).data('category');
         var materialname = $(this).data('materialname');
-        var quantity = $(this).data('quantity'); // Miktar
+        var quantity = $(this).data('quantity');
         var itemId = $(this).data('id'); // Item ID'si
 
         // Pompa seçimini güncelleme
@@ -262,10 +269,15 @@ $(document).ready(function () {
 
         // Miktar değerini güncelleme
         $('#id_quantity').val(quantity); // form.quantity'yi güncelle
-        
+
         $('#id_material_name').val(materialname);
-        
+
         $('#id_quantity_value').val(quantity);
+        $('#id_material_name_value').val(materialname);
+        $('#id_category_value').val(categoryId);
+
+        // Gizli inputa item_id'yi yerleştir
+        $('#item_id').val(itemId); // Yeni input ekleyeceğiz
 
         // Modalı aç
         $('#smallModal').modal('show');

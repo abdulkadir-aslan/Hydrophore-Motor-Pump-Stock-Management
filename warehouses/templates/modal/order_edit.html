@@ -1,3 +1,5 @@
+{% load tag_library %}
+
 <div class="modal-header">
   <h4 class="modal-title" id="modalCenterTitle">İş Emri</h4>
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -228,7 +230,8 @@
 
 </div>
   <div class="modal-footer">
-   {% if order.operation_type == "1" and order.situation == "dismantling" or order.operation_type == "5" and order.situation == "installation" %}      <button 
+   {% if order.operation_type == "1" and order.situation == "dismantling" or order.operation_type == "5" and order.situation == "installation" or order.situation == "length_extension" and order.operation_type == "8" or order.operation_type == "1" and order.situation == "well_cancellation" or order.operation_type == "5" and order.situation == "new_well" %}     
+      <button 
          type="button" class="btn btn-danger js-delete" data-href="{% url 'delete_order' order.id %}">İş Emrini Sil
       </button>
    {% else %}

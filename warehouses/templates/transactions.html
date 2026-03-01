@@ -42,7 +42,19 @@
                                 {{ form.situation.label }}
                                 <span class="text-danger">*</span>
                             </label>
-                            {{ form.situation }}
+                            {% if inventory.status == "passive" %}
+                                <select name="situation" class="form-select" required="" id="id_situation">
+                                    <option value="new_well">Yeni Kuyu</option>
+                                </select>
+                            {% else %}
+                                <select name="situation" class="form-select" required="" id="id_situation">
+                                    <option value="" {% if not form.situation.value %}selected=""{% endif %} >Seçiniz</option>
+                                    <option value="installation" {% if form.situation.value == "installation" %}selected=""{% endif %}>Yerinde Montaj</option>
+                                    <option value="dismantling" {% if form.situation.value == "dismantling" %}selected=""{% endif %}>Demontaj</option>
+                                    <option value="length_extension" {% if form.situation.value == "length_extension" %}selected=""{% endif %}>Boy Ekleme</option>
+                                    <option value="well_cancellation" {% if form.situation.value == "well_cancellation" %}selected=""{% endif %}>Kuyu İptal</option>
+                                </select>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="col-md-6 mb-3" id="engine-wrapper" style="display: none;">

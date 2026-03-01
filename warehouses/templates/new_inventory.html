@@ -109,10 +109,11 @@
                             name="pump_row_identifier"
                             id="pump_row_identifier"
                             value="">
-                    {% endif %}
                     <div id="defaultFormControlHelp" class="form-text">
                       İstediğiniz değerde pompa değeri listede görünmüyorsa <a href="{% url 'seconhand' %}">2.El Depo</a>  sekmesinden ekleyebilirsiniz.
                     </div>
+                    {% endif %}
+                    
                 </div>
                 {% if request.resolver_match.url_name in 'inventory_edit' %}
                   <div class="col-md-1 mb-3">
@@ -165,12 +166,7 @@
                 {{ form.comment }}
               </div>
             </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="comment" class="form-label">Durum</label>
-                {{ form.status }}
-              </div>
-            </div>
+            
             <div class="text-end mt-3">
               <a href="{{ next|default:'{% url "inventory" %}' }}" class="btn btn-secondary">
                 Vazgeç

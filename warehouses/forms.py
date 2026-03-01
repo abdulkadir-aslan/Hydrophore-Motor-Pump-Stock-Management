@@ -143,7 +143,17 @@ class OperationForm(ModelForm):
         }
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Sadece ilk 4 operation type göster
+        # filtered_choices = [
+        #     choice for choice in OPERATION_TYPE_CHOICES
+        #     if choice[0] != "new_well"
+        # ]
 
+        # # Başına boş seçenek ekle
+        # self.fields['situation'].choices = [("", "Seçiniz")] + filtered_choices
+
+        # self.fields['situation'].required = True
+        
         # Son kullanılan work_order_plug değerini bul
         last_order = Order.objects.order_by('-work_order_plug').first()
         if last_order and last_order.work_order_plug is not None:
@@ -183,7 +193,7 @@ class InventoryEditForm(ModelForm):
         model = Inventory  
         fields = ["well_number", "district", "address", "disassembly_depth",
                   "mounting_depth", "tank_info", "pipe_type", "cable",
-                  "engine", "pump", "flow", "comment","status"]
+                  "engine", "pump", "flow", "comment"]
         widgets = {
             "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
             "district": forms.Select(attrs={'class': 'form-select'}),
@@ -195,8 +205,12 @@ class InventoryEditForm(ModelForm):
             "cable": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kablo'}),
             "flow": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Debi'}),
             'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
-            "status": forms.Select(attrs={'class': 'form-select'}),
         }
+    def clean_pump(self):
+        pump = self.cleaned_data.get("pump")
+        if not pump:
+            raise forms.ValidationError("Lütfen bir pompa seçiniz.")
+        return pump
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -240,8 +254,11 @@ class InventoryForm(ModelForm):
             "well_number", "district", "address",
             "disassembly_depth", "mounting_depth",
             "tank_info", "pipe_type", "cable",
-            "flow", "comment","status",
+            "flow", "comment",
         ]
+        labels = {
+            'district': 'İlçe',
+        }
         widgets = {
             "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
             "district": forms.Select(attrs={'class': 'form-select','id': 'select-district'}),
@@ -253,7 +270,6 @@ class InventoryForm(ModelForm):
             "cable": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kablo'}),
             "flow": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Debi'}),
             'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
-            "status": forms.Select(attrs={'class': 'form-select'}),
         }
         
 
@@ -298,6 +314,48 @@ class InventoryForm(ModelForm):
             instance.save()
 
         return instance
+
+class NewInventoryForm(ModelForm):
+    class Meta:
+        model = Inventory  
+        fields = [
+            "well_number", "district", "address",
+            "disassembly_depth", "mounting_depth",
+            "tank_info", "pipe_type", "cable",
+            "flow", "comment",
+        ]
+        labels = {
+            'district': 'İlçe',
+        }
+        widgets = {
+            "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
+            "district": forms.Select(attrs={'class': 'form-select','id': 'select-district'}),
+            "address": forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Adres', 'rows': "2"}),
+            "disassembly_depth": forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Demontaj Derinliği'}),
+            "mounting_depth": forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Montaj Derinliği'}),
+            "tank_info": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Depo Bilgisi'}),
+            "pipe_type": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Boru Tipi'}),
+            "cable": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kablo'}),
+            "flow": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Debi'}),
+            'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
+        }
+        
+    def clean_well_number(self):
+        well_number = self.cleaned_data.get('well_number')
+        if Inventory.objects.filter(well_number=well_number).exists():
+            raise forms.ValidationError("Bu Kuyu Numarası zaten mevcut.")
+        return well_number
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        d = cleaned_data.get("disassembly_depth")
+        m = cleaned_data.get("mounting_depth")
+
+        if d and m and d > m:
+            raise forms.ValidationError(
+                "Demontaj derinliği, montaj derinliğinden büyük olamaz."
+            )
+        return cleaned_data
 
 class WarehousePumpForm(ModelForm):
     class Meta:

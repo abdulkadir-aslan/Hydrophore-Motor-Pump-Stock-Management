@@ -13,6 +13,82 @@
           <li class="nav-item me-2">
             <a class="nav-link "  href="{% url 'add_inventory' %}?next={{ request.get_full_path }}"><i class="bx bx-add-to-queue me-1"></i> Ekle</a>
           </li>
+          <li class="nav-item me-2">
+            <button type="button" class='nav-link' data-bs-toggle="modal" data-bs-target="#largeModal">
+            <i class='bx bx-add-to-queue me-1'></i> Yeni Kuyu Ekle
+            </button>
+          </li>
+          <div class="modal fade" id="largeModal" tabindex="-1" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel3">Yeni Kuyu Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                <form method="POST" >
+                {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                {{ form.well_number.label_tag }}
+                                {{ form.well_number }}
+                            </div>
+                            <div class="col mb-0">
+                                {{ form.district.label_tag }}
+                                {{ form.district }}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                {{ form.address.label_tag }}
+                                {{ form.address }}
+                            </div>
+                            <div class="col mb-0">
+                                {{ form.disassembly_depth.label_tag }}
+                                {{ form.disassembly_depth }}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                {{ form.mounting_depth.label_tag }}
+                                {{ form.mounting_depth }}
+                            </div>
+                            <div class="col mb-0">
+                                {{ form.tank_info.label_tag }}
+                                {{ form.tank_info }}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                {{ form.pipe_type.label_tag }}
+                                {{ form.pipe_type }}
+                            </div>
+                            <div class="col mb-0">
+                                {{ form.cable.label_tag }}
+                                {{ form.cable }}
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                {{ form.flow.label_tag }}
+                                {{ form.flow }}
+                            </div>
+                            <div class="col mb-0">
+                                {{ form.comment.label_tag }}
+                                {{ form.comment }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Kapat
+                        </button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+          </div>
       </ul> 
       <!--=== Filtreleme === -->
         <div class="card mb-4">

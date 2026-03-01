@@ -12,6 +12,7 @@ class PumpType(models.Model):
     class Meta:
         verbose_name = "Pompa Tipi"
         verbose_name_plural = "Pompa Tipleri"
+        ordering = ['type']
 
 class Power(models.Model):
     power = models.FloatField(verbose_name="Güç", unique=True)
@@ -20,6 +21,7 @@ class Power(models.Model):
     class Meta:
         verbose_name = "Güç"
         verbose_name_plural = "Güçler"
+        ordering = ['power']
 
 class Hydrophore(models.Model):
     DISTRICT_CHOICES = (

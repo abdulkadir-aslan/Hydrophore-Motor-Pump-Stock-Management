@@ -1,9 +1,10 @@
 from django.shortcuts import render,redirect
 from .models import Hydrophore,PumpType,Power,OutboundWorkOrder,RepairReturn,WorkshopExit,DistrictFieldPersonnel
 from .forms import PumpTypeForm,RepairReturnForm,PowerForm,HydrophoreForm,OutboundWorkOrderForm,DistrictFieldPersonnelForm,WorkshopExitForm
-from warehouses.views import handle_deletion,paginate_items,IntegrityError,get_object_or_404,transaction,create_workshop_exit_slip
+from warehouses.views import handle_deletion,paginate_items,get_object_or_404,transaction,create_workshop_exit_slip
 from .filters import HydrophoreFilter,HydrophoreAllFilter,OutboundWorkOrderFilter,WorkshopExitFilter,RepairReturnFilter
 from django.contrib import messages
+from django.db.utils import IntegrityError
 from django.http import JsonResponse
 
 def pump_type(request):

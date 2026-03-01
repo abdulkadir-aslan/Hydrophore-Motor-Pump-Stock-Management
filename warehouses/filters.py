@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Inventory,NewWarehousePump,Engine,WORK_ORDER_CHOİCES,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
+from .models import Inventory,Unusable,NewWarehousePump,Engine,WORK_ORDER_CHOİCES,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
 
 class InventoryFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(
@@ -114,7 +114,7 @@ class EngineFilter(django_filters.FilterSet):
 class GeneralEngineFilter(django_filters.FilterSet):
     serialnumber = django_filters.CharFilter(
         field_name='serialnumber',
-        lookup_expr='iexact',
+        lookup_expr='icontains',
         label='Seri Numarası',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -187,6 +187,43 @@ class PumpFilter(django_filters.FilterSet):
         model = Pump
         fields = ['pump_type', ]
 
+class UnusableFilter(django_filters.FilterSet):
+
+    well_number = django_filters.CharFilter(
+        field_name='well_number__well_number',
+        lookup_expr='icontains',
+        label='Kuyu No',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Kuyu numarası giriniz'
+        })
+    )
+
+    # Motor Seri No Filter
+    serialnumber = django_filters.CharFilter(
+        field_name='engine__serialnumber',
+        lookup_expr='icontains',
+        label='Motor Seri No',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Motor Seri No'})
+    )
+
+    # Pompa Tipi Filter
+    pump_type = django_filters.CharFilter(
+        field_name='pump__pump_type',
+        lookup_expr='icontains',
+        label='Pompa Tipi',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pompa Tipi'})
+    )
+
+    class Meta:
+        model = Unusable
+        fields = ['well_number', 'serialnumber', 'pump_type',]
+
+USER_CHOICES = (
+    ('ugur', 'UĞUR'),
+    ('huseyin', 'HÜSEYİN'),
+)
+
 class OrderFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(
         field_name='inventory__well_number',
@@ -205,6 +242,16 @@ class OrderFilter(django_filters.FilterSet):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Motor Seri Numarası (montaj ve demontaj için)'
+        })
+    )
+    
+    # Yeni user_choice filtresi (Uğur veya Hüseyin seçeneği)
+    user = django_filters.ChoiceFilter(
+        label="Sorumlu",
+        choices=USER_CHOICES,
+        method="filter_user",
+        widget=forms.Select(attrs={
+            'class': 'form-select'
         })
     )
     
@@ -245,6 +292,33 @@ class OrderFilter(django_filters.FilterSet):
                 Q(mounted_engine__serialnumber__icontains=value) |
                 Q(disassembled_engine__serialnumber__icontains=value)
             )
+        return queryset
+    
+     # Override to filter district and operation_type based on user_choice
+    def filter_user(self, queryset, name, value):
+
+        # Her ikisinde de ortak filtrelenecek operation_type'lar
+        allowed_operations = ['1', '5', '6', '8', '9']
+
+        if value == 'ugur':
+            return queryset.filter(
+                inventory__district__in=[
+                    'siverek', 'bozova', 'hilvan',
+                    'birecik', 'halfeti', 'suruç'
+                ],
+                operation_type__in=allowed_operations
+            )
+
+        elif value == 'huseyin':
+            return queryset.filter(
+                inventory__district__in=[
+                    'karaköprü', 'haliliye', 'eyyübiye',
+                    'ceylanpınar', 'viranşehir',
+                    'akçakale', 'harran'
+                ],
+                operation_type__in=allowed_operations
+            )
+
         return queryset
     
 class SeconhandFilter(django_filters.FilterSet):

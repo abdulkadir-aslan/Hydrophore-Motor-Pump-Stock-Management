@@ -79,6 +79,6 @@ class CategoryStockOutForm(forms.ModelForm):
 
         if stock and quantity:
             if stock.quantity < quantity:
-                raise forms.ValidationError("Yetersiz stok miktarı!")
+                raise forms.ValidationError("Yetersiz stok miktarı! ")
 
         return cleaned_data

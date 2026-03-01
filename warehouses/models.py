@@ -205,6 +205,7 @@ OPERATION_TYPE_CHOICES = (
         ("dismantling", "Demontaj"),
         ("length_extension", "Boy Ekleme"),
         ("well_cancellation", "Kuyu İptal"),
+        ("new_well", "Yeni Kuyu"),
     )
 
 OPERATION_ENGINE_CHOICES = (
@@ -249,7 +250,7 @@ class Order(models.Model):
     def complete_disassembly(self, disassembly_plug):
         """1 -> 2  & 1 -> 6"""
         self.disassembly_plug = disassembly_plug
-        if self.situation == "dismantling":
+        if self.situation == "dismantling" or self.situation == "well_cancellation":
             self.operation_type = "2"
         elif self.situation == "installation":
             self.operation_type = "6"
@@ -288,10 +289,11 @@ class Order(models.Model):
     def complete_assembly(self, assembly_plug):
         """1 -> 2"""
         self.assembly_plug = assembly_plug
-        if self.situation == "dismantling":
+        if self.situation in ["new_well","dismantling"] :
             self.operation_type = "10"
             self.status = "passive"
             inventory = self.inventory
+            inventory.status = "active"
             if self.operation_engine in ["engine","engine_pump"]:
                 inventory.engine = self.mounted_engine
             if self.operation_engine in ["pump","engine_pump"]:
@@ -301,22 +303,23 @@ class Order(models.Model):
             self.operation_type = "2"
         
         self.save()
-    
-    def lenght(self):
+
+    def complete_lenght(self,lenght):
+        # self.lenght = lenght
         inventory = self.inventory
-        inventory.mounting_depth += self.lenght
-        inventory.disassembly_depth += self.lenght
+        inventory.mounting_depth += lenght
+        inventory.disassembly_depth += lenght
         inventory.save()
         self.operation_type = "10"
         self.status = "passive"
         self.save()
-        
+
     def go_back(self):
         """Order geri alma işlemi"""
         if self.operation_type == "2":
             if self.situation == "installation":
-                from .services import workshop_exit_delete
-                workshop_exit_delete(self.outlet_plug)
+                from .services import workshop_exit_delete_id
+                workshop_exit_delete_id("diver/" + str(self.id))
                 self.assembly_plug = None
                 self.operation_type = "6"
             else:
@@ -326,9 +329,9 @@ class Order(models.Model):
         elif self.operation_type == "3":
             inventory = self.inventory
             if self.situation == "installation":
-                if self.operation_engine in ["pump","engine_pump"]:
-                    inventory.engine = self.disassembled_engine
                 if self.operation_engine in ["engine","engine_pump"]:
+                    inventory.engine = self.disassembled_engine
+                if self.operation_engine in ["pump","engine_pump"]:
                     inventory.pump = self.disassembled_pump
                 inventory.save()
             self.disassembled_engine = None
@@ -353,27 +356,45 @@ class Order(models.Model):
             self.operation_type = "1"
 
         elif self.operation_type == "10" :
-            if self.situation == "dismantling":
-                from .services import workshop_exit_delete
+            if self.situation in ["new_well","dismantling"]:
+                from .services import workshop_exit_delete_id
                 self.assembly_plug = None
                 self.status = "active"
                 self.operation_type = "6"
                 inventory = self.inventory
                 if self.operation_engine in ["engine","engine_pump"]:
                     inventory.engine = self.disassembled_engine
-                if self.operation_engine in ["pump","engine_pump"]:
+                elif self.operation_engine in ["pump","engine_pump"]:
                     inventory.pump = self.disassembled_pump
-                inventory.save()
-                workshop_exit_delete(self.outlet_plug)
                 
-            elif self.situation == "installation":
+                if self.situation == "new_well":
+                    inventory.engine = None
+                    inventory.pump = None
+                    inventory.status = "passive"
+                inventory.save()
+                workshop_exit_delete_id("diver/" + str(self.id))
+                
+            elif self.situation in ["installation","well_cancellation"] :
                 success, message = self.activate_repair_transfer()
                 if not success:
                     return False, message
 
+            elif self.situation == "length_extension":
+                inventory = self.inventory
+                inventory.mounting_depth -= self.length
+                inventory.disassembly_depth -= self.length
+                inventory.save()
+                self.outlet_plug = None
+                self.operation_type = "8"
+                self.status = "active"
+                from other_materials.models import CategoryStockOut
+                order = CategoryStockOut.objects.filter(order=self.id).first()
+                if order:
+                    order.delete()
+            
         self.save()
         return True, "İşlem başarıyla geri alındı."
-    
+
 class Repair(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE,null=True, blank=True)
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE,null=True, blank=True)
@@ -483,6 +504,7 @@ class WorkshopExitSlip(models.Model):
 
     maintenance_status = models.CharField(max_length=100,blank=True, null=True, verbose_name="Bakım Durumu")
     overall_status = models.CharField(max_length=100, blank=True, null=True,verbose_name="Genel Durum")
+    modal_id = models.CharField(max_length=100, blank=True, null=True,verbose_name="İd")
 
     class Meta:
         verbose_name = "Tüm Atölye Çıkış Fişi"
