@@ -706,7 +706,8 @@ def form_control(request):#*
         if form.is_valid():
             form.save()
             order.start_repair()
-            engine_locations_update(order.inventory.engine.id, "2")
+            if order.mounted_engine:
+                engine_locations_update(order.inventory.engine.id, "2")
             messages.success(request, "Atölye bilgileri eklendi.\n Malzemler Tamir depoya aktarıldı.")
         else:
             messages.warning(request, form.errors.as_ul())
