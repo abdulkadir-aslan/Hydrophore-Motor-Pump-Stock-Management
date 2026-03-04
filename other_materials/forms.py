@@ -66,7 +66,39 @@ class CategoryStockForm(forms.ModelForm):
 class CategoryStockOutForm(forms.ModelForm):
     class Meta:
         model = CategoryStockOut
-        fields = [ 'stock', 'quantity']
+        fields = [
+            'well_number',
+            'district',
+            'address',
+            'stock',
+            'quantity'
+        ]
+        widgets = {
+            'well_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'district': forms.Select(attrs={'class': 'form-select'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'stock': forms.Select(attrs={'class': 'form-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        stock = cleaned_data.get("stock")
+        quantity = cleaned_data.get("quantity")
+
+        if stock and quantity:
+            if stock.quantity < quantity:
+                raise forms.ValidationError("Yetersiz stok miktarı! ")
+
+        return cleaned_data
+
+class CategoryStockOut2Form(forms.ModelForm):
+    class Meta:
+        model = CategoryStockOut
+        fields = [
+            'stock',
+            'quantity'
+        ]
         widgets = {
             'stock': forms.Select(attrs={'class': 'form-select'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),

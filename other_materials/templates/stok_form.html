@@ -15,28 +15,33 @@
         </li>
       </ul>
       <!--=== Filtreleme === -->
-        {% comment %} <div class="card mb-4">
+        <div class="card mb-4">
             <div class="card-body">
                 <form method="get" class="row g-2">
+                    <!-- Kuyu Numarası Filtreleme -->
                     <div class="col-md-2">
-                        {{ filter.form.engine_type.label_tag }}
-                        {{ filter.form.engine_type }}
+                        {{ filter.form.category.label_tag }}
+                        {{ filter.form.category }}
                     </div>
 
-                    <div class="col-md-3">
-                        {{ filter.form.engine_power.label_tag }}
-                        {{ filter.form.engine_power }}
+                    <!-- Montaj Edilen Motor Filtreleme -->
+                    <div class="col-md-2">
+                        {{ filter.form.material_name.label_tag }}
+                        {{ filter.form.material_name }}
                     </div>
 
-                    <div class="col-md-3">
-                        {{ filter.form.engine_mark.label_tag }}
-                        {{ filter.form.engine_mark }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ filter.form.serialnumber.label_tag }}
-                        {{ filter.form.serialnumber }}
+                    <div class="col-md-2">
+                        {{ filter.form.min_quantity.label_tag }}
+                        {{ filter.form.min_quantity }}
                     </div>
 
+                    <!-- Çıkış Fişi Başlangıç Tarihi -->
+                    <div class="col-md-2">
+                        {{ filter.form.max_quantity.label_tag }}
+                        {{ filter.form.max_quantity }}
+                    </div>
+
+                    <!-- Filtrele Butonu -->
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">
                             Filtrele
@@ -44,7 +49,7 @@
                     </div>
                 </form>
             </div>
-        </div> {% endcomment %}
+        </div> 
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal">

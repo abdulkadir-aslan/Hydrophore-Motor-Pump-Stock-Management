@@ -1,5 +1,5 @@
 from django.db import models
-from warehouses.models import Order,WorkshopExitSlip
+from warehouses.models import DISTRICT_CHOICES,WorkshopExitSlip
 from django.db import transaction
 
 class Category(models.Model):
@@ -41,12 +41,9 @@ class CategoryStock(models.Model):
         verbose_name_plural = "Kategori Stokları"
 
 class CategoryStockOut(models.Model):
-    order = models.ForeignKey(
-        Order,
-        verbose_name="Sipariş",
-        on_delete=models.PROTECT,
-        related_name="stock_outs"
-    )
+    well_number = models.CharField(verbose_name="Kuyu Numarası", max_length=100, null=True, blank=True)
+    district = models.CharField(verbose_name="İlçe", null=False, choices=DISTRICT_CHOICES, max_length=50, blank=False)
+    address = models.CharField(verbose_name="Adres", max_length=50, null=False, blank=False)
     stock = models.ForeignKey(
         'CategoryStock',
         verbose_name="Kategori Stok",
@@ -67,7 +64,7 @@ class CategoryStockOut(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f"{self.stock.material_name} - {self.quantity} adet"
+        return f"{self.well_number} - {self.quantity} adet"
 
     def save(self, *args, **kwargs):
         with transaction.atomic():

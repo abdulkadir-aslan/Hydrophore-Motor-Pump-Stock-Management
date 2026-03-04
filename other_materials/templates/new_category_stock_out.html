@@ -8,17 +8,20 @@
   <div class="col-md-6">
     <div class="card mb-4">
       <div class="card-body">
-        <div class="mb-3">
-          <label class="form-label">Kuyu Bilgileri </label>
-          <input type="text" value="{{ item.inventory.well_number }} / {{ item.inventory.get_district_display }} / {{ item.inventory.address }}" class="form-control" readonly>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">İş Emri No</label>
-          <input type="text" value="{{ item.outlet_plug }}" class="form-control" readonly>
-        </div>
-
         <form method="POST">
           {% csrf_token %}
+          <div class="mb-3">
+              {{ form.well_number.label_tag }}
+              {{ form.well_number }}
+          </div>
+          <div class="mb-3">
+              {{ form.district.label_tag }}
+              {{ form.district }}
+          </div>
+          <div class="mb-3">
+              {{ form.address.label_tag }}
+              {{ form.address }}
+          </div>
           <div class="mb-3">
               {{ form.stock.label_tag }}
               {{ form.stock }}

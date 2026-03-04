@@ -2,8 +2,8 @@ from django.shortcuts import render,redirect,get_object_or_404
 from .models import Category,CategoryStock,CategoryStockOut
 from .forms import CategoryForm,CategoryStockForm,CategoryStockOutForm
 from django.contrib import messages
-from warehouses.views import handle_deletion,create_workshop_exit_slip
-from warehouses.models import Order
+from warehouses.views import handle_deletion,paginate_items
+from .filters import CategoryStockFilter,CategoryStockOutFilter
 
 def category(request):
     if request.method == "POST":
@@ -69,10 +69,18 @@ def category_stock(request):
     else:
         form = CategoryStockForm()
 
-    # listeleme için
-    items = CategoryStock.objects.select_related('category').all().order_by('category__name', 'material_name')
-
-    return render(request, "stok_form.html", {"form": form, "items": items})
+    queryset = CategoryStock.objects.select_related('category').all().order_by('category__name', 'material_name')
+    filterset = CategoryStockFilter(request.GET, queryset=queryset)
+    filtered_qs = filterset.qs
+    page_obj = paginate_items(request, filtered_qs)
+    
+    return render(request, "stok_form.html", {
+        'filter': filterset,
+        'total': filtered_qs.count(),
+        'items': page_obj, 
+        'query_string': request.GET.urlencode(),
+        'form' : form
+    })
 
 def delete_category_stock(request, id):
     return handle_deletion(
@@ -86,47 +94,36 @@ def delete_category_stock(request, id):
     )
     
 def category_stock_out(request):
-    if request.method == "POST":
-        outlet_plug = request.POST.get("outlet_plug")
-        if outlet_plug:
-            outlet_plug = Order.objects.filter(outlet_plug=outlet_plug).first()
-            if outlet_plug:
-                return redirect("new_category_stock_out", id=outlet_plug.id)
-            else:
-                messages.warning(request,"Çıkış fişi kayıtlarda yok.")
 
-    queryset = CategoryStockOut.objects.all()
-    # order_filter = OrderFilter(request.GET, queryset=queryset)
-    # filtered_qs = order_filter.qs
+    queryset = CategoryStockOut.objects.select_related(
+        'stock',
+        'stock__category'
+    ).all().order_by('-created_at')
 
-    # page_obj = paginate_items(request, filtered_qs)
-    # context = {
-    #     # 'total': filtered_qs.count(),
-    #     # 'items': page_obj,
-    #     'query_string': request.GET.urlencode(),
-    #     'filter': order_filter,
-    # }
+    filterset = CategoryStockOutFilter(request.GET, queryset=queryset)
+    filtered_qs = filterset.qs
+    page_obj = paginate_items(request, filtered_qs)
+
     context = {
-        'items': queryset,
+        'filter': filterset,
+        'total': filtered_qs.count(),
+        'items': page_obj, 
+        'query_string': request.GET.urlencode(),
     }
+
     return render(request, "category_stock_out.html", context)
 
-def new_category_stock_out(request,id):
-    item = get_object_or_404(Order, id=id)
+def new_category_stock_out(request):
     form = CategoryStockOutForm(request.POST or None)
     if request.method == "POST":
         if form.is_valid():
-            stock = form.save(commit=False)
-            stock.order = item
-            stock.save()
-            create_workshop_exit_slip("other",stock)
+            form.save()
             return redirect("category_stock_out")
         else:
             messages.warning(request, form.errors.as_ul())
 
     return render(request, "new_category_stock_out.html", {
         "form": form,
-        "item": item,
     })
 
 def edit_category_stock_out(request,id):
@@ -135,7 +132,6 @@ def edit_category_stock_out(request,id):
         form = CategoryStockOutForm(request.POST, instance=item)
         if form.is_valid():
             form.save()
-
             return redirect("category_stock_out")
         else:
             messages.warning(request, form.errors.as_ul())
@@ -144,7 +140,6 @@ def edit_category_stock_out(request,id):
         form = CategoryStockOutForm( instance=item)
     return render(request, "new_category_stock_out.html", {
         "form": form,
-        "item": item.order,
     })
 
 def delete_category_stock_out(request, id):

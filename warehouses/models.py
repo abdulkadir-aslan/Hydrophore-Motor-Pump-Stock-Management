@@ -388,7 +388,7 @@ class Order(models.Model):
                 self.operation_type = "8"
                 self.status = "active"
                 from other_materials.models import CategoryStockOut
-                order = CategoryStockOut.objects.filter(order=self.id).first()
+                order = CategoryStockOut.objects.filter(well_number=self.inventory.well_number).first()
                 if order:
                     order.delete()
             

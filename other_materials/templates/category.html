@@ -12,21 +12,22 @@
         <li class="nav-item me-2">
           <a class="nav-link "  href="{% url 'category_stock' %}"><i class="bx bx-add-to-queue me-1"></i> Malzeme Listesi</a>
         </li>
-      </ul> 
-          <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="mb-0" {% if form.name.errors %} style="color:#ff3e1d ;" {% endif %}>Yeni Kategori Ekle</h5>
+      </ul>
+      
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0" {% if form.name.errors %} style="color:#ff3e1d ;" {% endif %}>Yeni Kategori Ekle</h5>
+        </div>
+        <div class="card-body">
+          <form id="formAuthentication"  class="mb-3" method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ form.name }}
             </div>
-            <div class="card-body">
-              <form id="formAuthentication"  class="mb-3" method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                  {{ form.name }}
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 150px;margin-left: auto;float: right;margin-top: -3px;">Kaydet</button>
-              </form>
-            </div>
-          </div>
+            <button type="submit" class="btn btn-primary" style="width: 150px;margin-left: auto;float: right;margin-top: -3px;">Kaydet</button>
+          </form>
+        </div>
+      </div>
       <div class="card">
         <div class="table-responsive text-nowrap">
           <div class="container">

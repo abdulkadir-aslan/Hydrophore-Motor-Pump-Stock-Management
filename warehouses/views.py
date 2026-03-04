@@ -6,7 +6,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
 from .filters import InventoryFilter,UnusableFilter,NewPumpFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
 from .forms import *
-from other_materials.forms import CategoryStockOutForm
+from other_materials.forms import CategoryStockOut2Form
 from hydrophore.models import OutboundWorkOrder,WorkshopExit,RepairReturn
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -727,10 +727,12 @@ def form_control(request):#*
 
     elif order.operation_type == "8":
         form = LenghtForm(request.POST, instance=order)
-        other = CategoryStockOutForm(request.POST)
+        other = CategoryStockOut2Form(request.POST)
         if form.is_valid() and other.is_valid():
             stock =other.save(commit=False)
-            stock.order = order
+            stock.well_number = order.inventory.well_number
+            stock.district = order.inventory.district
+            stock.address = order.inventory.address
             stock.save()
             create_workshop_exit_slip("other",stock)
             item = form.save()
@@ -814,7 +816,7 @@ def order_edit(request, pk):#*
 
     elif order.operation_type == "8":
         form = LenghtForm()
-        other = CategoryStockOutForm()
+        other = CategoryStockOut2Form()
         context['form'] = form
         context['other'] = other
         data['html_form'] = render_to_string('modal/lenght.html', context, request=request)
@@ -1060,15 +1062,13 @@ def create_workshop_exit_slip(modalname, modal):
         )
     elif modalname == 'other':
         workshop_exit_slip = WorkshopExitSlip.objects.create(
-            date=modal.order.outlet_plug_date,
-            slip_no=modal.order.outlet_plug,
-            well_no=modal.order.inventory.well_number,
-            district=modal.order.inventory.get_district_display(),
-            address=modal.order.inventory.address,
+            date=modal.created_at,
+            well_no=modal.well_number,
+            district=modal.get_district_display(),
+            address=modal.address,
             main_pipe = modal.stock,
             secondary_pipe = str(modal.quantity) + " Adet",
-            maintenance_status = "Boy ekleme yapıldı." if modal.order.length else None,
-            overall_status=modal.order.comment,
+            maintenance_status = "Boy ekleme yapıldı.",
             modal_id = modalname + "/" + str(modal.id)
         )
     

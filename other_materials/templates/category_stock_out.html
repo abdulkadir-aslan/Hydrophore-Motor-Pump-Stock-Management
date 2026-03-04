@@ -10,27 +10,49 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
             <li class="nav-item me-2">
             </li>
-          
+            <li class="nav-item me-2">
+                <a class="nav-link "  href="{% url 'new_category_stock_out' %}"><i class="bx bx-add-to-queue me-1"></i> Ekle</a>
+            </li>
         </ul>
+        <!--=== Filtreleme === -->
         <div class="card mb-4">
-            <h5 class="card-header">Yeni Malzeme Çıkışı Oluştur</h5>
-            <div class="card-body" >
-                <form  method="POST">
-                    {% csrf_token %}
-                    <div class="row gx-3 gy-2 align-items-center" >
-                        <div class="col-md-3"  >
-                            <label for="defaultFormControlInput" class="form-label">Çıkış Fiş Numarası</label>
-                            <input type="number"  class="form-control" name="outlet_plug" placeholder="fiş numarası "  autofocus="" required>
-                        </div>
-                        <div class="col-md-3" >
-                            <label class="form-label" for="showToastPlacement">&nbsp;</label>
-                            <button type="submit"  class="btn btn-primary d-block ">Oluştur</button>
-                        </div>
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <!-- Kuyu Numarası Filtreleme -->
+                    <div class="col-md-2">
+                        {{ filter.form.well_number.label_tag }}
+                        {{ filter.form.well_number }}
+                    </div>
+
+                    <!-- Montaj Edilen Motor Filtreleme -->
+                    <div class="col-md-2">
+                        {{ filter.form.district.label_tag }}
+                        {{ filter.form.district }}
+                    </div>
+
+                    <div class="col-md-2">
+                        {{ filter.form.address.label_tag }}
+                        {{ filter.form.address }}
+                    </div>
+
+                    <!-- Çıkış Fişi Başlangıç Tarihi -->
+                    <div class="col-md-2">
+                        {{ filter.form.material_name.label_tag }}
+                        {{ filter.form.material_name }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter.form.category.label_tag }}
+                        {{ filter.form.category }}
+                    </div>
+                    <!-- Filtrele Butonu -->
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrele
+                        </button>
                     </div>
                 </form>
-               
             </div>
-        </div>
+        </div> 
         <div class="card">
             <div class="table-responsive text-nowrap">
                 <div class="container">
@@ -39,8 +61,6 @@
                             <tr>
                                 <th>#</th>
                                 <th></th>
-                                <th title= "İş Emri Numarası">İş Emri </th>
-                                <th>Ç. Fiş No</th>
                                 <th>Kuyu No</th>
                                 <th>İlçe</th>
                                 <th>Mahalle</th>
@@ -62,11 +82,9 @@
                                                 <i class='tf-icons bx bx-trash'></i>
                                         </button>
                                     </td>
-                                    <td>E{{ item.order.work_order_plug }}</td>
-                                    <td>{{ item.order.outlet_plug }}</td>
-                                    <td>{{ item.order.inventory }}</td>
-                                    <td>{{ item.order.inventory.get_district_display }}</td>
-                                    <td>{{item.order.inventory.address}}</td>
+                                    <td>{{ item.well_number }}</td>
+                                    <td>{{ item.get_district_display }}</td>
+                                    <td>{{item.address}}</td>
                                     <td>{{item.stock}}</td>
                                     <td>{{item.quantity}}</td>
                                     <td>{{item.created_at}}</td>
