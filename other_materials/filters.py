@@ -43,6 +43,15 @@ class CategoryStockFilter(django_filters.FilterSet):
 
 class CategoryStockOutFilter(django_filters.FilterSet):
 
+    outlet_plug = django_filters.CharFilter(
+        lookup_expr='iexact',
+        label="Çıkış Fişi",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Çıkış Fişi ara...'
+        })
+    )
+    
     well_number = django_filters.CharFilter(
         lookup_expr='icontains',
         label="Kuyu No",

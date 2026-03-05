@@ -190,6 +190,13 @@
          <td class="colon-right" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
          <td class="value-right" style=" background-color: {% if order.outlet_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>No : C{{order.outlet_plug}}</b></td>
       </tr>
+      {% if order.length %}
+         <tr>
+            <td class="label">Montaj Malzeme</td>
+            <td class="colon">:</td>
+            <td colspan="4">{{order.length}} mt boru eklendi.</td>
+         </tr>
+      {% else %}
       <tr>
          <td class="label">Montaj Motor</td>
          <td class="colon">:</td>
@@ -210,6 +217,7 @@
             {% endif %}
          </td>
       </tr>
+      {% endif %}
       <tr>
          <td class="label" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>Montaj Bilgileri</b></td>
          <td class="colon" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %};"></td>

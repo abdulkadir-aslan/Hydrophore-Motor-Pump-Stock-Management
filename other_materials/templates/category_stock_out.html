@@ -19,6 +19,10 @@
             <div class="card-body">
                 <form method="get" class="row g-2">
                     <!-- Kuyu Numarası Filtreleme -->
+                    <div class="col-md-1">
+                        {{ filter.form.outlet_plug.label_tag }}
+                        {{ filter.form.outlet_plug }}
+                    </div>
                     <div class="col-md-2">
                         {{ filter.form.well_number.label_tag }}
                         {{ filter.form.well_number }}
@@ -61,6 +65,7 @@
                             <tr>
                                 <th>#</th>
                                 <th></th>
+                                <th>Çıkış Fişi</th>
                                 <th>Kuyu No</th>
                                 <th>İlçe</th>
                                 <th>Mahalle</th>
@@ -82,6 +87,7 @@
                                                 <i class='tf-icons bx bx-trash'></i>
                                         </button>
                                     </td>
+                                    <td>{{ item.outlet_plug }}</td>
                                     <td>{{ item.well_number }}</td>
                                     <td>{{ item.get_district_display }}</td>
                                     <td>{{item.address}}</td>

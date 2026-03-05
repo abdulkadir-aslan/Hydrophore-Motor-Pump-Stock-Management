@@ -67,6 +67,7 @@ class CategoryStockOutForm(forms.ModelForm):
     class Meta:
         model = CategoryStockOut
         fields = [
+            'outlet_plug',
             'well_number',
             'district',
             'address',
@@ -74,10 +75,11 @@ class CategoryStockOutForm(forms.ModelForm):
             'quantity'
         ]
         widgets = {
+            'outlet_plug': forms.NumberInput(attrs={'class': 'form-control'}),
             'well_number': forms.TextInput(attrs={'class': 'form-control'}),
             'district': forms.Select(attrs={'class': 'form-select'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
-            'stock': forms.Select(attrs={'class': 'form-select'}),
+            'stock': forms.Select(attrs={'class': 'form-select select2'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
@@ -86,9 +88,18 @@ class CategoryStockOutForm(forms.ModelForm):
         stock = cleaned_data.get("stock")
         quantity = cleaned_data.get("quantity")
 
-        if stock and quantity:
-            if stock.quantity < quantity:
-                raise forms.ValidationError("Yetersiz stok miktarı! ")
+        if not stock or not quantity:
+            return cleaned_data
+
+        # Düzenleme durumunda eski quantity'i hesaba kat
+        if self.instance and self.instance.pk:
+            old_quantity = self.instance.quantity or 0
+            available_stock = stock.quantity + old_quantity
+        else:
+            available_stock = stock.quantity
+
+        if quantity > available_stock:
+            raise forms.ValidationError("Yetersiz stok miktarı!")
 
         return cleaned_data
 

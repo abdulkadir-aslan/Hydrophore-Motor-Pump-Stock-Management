@@ -248,7 +248,7 @@
                 <div data-i18n="Documentation">Malzeme Listesi</div>
               </a>
             </li>
-            <li class="menu-item {% if url_name == 'category_stock_out'  %}active {% endif %}">
+            <li class="menu-item {% if url_name == 'category_stock_out' or url_name == 'new_category_stock_out' %}active {% endif %}">
               <a href="{% url 'category_stock_out' %}"  class="menu-link">
                 <i class="menu-icon tf-icons bx bx-copy"></i>
                 <div data-i18n="Documentation">Malzeme Çıkış İşlemleri</div>

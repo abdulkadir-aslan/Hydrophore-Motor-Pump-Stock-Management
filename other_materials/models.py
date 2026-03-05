@@ -41,6 +41,7 @@ class CategoryStock(models.Model):
         verbose_name_plural = "Kategori Stokları"
 
 class CategoryStockOut(models.Model):
+    outlet_plug = models.PositiveIntegerField(verbose_name="Çıkış Fişi",null=True,blank=True,)
     well_number = models.CharField(verbose_name="Kuyu Numarası", max_length=100, null=True, blank=True)
     district = models.CharField(verbose_name="İlçe", null=False, choices=DISTRICT_CHOICES, max_length=50, blank=False)
     address = models.CharField(verbose_name="Adres", max_length=50, null=False, blank=False)

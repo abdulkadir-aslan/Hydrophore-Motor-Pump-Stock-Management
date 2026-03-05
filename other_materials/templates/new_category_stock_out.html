@@ -11,6 +11,10 @@
         <form method="POST">
           {% csrf_token %}
           <div class="mb-3">
+              {{ form.outlet_plug.label_tag }}
+              {{ form.outlet_plug }}
+          </div>
+          <div class="mb-3">
               {{ form.well_number.label_tag }}
               {{ form.well_number }}
           </div>
@@ -40,5 +44,24 @@
     </div>
   </div>
 </div>
+<script>
+$(document).ready(function () {
+    function initSelect2(context = document) {
+        $(context).find('select.select2').each(function () {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2({
+                    width: '100%',
+                    placeholder: 'Seçiniz...',
+                    allowClear: true,
+                    dropdownParent: $(this).closest('.modal').length
+                        ? $(this).closest('.modal')
+                        : $('body')
+                });
+            }
+        });
+    }
 
+    initSelect2();
+});
+</script>
 {% endblock content %}

@@ -387,10 +387,11 @@ class Order(models.Model):
                 self.outlet_plug = None
                 self.operation_type = "8"
                 self.status = "active"
-                from other_materials.models import CategoryStockOut
-                order = CategoryStockOut.objects.filter(well_number=self.inventory.well_number).first()
-                if order:
-                    order.delete()
+                # from other_materials.models import CategoryStockOut
+                # order = CategoryStockOut.objects.filter(outlet_plug = self.outlet_plug).first()
+                # print(order)
+                # if order:
+                #     order.delete()
             
         self.save()
         return True, "İşlem başarıyla geri alındı."

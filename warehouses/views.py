@@ -729,13 +729,14 @@ def form_control(request):#*
         form = LenghtForm(request.POST, instance=order)
         other = CategoryStockOut2Form(request.POST)
         if form.is_valid() and other.is_valid():
+            item = form.save()
             stock =other.save(commit=False)
+            stock.outlet_plug = item.outlet_plug
             stock.well_number = order.inventory.well_number
             stock.district = order.inventory.district
             stock.address = order.inventory.address
             stock.save()
             create_workshop_exit_slip("other",stock)
-            item = form.save()
             order.complete_lenght(item.length)
             messages.success(request, "Boy ekleme bilgileri eklendi.\n İş Emri Kapandı.")
         else:
@@ -1062,6 +1063,7 @@ def create_workshop_exit_slip(modalname, modal):
         )
     elif modalname == 'other':
         workshop_exit_slip = WorkshopExitSlip.objects.create(
+            slip_no=modal.outlet_plug,
             date=modal.created_at,
             well_no=modal.well_number,
             district=modal.get_district_display(),
@@ -1071,7 +1073,6 @@ def create_workshop_exit_slip(modalname, modal):
             maintenance_status = "Boy ekleme yapıldı.",
             modal_id = modalname + "/" + str(modal.id)
         )
-    
     return
 
 def workshop_exit_slip(request):
