@@ -113,12 +113,44 @@ def category_stock_out(request):
 
     return render(request, "category_stock_out.html", context)
 
+from urllib.parse import urlencode
 def new_category_stock_out(request):
-    form = CategoryStockOutForm(request.POST or None)
+    initial_data = {}
+
+    # Eğer GET ile değer geldiyse forma doldur
+    outlet_plug = request.GET.get("outlet_plug")
+    well_number = request.GET.get("well_number")
+    district = request.GET.get("district")
+    address = request.GET.get("address")
+
+    if outlet_plug:
+        initial_data["outlet_plug"] = outlet_plug
+    if well_number:
+        initial_data["well_number"] = well_number
+    if district:
+        initial_data["district"] = district
+    if address:
+        initial_data["address"] = address
+
+    form = CategoryStockOutForm(request.POST or None, initial=initial_data)
+
     if request.method == "POST":
         if form.is_valid():
-            form.save()
+            obj = form.save()
+
+            messages.success(request, f"{obj.outlet_plug} - {obj.stock} - {obj.quantity} Adet \n Malzeme çıkışı başarıyla kaydedildi.")
+            if "save_and_add" in request.POST:
+                params = urlencode({
+                    "outlet_plug": obj.outlet_plug,
+                    "well_number": obj.well_number,
+                    "district": obj.district,
+                    "address": obj.address
+                })
+
+                return redirect(f"/malzeme_cikis_islemler/?{params}")
+
             return redirect("category_stock_out")
+
         else:
             messages.warning(request, form.errors.as_ul())
 
