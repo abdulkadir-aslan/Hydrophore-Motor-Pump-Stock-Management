@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from account.decorators import administrator
 from warehouses.models import (
     WorkshopExitSlip, Inventory, Pump, Engine,
     Mark, Power, Seconhand, NewWarehousePump,Order

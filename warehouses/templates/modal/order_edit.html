@@ -61,11 +61,7 @@
          <td class="colon" style=" background-color: #BDE8F5;"></td>
          <td class="value" style=" background-color: #BDE8F5;"><b>{{order.created_at}}</b></td>
          <td class="label-right" style=" background-color: #BDE8F5;">
-         {% if order.status == "passive" %}
-            <span class="badge bg-label-danger me-1">PASİF</span>
-         {% else %}
-            <span class="badge bg-label-success me-1">AKTİF</span>
-         {% endif %}
+         <span class="badge bg-label-success me-1">{{order.get_situation_display}}</span>
          <span class="badge bg-label-success me-1"></span>
          </td>
          <td class="colon-right" style=" background-color: #BDE8F5;"></td>

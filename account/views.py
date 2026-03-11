@@ -19,10 +19,7 @@ def login_request(request):
             login(request, user)
             if user.status == 'active':
                 messages.success(request, 'Giriş Başarılı.')
-                if user.authorization == "3":
-                    return redirect('repair_orders')
-                else:
-                    return redirect('home')
+                return redirect('home')
             else:
                 messages.info(request, "Kullanıcı 'Pasif' durumda, yönetici ile iletişime geçiniz.")
         else:

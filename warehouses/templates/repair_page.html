@@ -10,12 +10,12 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4">
             <li class="nav-item me-2">
             </li>
-            <li class="nav-item me-2">
+            {% comment %} <li class="nav-item me-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'engine_repair' %} active {% endif %}"  href="{% url 'engine_repair' %}"><i class="bx bx-add-to-queue me-1"></i> Aktif Tamir İş Emirleri </a>
             </li>
             <li class="nav-item me-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'engine_all_repair' %} active {% endif %}"  href="{% url 'engine_all_repair' %}"><i class="bx bx-add-to-queue me-1"></i> Kapanan Tamir İş Emirleri </a>
-            </li>
+            </li> {% endcomment %}
         </ul>
         <div class="card">
             <div class="table-responsive text-nowrap">

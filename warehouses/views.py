@@ -6,6 +6,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
 from .filters import InventoryFilter,UnusableFilter,NewPumpFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
 from .forms import *
+from account.decorators import administrator,admin
 from other_materials.forms import CategoryStockOut2Form
 from hydrophore.models import OutboundWorkOrder,WorkshopExit,RepairReturn
 from django.http import JsonResponse
@@ -35,6 +36,7 @@ def engine_locations_update(id,location):
     item.location = location
     item.save()
 
+@admin
 def newMark(request):
     if request.method == "POST":
         form = MarkForm(request.POST)
@@ -52,6 +54,7 @@ def newMark(request):
     }
     return render(request, "new_mark.html", context)
 
+@administrator
 def markDelete(request, myid):
     return handle_deletion(
         request,
@@ -63,6 +66,7 @@ def markDelete(request, myid):
         "*{0}* Marka kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+@admin
 def newPower(request):
     if request.method == "POST":
         form = PowerForm(request.POST)
@@ -81,6 +85,7 @@ def newPower(request):
     }
     return render(request, "new_power.html", context)
 
+@administrator
 def powerDelete(request, myid):
     return handle_deletion(
         request,
@@ -92,6 +97,7 @@ def powerDelete(request, myid):
         "*{0}* Güç kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+@administrator
 def engineDelete(request, myid):
     redirect_url = request.GET.get('next', 'engine_homepage')
     return handle_deletion(
@@ -139,6 +145,7 @@ def engine_homepage(request):
 
     return render(request, "engine_homepage.html", context)
 
+@admin
 def engine_edit(request, pk):
     engine = get_object_or_404(Engine, pk=pk)
 
@@ -165,6 +172,7 @@ def engine_edit(request, pk):
         'next': next_url
     })
 
+@admin
 def newPump(request):
     if request.method == "POST":
         form = PumpForm(request.POST)
@@ -188,6 +196,7 @@ def newPump(request):
     }
     return render(request, "new_pump.html", context)
 
+@administrator
 def pumpDelete(request, myid):
     return handle_deletion(
         request,
@@ -198,7 +207,8 @@ def pumpDelete(request, myid):
         "Pompa kaydı bulunamadı.",
         "*{0}* Pompa kaydı {1} tabloda kullanılıyor, silinemez."
     )
-    
+
+@administrator
 def pump_edit(request, pk):
     pump = get_object_or_404(Pump, pk=pk)
     if request.method == 'POST':
@@ -262,6 +272,7 @@ def inventory_homepage(request):
     }
     return render(request, "inventory_homepage.html", context)
 
+@administrator
 def inventory_edit(request, pk):
     inventory = get_object_or_404(Inventory, pk=pk)
     next_url = request.GET.get('next')
@@ -303,6 +314,7 @@ def seconhand_row_edit(request,model,data):
         messages.warning(request, "Formda hatalar var tekrar giriniz.")
         return redirect("add_inventory")
 
+@admin
 def add_inventory(request):
     next_url = request.GET.get('next')
     if request.method == 'POST':
@@ -322,6 +334,7 @@ def add_inventory(request):
     context = {'form': form ,'next': next_url}
     return render(request, 'new_inventory.html', context)
 
+@administrator
 def delete_inventory(request, id):
     return handle_deletion(
         request,
@@ -434,6 +447,7 @@ def all_repair(request):
     }
     return render(request, "repair_page.html",contex)
 
+@administrator
 def repair_edit(request, id):
     repair = get_object_or_404(Repair, order__pk=id)
     if repair.engine:
@@ -517,6 +531,7 @@ def repair_edit(request, id):
         'next': next_url
     })
 
+@administrator
 def repair_delete(request, id):
     return handle_deletion(
         request,
@@ -569,6 +584,7 @@ def unusable(request):
         'query_string': request.GET.urlencode(),
     }
     return render(request, "unusable_page.html",contex)
+
 
 def new_warehouse_engine(request):
     if request.method == "POST":
@@ -632,6 +648,7 @@ def new_warehouse_pump(request):
     
     return render(request, "new_warehouse_pump.html",context)
 
+@admin
 def transfer_warehouse(request):
     if request.method == "POST":
         item = get_object_or_404(Seconhand,row_identifier=request.POST.get("row_identifier"))
@@ -654,6 +671,7 @@ def transfer_warehouse(request):
             messages.warning(request, f"Değer Girilmedi..")
     return redirect('new_warehouse_engine')
 
+@administrator
 def new_warehouse_pump_delete(request, id):
     return handle_deletion(
         request,
@@ -666,6 +684,7 @@ def new_warehouse_pump_delete(request, id):
     )
 
 #------------İş Emirleri----------
+@administrator
 def delete_order(request, id):
     return handle_deletion(
         request,
@@ -677,6 +696,7 @@ def delete_order(request, id):
         "*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+@admin
 def form_control(request):#*
     if request.method != "POST":
         messages.warning(request, "Hatalı seçim yapıldı.")
@@ -792,6 +812,7 @@ def order_show(request, pk):
     data['html_form'] = render_to_string('modal/order_edit.html', context, request=request, )
     return JsonResponse(data)
 
+@admin
 def order_edit(request, pk):#*
     order = get_object_or_404(Order, pk=pk)
     data = {}
@@ -877,6 +898,7 @@ def seconhand_order_go_back(request, id):
         )
     })
 
+@administrator
 def order_go_back(request, pk):#*
     order = get_object_or_404(Order, pk=pk)
     if order.operation_type == "1":
@@ -927,6 +949,7 @@ def handle_pump(order, pump_display):
         except NewWarehousePump.DoesNotExist:
             raise ValueError("Seçilen pompa bulunamadı.")
 
+@admin
 def new_assembly_order(request, id):
     order = get_object_or_404(Order, id=id)
     if request.method == "POST":
@@ -987,6 +1010,7 @@ def all_order_page(request):
     }
     return render(request, "all_order_page.html", context)
 
+@admin
 def transactions(request,id):
     inventory = get_object_or_404(Inventory, id=id)
     form = OperationForm(request.POST or None)
@@ -1093,6 +1117,7 @@ def workshop_exit_slip(request):
     }
     return render(request, "workshop_exit_slip.html", context)
 
+@admin
 def new_workshop_exit_slip(request):
     if request.method == 'POST':
         form = WorkshopExitSlipForm(request.POST)
@@ -1106,6 +1131,7 @@ def new_workshop_exit_slip(request):
             form = WorkshopExitSlipForm()
     return render(request, 'new_workshop_exit_slip.html', {'form': form})
 
+@administrator
 def workshop_exit_slip_edit(request,id):
     order = get_object_or_404(WorkshopExitSlip, pk=id)
     if request.method == 'POST':
@@ -1120,6 +1146,7 @@ def workshop_exit_slip_edit(request,id):
             form = WorkshopExitSlipForm(instance=order)
     return render(request, 'new_workshop_exit_slip.html', {'form': form})
 
+@administrator
 def workshop_exit_slip_delete(request, id):
     return handle_deletion(
         request=request,

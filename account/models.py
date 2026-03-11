@@ -12,8 +12,8 @@ DEFAULT_STATUS = 'passive'
 
 AUTHORİZATİON = (
     ('1','Yönetici'),
-    ('2','Kullanıcı'),
-    ('3','Tamir'),
+    ('2','Admin'),
+    ('3','Kullanıcı'),
 )
 DEFAULT_AUTHORİZATİON = '2'
 

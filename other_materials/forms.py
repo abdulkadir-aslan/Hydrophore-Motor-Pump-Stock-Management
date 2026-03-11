@@ -37,32 +37,38 @@ class CategoryStockForm(forms.ModelForm):
 
     def clean_material_name(self):
         # boşlukları kaldır ve büyük harfe çevir
-        return self.cleaned_data["material_name"].upper()
+        return self.cleaned_data["material_name"].strip().upper()
 
     def save(self, commit=True):
-        """
-        Aynı kategori + malzeme varsa miktarı toplar,
-        yoksa yeni kayıt oluşturur.
-        """
-        category = self.cleaned_data['category']
-        material_name = self.cleaned_data['material_name']
-        quantity_to_add = self.cleaned_data['quantity']
+        material_name = self.cleaned_data["material_name"]
+        category = self.cleaned_data["category"]
+        quantity = self.cleaned_data["quantity"]
 
-        with transaction.atomic():
-            stock = CategoryStock.objects.select_for_update().filter(
+        if self.instance.pk:
+            # Düzenleme durumunda sadece quantity güncellenir
+            self.instance.quantity = quantity
+            if commit:
+                self.instance.save()
+            return self.instance
+        else:
+            # Yeni ekleme durumunda daha önce var mı kontrol et
+            existing = CategoryStock.objects.filter(
                 category=category,
                 material_name=material_name
             ).first()
-
-            if stock:
-                stock.quantity = F('quantity') + quantity_to_add
+            
+            if existing:
+                # Mevcut kayıt varsa quantity ekle
+                existing.quantity = F('quantity') + quantity
                 if commit:
-                    stock.save()
-                return stock
+                    existing.save()
+                    # F() kullanımı sonrası güncel değeri almak için refresh
+                    existing.refresh_from_db()
+                return existing
             else:
-                stock = super().save(commit=commit)
-                return stock
-
+                # Yoksa yeni kayıt oluştur
+                return super().save(commit=commit)
+            
 class CategoryStockOutForm(forms.ModelForm):
     class Meta:
         model = CategoryStockOut

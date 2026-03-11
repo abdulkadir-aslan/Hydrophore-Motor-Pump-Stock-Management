@@ -1,10 +1,13 @@
 from django.shortcuts import render,redirect,get_object_or_404
+from django.urls import reverse
 from .models import Category,CategoryStock,CategoryStockOut
 from .forms import CategoryForm,CategoryStockForm,CategoryStockOutForm
 from django.contrib import messages
 from warehouses.views import handle_deletion,paginate_items
 from .filters import CategoryStockFilter,CategoryStockOutFilter
+from account.decorators import administrator,admin
 
+@admin
 def category(request):
     if request.method == "POST":
         form = CategoryForm(request.POST)
@@ -22,6 +25,7 @@ def category(request):
     }
     return render(request, "category.html", context)
 
+@administrator
 def delete_category(request, id):
     return handle_deletion(
         request,
@@ -34,41 +38,6 @@ def delete_category(request, id):
     )
 
 def category_stock(request):
-    if request.method == "POST":
-        # Eğer ID varsa, mevcut ürünü güncelliyoruz.
-        item_id = request.POST.get('item_id', None)
-        # Eğer mevcut ürün varsa, düzenlemeye çalışıyoruz.
-        if item_id:
-            items = get_object_or_404(CategoryStock, id=item_id)
-            form = CategoryStockForm(request.POST, instance=items)
-        else:
-            form = CategoryStockForm(request.POST)
-        
-        if form.is_valid():
-            item = form.save(commit=False)
-            
-            # Eğer quantity_value var ise, quantity değerini formdan al
-            if form.cleaned_data.get("quantity_value"):
-                items.quantity = form.cleaned_data["quantity"]
-                
-            # Eğer material_name_value var ise, material_name değerini formdan al
-            if form.cleaned_data.get("material_name_value"):
-                items.material_name = form.cleaned_data["material_name"]
-                
-            # Eğer category_value var ise, category değerini formdan al
-            if form.cleaned_data.get("category_value"):
-                items.category = form.cleaned_data["category"]
-            if item_id:
-                items.save()
-            else:
-                item.save()
-            messages.success(request, "Kayıt başarılı.")
-            return redirect("category_stock")
-        else:
-            messages.warning(request, form.errors.as_ul())
-    else:
-        form = CategoryStockForm()
-
     queryset = CategoryStock.objects.select_related('category').all().order_by('category__name', 'material_name')
     filterset = CategoryStockFilter(request.GET, queryset=queryset)
     filtered_qs = filterset.qs
@@ -79,9 +48,56 @@ def category_stock(request):
         'total': filtered_qs.count(),
         'items': page_obj, 
         'query_string': request.GET.urlencode(),
-        'form' : form
     })
 
+@admin
+def new_category_stock(request):
+    initial_data = {}
+
+    category_id = request.GET.get("category")
+    if category_id:
+        initial_data["category"] = category_id
+
+    form = CategoryStockForm(request.POST or None, initial=initial_data)
+
+    if request.method == "POST":
+        if form.is_valid():
+            obj = form.save()
+
+            messages.success(
+                request, 
+                f"{obj.category} - {obj.material_name} - {obj.quantity} Adet Malzeme başarıyla kaydedildi."
+            )
+
+            if "save_and_add" in request.POST:
+                # Sadece category parametresi gönderiyoruz
+                params = urlencode({"category": obj.category.id})
+                return redirect(f"{reverse('new_category_stock')}?{params}")
+
+            return redirect("category_stock")
+        else:
+            messages.warning(request, form.errors.as_ul())
+
+    return render(request, "new_stock.html", {"form": form})
+
+@administrator
+def edit_category_stock(request,id):
+    item = get_object_or_404(CategoryStock, id=id)
+    if request.method == "POST":
+        form = CategoryStockForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect("category_stock")
+        else:
+            messages.warning(request, form.errors.as_ul())
+
+    else:
+        form = CategoryStockForm( instance=item)
+    return render(request, "new_stock.html", {
+        "form": form,
+    })
+
+@administrator
 def delete_category_stock(request, id):
     return handle_deletion(
         request,
@@ -114,6 +130,7 @@ def category_stock_out(request):
     return render(request, "category_stock_out.html", context)
 
 from urllib.parse import urlencode
+@admin
 def new_category_stock_out(request):
     initial_data = {}
 
@@ -158,6 +175,7 @@ def new_category_stock_out(request):
         "form": form,
     })
 
+@administrator
 def edit_category_stock_out(request,id):
     item = get_object_or_404(CategoryStockOut, id=id)
     if request.method == "POST":
@@ -174,6 +192,7 @@ def edit_category_stock_out(request,id):
         "form": form,
     })
 
+@administrator
 def delete_category_stock_out(request, id):
     return handle_deletion(
         request,

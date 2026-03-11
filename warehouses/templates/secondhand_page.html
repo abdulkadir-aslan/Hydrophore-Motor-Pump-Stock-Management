@@ -9,6 +9,7 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
             <li class="nav-item me-2">
             </li>
+            {% if request.user.authorization != "3" %}
             <li class="nav-item me-2">
                 <button type="button" class="btn " data-bs-toggle="modal" data-bs-target="#modalEngine">
                     <i class="bx bx-add-to-queue me-1"></i>Motor Ekle
@@ -25,6 +26,7 @@
                     <i class="bx bx-add-to-queue me-1"></i> Yeni Depo No Ekle
                 </button>
             </li>
+            {% endif %}
             <script>
                 document.getElementById('add-new-depot').addEventListener('click', function() {
                     // Kullanıcıdan onay iste

@@ -36,12 +36,13 @@
             </div>
         </div>
       <div class="card">
+        {% if request.user.authorization != "3" %}
         <div class="card-header d-flex justify-content-between align-items-center">
           <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal" data-action="add">
             Yeni Ekle
           </button>
         </div>
-
+        {% endif %}
         <!-- Modal -->
         <div class="modal fade" id="smallModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-sm" role="document">
@@ -137,6 +138,7 @@
                       <td>{{ item.pump.pump_mark }}</td>
                       <td>{{ item.quantity }}</td>
                       <td>
+                        {% if request.user.authorization != "3" %}
                         <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat'
                             data-id="{{ item.id }}"
                             data-pump="{{ item.pump.id }}"
@@ -150,6 +152,7 @@
                             data-id="{{ item.pump.id }}" >
                             <i class='tf-icons bx bx-right-arrow'></i>
                         </button>
+                        {% endif %}
                       </td>
                     </tr>
                   {% endfor %}

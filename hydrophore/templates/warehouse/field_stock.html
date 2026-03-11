@@ -10,6 +10,7 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
             <li class="nav-item me-2">
             </li>
+            {% if request.user.authorization != "3" %}
             <li class="nav-item me-2">
                 <button type="button" class="btn " data-bs-toggle="modal" data-bs-target="#modalHydrophore">
                     <i class="bx bx-add-to-queue me-1"></i>Hidrofor Ekle
@@ -63,6 +64,7 @@
                     </div>
                 </div>
             </li>
+            {% endif %}
         </ul> 
         <!--=== Filtreleme === -->
         <div class="card mb-4">

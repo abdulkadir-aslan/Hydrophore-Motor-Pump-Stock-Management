@@ -6,7 +6,9 @@ from .filters import HydrophoreFilter,HydrophoreAllFilter,OutboundWorkOrderFilte
 from django.contrib import messages
 from django.db.utils import IntegrityError
 from django.http import JsonResponse
+from account.decorators import administrator,admin
 
+@admin
 def pump_type(request):
     if request.method == "POST":
         form = PumpTypeForm(request.POST)
@@ -24,6 +26,7 @@ def pump_type(request):
     }
     return render(request, "pump_type.html", context)
 
+@administrator
 def pump_type_delete(request, id):
     return handle_deletion(
         request,
@@ -35,6 +38,7 @@ def pump_type_delete(request, id):
         "*{0}* Pompa kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+@admin
 def new_power(request):
     if request.method == "POST":
         form = PowerForm(request.POST)
@@ -53,6 +57,7 @@ def new_power(request):
     }
     return render(request, "power.html", context)
 
+@administrator
 def hydrophore_power_delete(request, id):
     return handle_deletion(
         request,
@@ -80,6 +85,7 @@ def hydrophore_homepage(request):
     }
     return render(request, "hydrophore_homepage.html",contex)
 
+@administrator
 def hydrophore_delete(request, id):
     return handle_deletion(
         request,
@@ -90,7 +96,8 @@ def hydrophore_delete(request, id):
         "Hidrofor kaydı bulunamadı.",
         "*{0}* Hidrofor kaydı {1} tabloda kullanılıyor, silinemez."
     )
-    
+
+@administrator
 def hydrophore_edit(request, pk):
     item = get_object_or_404(Hydrophore, pk=pk)
 
@@ -121,6 +128,7 @@ def hydrophore_edit(request, pk):
     })
 
 ################ İş Emirleri ################
+@admin
 def district_field_personnel(request, id=None):
     items = DistrictFieldPersonnel.objects.all().order_by('-id')
     page_obj = paginate_items(request, items)
@@ -146,6 +154,7 @@ def get_personnel_by_district(request):
         return JsonResponse({"personnel": data})
     return JsonResponse({"personnel": []})
 
+@administrator
 def district_field_personnel_delete(request, id):
     return handle_deletion(
         request,
@@ -180,6 +189,7 @@ def search_hydrophore(request):
     except Hydrophore.DoesNotExist:
         return JsonResponse({'error': 'Hidrofor bulunamadı!'}, status=404)
 
+@admin
 def new_outbound_work_order(request, id):
     hydrophore = get_object_or_404(Hydrophore, id=id)
 
@@ -254,6 +264,7 @@ def all_outbound_work_order(request):
     }
     return render(request, "all_outbound_work_order.html",contex)
 
+@administrator
 def outbound_work_order_edit(request,pk):
     item = get_object_or_404(OutboundWorkOrder, pk=pk)
     if request.method == 'POST':
@@ -333,6 +344,7 @@ def outbound_work_order(request):
     }
     return render(request, "outbound_work_order.html",contex)
 
+@administrator
 def outbound_work_order_delete(request, id):
     return handle_deletion(
         request,
@@ -377,6 +389,7 @@ def workshop_exit(request):
     }
     return render(request, "workshop_exit.html",contex)
 
+@administrator
 def workshop_exit_edit(request, pk):
     item = get_object_or_404(WorkshopExit, pk=pk)
     if request.method == 'POST':
@@ -403,6 +416,7 @@ def workshop_exit_edit(request, pk):
         form = WorkshopExitForm(instance=item)
     return render(request, 'workshop_exit_edit.html', {'form': form,'workshop':item})
 
+@administrator
 def workshop_exit_delete(request, id):
     return handle_deletion(
         request,
@@ -444,6 +458,7 @@ def repair_return(request):
     }
     return render(request, "repair_return.html",contex)
 
+@administrator
 def repair_return_delete(request, id):
     return handle_deletion(
         request,
@@ -455,6 +470,7 @@ def repair_return_delete(request, id):
         "*{0}* Hidrofor kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+@administrator
 def repair_return_edit(request, pk):
     item = get_object_or_404(RepairReturn, pk=pk)
     if request.method == 'POST':

@@ -92,28 +92,14 @@
                     <div class="row mb-3">
                       <label for="Phone" class="col-md-4 col-lg-3 col-form-label"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Yetki</font></font></label>
                       <div class="col-md-8 col-lg-9">
-                        <select id="sendNotification" class="form-select" name="authorization">
-                            <option value="1" {% if sel_item.authorization == '1'  %}selected=""{% endif %} >YÖNETİCİ</option>
-                            <option value="2" {% if sel_item.authorization == '2'  %}selected=""{% endif %}>KULLANICI</option>
-                            <option value="3" {% if sel_item.authorization == '3'  %}selected=""{% endif %} >TAMİR</option>
-                          </select>
+                        {{form.authorization}}
                       </div>
                     </div>
   
                     <div class="row mb-3">
                       <label for="Email" class="col-md-4 col-lg-3 col-form-label"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Durum</font></font></label>
                       <div class="col-md-8 col-lg-9">
-                          {% if sel_item.status == "passive" %}
-                            <select id="sendNotification" class="form-select" name="status">
-                              <option value="passive" selected="">Pasif</option>
-                              <option value="active">Aktif</option>
-                            </select>
-                          {% else %}
-                            <select id="sendNotification" class="form-select" name="status">
-                              <option value="passive" >Pasif</option>
-                              <option value="active" selected="">Aktif</option>
-                            </select>
-                          {% endif %}
+                          {{form.status}}
                       </div>
                     </div>
   

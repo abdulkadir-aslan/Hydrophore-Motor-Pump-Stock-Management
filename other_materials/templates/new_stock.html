@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Diğer Malzemeler /</span>Malzeme Çıkış İşlemi</h4>
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-body">
+        <form method="POST">
+          {% csrf_token %}
+          <div class="mb-3">
+              {{ form.category.label_tag }}
+              {{ form.category }}
+          </div>
+          <div class="mb-3">
+              {{ form.material_name.label_tag }}
+              {{ form.material_name }}
+          </div>
+          <div class="mb-3">
+              {{ form.quantity.label_tag }}
+              {{ form.quantity }}
+          </div>
+
+          <a href="{% url 'category_stock' %}" class="btn btn-secondary">
+              Vazgeç
+          </a>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+          <button type="submit" name="save_and_add" class="btn btn-success">
+            Kaydet ve Yeni Ekle
+        </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+$(document).ready(function () {
+    function initSelect2(context = document) {
+        $(context).find('select.select2').each(function () {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2({
+                    width: '100%',
+                    placeholder: 'Seçiniz...',
+                    allowClear: true,
+                    dropdownParent: $(this).closest('.modal').length
+                        ? $(this).closest('.modal')
+                        : $('body')
+                });
+            }
+        });
+    }
+
+    initSelect2();
+});
+</script>
+{% endblock content %}

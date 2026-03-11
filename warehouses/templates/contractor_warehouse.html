@@ -9,11 +9,13 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4">
             <li class="nav-item me-2">
             </li>
+            {% if request.user.authorization != "3" %}
             <li class="nav-item me-2">
                 <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#largeModal">
                     <i class="bx bx-add-to-queue me-1"></i> Ekle
                 </button>
             </li>
+            {% endif %}
             <div class="modal fade" id="largeModal" tabindex="-1" style="display: none;" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
