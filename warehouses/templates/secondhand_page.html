@@ -64,7 +64,7 @@
                                 <option value="">-----</option>
                                 {% for item in null_list %}
                                     {% if not item.engine  %}
-                                    <option value="{{ item.id }}">{{ item }}</option>
+                                    <option value="{{ item.id }}">{% if item.pump %}Dalgıç-{% endif %}{{ item }}</option>
                                     {% endif %}
                                 {% endfor %}
                                 </select>
@@ -94,7 +94,7 @@
                                 <option value="">-----</option>
                                 {% for item in null_list %}
                                     {% if not item.pump  %}
-                                    <option value="{{ item.id }}">{{ item }}</option>
+                                    <option value="{{ item.id }}">{% if item.engine %}Dalgıç-{% endif %}{{ item }}</option>
                                     {% endif %}
                                 {% endfor %}
                                 </select>
@@ -143,6 +143,14 @@
         <div class="card">
             <div class="table-responsive text-nowrap">
                 <div class="container">
+                    <br>
+                    <a 
+                        href="{% url 'export_seconhand' %}?{{ request.GET.urlencode }}" 
+                        class="btn btn-success"
+                        target="_blank"
+                    >
+                        Excel'e Aktar
+                    </a>
                     <table class="table table-striped mt32 customers-list">
                         <thead>
                         <tr>

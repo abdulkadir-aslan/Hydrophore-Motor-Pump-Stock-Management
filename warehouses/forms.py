@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from .models import *
-from hydrophore.models import OutboundWorkOrder
+from hydrophore.models import OutboundWorkOrder,WorkshopExit
 
 class MarkForm(ModelForm):
     class Meta:
@@ -174,79 +174,7 @@ class OperationForm(ModelForm):
 
         return work_order_plug
 
-class InventoryEditForm(ModelForm):
-    district = forms.ChoiceField(
-        choices=DISTRICT_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    engine = forms.ModelChoiceField(
-        queryset=Engine.objects.none(),
-        widget=forms.Select(attrs={
-            'class': 'form-select',
-            'id': 'select-engine',
-            'data-show-subtext': 'true',
-            'data-live-search': 'true',
-            'disabled': 'disabled'
-        })
-    )
-    class Meta:
-        model = Inventory  
-        fields = ["well_number", "district", "address", "disassembly_depth",
-                  "mounting_depth", "tank_info", "pipe_type", "cable",
-                  "engine", "pump", "flow", "comment"]
-        widgets = {
-            "well_number": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kuyu Numarası'}),
-            "district": forms.Select(attrs={'class': 'form-select'}),
-            "address": forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Adres', 'rows': "2"}),
-            "disassembly_depth": forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Demontaj Derinliği'}),
-            "mounting_depth": forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Montaj Derinliği'}),
-            "tank_info": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Depo Bilgisi'}),
-            "pipe_type": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Boru Tipi'}),
-            "cable": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Kablo'}),
-            "flow": forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Debi'}),
-            'comment': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '3'}),
-        }
-    def clean_pump(self):
-        pump = self.cleaned_data.get("pump")
-        if not pump:
-            raise forms.ValidationError("Lütfen bir pompa seçiniz.")
-        return pump
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
-            if self.instance.engine:
-                self.fields['engine'].queryset = Engine.objects.filter(pk=self.instance.engine.pk)
-                self.fields['engine'].initial = self.instance.engine
-
-class SeconhandEngineChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return f"{obj.row_identifier} - {obj.engine}"
-
-class SeconhandPumpChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return f"{obj.row_identifier} - {obj.pump}"
-
 class InventoryForm(ModelForm):
-    seconhand_engine = SeconhandEngineChoiceField(
-        queryset=Seconhand.objects.filter(engine__isnull=False),
-        required=True,
-        label="Motor",
-        widget=forms.Select(attrs={
-            'class': 'form-select select2',
-            'id': 'select-engine'
-        })
-    )
-
-    seconhand_pump = SeconhandPumpChoiceField(
-        queryset=Seconhand.objects.filter(pump__isnull=False),
-        required=True,
-        label="Pompa",
-        widget=forms.Select(attrs={
-            'class': 'form-select select2',
-            'id': 'select-pump'
-        })
-    )
 
     class Meta:
         model = Inventory  
@@ -275,15 +203,17 @@ class InventoryForm(ModelForm):
 
     def clean_well_number(self):
         well_number = self.cleaned_data.get('well_number')
-        if Inventory.objects.filter(well_number=well_number).exists():
+
+        qs = Inventory.objects.filter(well_number=well_number)
+
+        # edit modunda kendi kaydını hariç tut
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
             raise forms.ValidationError("Bu Kuyu Numarası zaten mevcut.")
+
         return well_number
-    
-    def clean_seconhand_engine(self):
-        seconhand = self.cleaned_data.get('seconhand_engine')
-        if seconhand and Inventory.objects.filter(engine=seconhand.engine).exists():
-            raise forms.ValidationError("Bu motor daha önce kullanılmış.")
-        return seconhand
 
     def clean(self):
         cleaned_data = super().clean()
@@ -295,25 +225,6 @@ class InventoryForm(ModelForm):
                 "Demontaj derinliği, montaj derinliğinden büyük olamaz."
             )
         return cleaned_data
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-
-        seconhand_engine = self.cleaned_data.get("seconhand_engine")
-        seconhand_pump = self.cleaned_data.get("seconhand_pump")
-
-        if seconhand_engine:
-            instance.engine = seconhand_engine.engine
-            instance.engine.location = "1"
-            instance.engine.save()
-            
-        if seconhand_pump:
-            instance.pump = seconhand_pump.pump
-
-        if commit:
-            instance.save()
-
-        return instance
 
 class NewInventoryForm(ModelForm):
     class Meta:

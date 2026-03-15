@@ -26,10 +26,12 @@ class HydrophoreFilter(django_filters.FilterSet):
 
     # Adres Filter (icontains)
     neighborhood = django_filters.CharFilter(
-        field_name='neighborhood',
-        lookup_expr='icontains',
-        label='Adres',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
+        label="Mahalle",
+        method="filter_neighborhood",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Mahalle'
+        })
     )
 
     pump_type = django_filters.CharFilter(
@@ -46,6 +48,12 @@ class HydrophoreFilter(django_filters.FilterSet):
         model = Hydrophore
         fields = ['serial_number','district','neighborhood', 'pump_type']
 
+    def filter_neighborhood(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(neighborhood__icontains=value)
+        return queryset
+    
 class HydrophoreAllFilter(django_filters.FilterSet):
 
     serial_number = django_filters.CharFilter(
@@ -66,11 +74,19 @@ class HydrophoreAllFilter(django_filters.FilterSet):
             'class': 'form-select'
         })
     )
+    
+    location = django_filters.ChoiceFilter(
+        field_name='location',
+        choices=Hydrophore.LOCATION,
+        label='Lokasyon',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
 
     neighborhood = django_filters.CharFilter(
-        field_name='neighborhood',
-        lookup_expr='icontains',
-        label='Mahalle',
+        label="Mahalle",
+        method="filter_neighborhood",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Mahalle'
@@ -79,17 +95,22 @@ class HydrophoreAllFilter(django_filters.FilterSet):
 
     class Meta:
         model = Hydrophore
-        fields = ['serial_number', 'district', 'neighborhood']
+        fields = ['serial_number', 'district', 'neighborhood','location']
+
+    def filter_neighborhood(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(neighborhood__icontains=value)
+        return queryset
 
 class OutboundWorkOrderFilter(django_filters.FilterSet):
 
-    mounted_hydrophore = django_filters.CharFilter(
-        field_name='mounted_hydrophore__serial_number',
-        label="Hidrofor No",
-        lookup_expr='iexact',  # veya 'icontains'
+    serial_number = django_filters.CharFilter(
+        method='filter_serial_number',
+        label='Hidrofor Numarası',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Hidrofor No'
+            'placeholder': 'Hidrofor Seri Numarası (montaj ve demontaj için)'
         })
     )
 
@@ -102,8 +123,8 @@ class OutboundWorkOrderFilter(django_filters.FilterSet):
     )
 
     neighborhood = django_filters.CharFilter(
-        lookup_expr='icontains',
         label="Mahalle",
+        method="filter_neighborhood",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Mahalle'
@@ -131,8 +152,22 @@ class OutboundWorkOrderFilter(django_filters.FilterSet):
 
     class Meta:
         model = OutboundWorkOrder
-        fields = ['mounted_hydrophore', 'district', 'neighborhood', 'district_personnel', 'dispatch_slip_number']
+        fields = ['serial_number', 'district', 'neighborhood', 'district_personnel', 'dispatch_slip_number']
 
+    def filter_serial_number(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                Q(mounted_hydrophore__serial_number__icontains=value) |
+                Q(disassembled_hydrophore__serial_number__icontains=value)
+            )
+        return queryset
+    
+    def filter_neighborhood(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(neighborhood__icontains=value)
+        return queryset
+    
 class WorkshopExitFilter(django_filters.FilterSet):
     hydrophore = django_filters.CharFilter(
         field_name='hydrophore__serial_number',

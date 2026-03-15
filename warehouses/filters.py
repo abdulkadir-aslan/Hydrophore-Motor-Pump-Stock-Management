@@ -43,10 +43,12 @@ class InventoryFilter(django_filters.FilterSet):
 
     # Adres Filter (icontains)
     address = django_filters.CharFilter(
-        field_name='address',
-        lookup_expr='icontains',
-        label='Adres',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
+        label="Adres",
+        method="filter_adress",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Adres'
+        })
     )
 
     # Kuyu Numarasına göre sıralama (A-Z veya Z-A)
@@ -65,6 +67,12 @@ class InventoryFilter(django_filters.FilterSet):
         model = Inventory
         fields = ['district', 'well_number', 'serialnumber', 'pump_type', 'address', 'ordering']
     
+    def filter_adress(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(address__icontains=value)
+        return queryset
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.filters['ordering'].field.widget.attrs.update({'class': 'form-select '})
@@ -222,6 +230,7 @@ class UnusableFilter(django_filters.FilterSet):
 USER_CHOICES = (
     ('ugur', 'UĞUR'),
     ('huseyin', 'HÜSEYİN'),
+    ('tumu', 'TÜMÜ'),
 )
 
 class OrderFilter(django_filters.FilterSet):
@@ -276,15 +285,23 @@ class OrderFilter(django_filters.FilterSet):
 
     # Adres Filter (icontains)
     address = django_filters.CharFilter(
-        field_name='inventory__address',
-        lookup_expr='icontains',
-        label='Adres',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
+        label="Adres",
+        method="filter_adres",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Adres'
+        })
     )
 
     class Meta:
         model = Order
         fields = ['well_number','operation_type','serial_number','district','address' ]
+    
+    def filter_adres(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(inventory__address__icontains=value)
+        return queryset
     
     def filter_serial_number(self, queryset, name, value):
         if value:
@@ -300,7 +317,19 @@ class OrderFilter(django_filters.FilterSet):
         # Her ikisinde de ortak filtrelenecek operation_type'lar
         allowed_operations = ['1', '5', '6', '8', '9']
 
-        if value == 'ugur':
+        if value == 'tumu':
+            return queryset.filter(
+                inventory__district__in=[
+                    'siverek', 'bozova', 'hilvan',
+                    'birecik', 'halfeti', 'suruç',
+                    'karaköprü', 'haliliye', 'eyyübiye',
+                    'ceylanpınar', 'viranşehir',
+                    'akçakale', 'harran'
+                ],
+                operation_type__in=allowed_operations
+            )
+            
+        elif value == 'ugur':
             return queryset.filter(
                 inventory__district__in=[
                     'siverek', 'bozova', 'hilvan',
@@ -401,16 +430,24 @@ class WorkshopExitSlipFilter(django_filters.FilterSet):
 
     # Adres arama
     address = django_filters.CharFilter(
-        field_name='address',
-        lookup_expr='icontains',
-        label='Adres',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adres'})
+        label="Adres",
+        method="filter_address",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Adres'
+        })
     )
 
     class Meta:
         model = WorkshopExitSlip
         fields = ['slip_no', 'well_no', 'address']
-        
+    
+    def filter_address(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(address__icontains=value)
+        return queryset
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # date_order widget attrs ekleme

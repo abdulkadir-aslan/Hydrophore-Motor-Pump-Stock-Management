@@ -140,6 +140,14 @@
         </div>
         <div class="table-responsive text-nowrap">
           <div class="container">
+            <br>
+             <a 
+                href="{% url 'export_engine' %}?{{ request.GET.urlencode }}" 
+                class="btn btn-success"
+                target="_blank"
+            >
+                Excel'e Aktar
+            </a>
             <table class="table table-striped mt32 customers-list">
                 <thead>
                   <tr>

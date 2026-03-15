@@ -43,8 +43,8 @@
             <div class="card-body">
                 <form method="get" class="row g-2">
                     <div class="col-md-2">
-                        {{ filter.form.mounted_hydrophore.label_tag }}
-                        {{ filter.form.mounted_hydrophore }}
+                        {{ filter.form.serial_number.label_tag }}
+                        {{ filter.form.serial_number }}
                     </div>
                     <div class="col-md-2">
                         {{ filter.form.district.label_tag }}
@@ -73,6 +73,10 @@
             <hr>
             <div class="table-responsive text-nowrap">
                 <div class="container">
+                    <br>
+                    <a href="{% url 'export_outbound_work_order' %}?status_filter=active" class="btn btn-success me-2" target="_blank">
+                        Excel'e Aktar
+                    </a>
                     <table class="table table-striped mt32 customers-list">
                         <thead>
                             <tr>
@@ -93,6 +97,63 @@
                             {% for item in items %}
                                 <tr>
                                     <td>
+                                        <script>
+
+                                            function fisAc(orderId, checkUrl){
+
+                                                fetch(checkUrl.replace("0", orderId))
+                                                .then(res => res.json())
+                                                .then(data => {
+
+                                                    if(!data.success){
+                                                        showToast(data.message)
+                                                        return
+                                                    }
+
+                                                    let w = 900
+                                                    let h = 700
+                                                    let left = (screen.width - w) / 2
+                                                    let top = (screen.height - h) / 2
+
+                                                    window.open(
+                                                        data.url,
+                                                        "fis_penceresi",
+                                                        `width=${w},height=${h},top=${top},left=${left},scrollbars=yes`
+                                                    )
+
+                                                })
+
+                                            }
+
+                                            function showToast(message){
+
+                                                let toast = document.createElement("div")
+
+                                                toast.className = "toast align-items-center text-white border-0 position-fixed show"
+                                                toast.style.backgroundColor = "#dc3545"
+                                                toast.style.top = "80px"
+                                                toast.style.right = "20px"
+
+                                                toast.innerHTML = `
+                                                <div class="d-flex">
+                                                    <div class="toast-body">
+                                                        ${message}
+                                                    </div>
+                                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
+                                                </div>
+                                                `
+
+                                                document.body.appendChild(toast)
+
+                                                setTimeout(()=>toast.remove(),4000)
+
+                                            }
+
+                                        </script>
+                                        <button type="button" title= "Çıkış Fişi" class="btn btn-icon btn-outline-primary " onclick="fisAc({{ item.id }}, '/hidrofor/exit-check/0/')">
+                                             <i class="bx bxs-printer"></i> 
+                                        </button>
+
                                         <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'outbound_work_order_edit' item.id  %}">
                                             <i class='tf-icons bx bx-edit'></i>
                                         </button>

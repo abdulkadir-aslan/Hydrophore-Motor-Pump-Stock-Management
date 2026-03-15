@@ -54,7 +54,6 @@ class Engine(models.Model):
     engine_mark = models.ForeignKey(Mark, verbose_name="Marka", on_delete=models.PROTECT, null=True)
     serialnumber = models.CharField(verbose_name="Seri Numarası", unique=True, max_length=100)
     location = models.CharField(verbose_name="Lokasyon", choices=LOCATION, max_length=10, default="5", null=True)
-    storeno = models.IntegerField(verbose_name="Depono", null=True, blank=True)
     comment = models.TextField(verbose_name="Açıklama", blank=True, null=True)
 
     def __str__(self):

@@ -1,10 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from warehouses.models import (
     WorkshopExitSlip, Inventory, Pump, Engine,
     Mark, Power, Seconhand, NewWarehousePump,Order
 )
-from hydrophore.models import Power as HydrophorePower, PumpType, Hydrophore
+from hydrophore.models import Power as HydrophorePower, PumpType, Hydrophore,OutboundWorkOrder,WorkshopExit
 from datetime import datetime, timedelta
 import io, re
 from django.contrib import messages
@@ -13,9 +13,10 @@ from django.db.models import Max, IntegerField
 from django.db.models.functions import Cast, Substr
 
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
+from django.urls import reverse
 
 @login_required(login_url="login")
 def index(request):
@@ -30,9 +31,89 @@ def server_error(request):
 # -------------------------------------------------
 # ÇIKIŞ FİŞLERİ
 # -------------------------------------------------
-def order_cikis_pdf(request, pk):
+def hydrophore_workshop_exit_pdf(request, pk):
+    order = get_object_or_404(WorkshopExit, pk=pk)
+    html_string = render_to_string("pdf/hydrophore_workshop_exit_pdf.html", {
+        "order": order,
+        "item" : "hydrophore"
+    })
+
+    pdf = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri('/')
+    ).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Atölye_Çıkış_fisi_{order.workshop_dispatch_slip_number}.pdf"'
+    return response
+
+def hydrophore_workshop_exit_check(request, pk):
+
+    return JsonResponse({
+        "success": True,
+        "url": reverse("hydrophore_workshop_exit_pdf", args=[pk])
+    })
+
+def hydrophore_exit_pdf(request, pk):
+    order = get_object_or_404(OutboundWorkOrder, pk=pk)
+    html_string = render_to_string("pdf/hydrophore_cikis_fisi.html", {
+        "order": order,
+        "item" : "hydrophore"
+    })
+
+    pdf = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri('/')
+    ).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Hidrofor_Çıkış_fisi_{order.dispatch_slip_number}.pdf"'
+    return response
+
+def hydrophore_exit_check(request, pk):
+    order = get_object_or_404(OutboundWorkOrder, pk=pk)
+
+    return JsonResponse({
+        "success": True,
+        "url": reverse("hydrophore_exit_pdf", args=[pk])
+    })
+
+def workshop_exit_pdf(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    html_string = render_to_string("pdf/workshop_exit_pdf.html", {
+        "order": order
+    })
+
+    pdf = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri('/')
+    ).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Atölyeden_Çıkış_fisi_{order.entrance_plug}.pdf"'
+    return response
+
+def workshop_exit_check(request, pk):
     order = get_object_or_404(Order, pk=pk)
 
+    if not order.entrance_plug:
+        return JsonResponse({
+            "success": False,
+            "message": "Atölye Çıkış fişi oluşturulmamış."
+        })
+
+    return JsonResponse({
+        "success": True,
+        "url": reverse("workshop_exit_pdf", args=[pk])
+    })
+    
+def order_cikis_pdf(request, pk):
+    order = get_object_or_404(Order.objects.select_related(
+            'inventory', 
+            'mounted_engine', 
+            'mounted_pump', 
+            'mounted_pump__pump_mark'  # nested FK
+        ), pk=pk)
     html_string = render_to_string("pdf/cikis_fisi.html", {
         "order": order
     })
@@ -43,9 +124,22 @@ def order_cikis_pdf(request, pk):
     ).write_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="cikis_fisi_{order.work_order_plug}.pdf"'
+    response['Content-Disposition'] = f'inline; filename="cikis_fisi_{order.outlet_plug}.pdf"'
     return response
 
+def order_cikis_check(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+
+    if not order.outlet_plug:
+        return JsonResponse({
+            "success": False,
+            "message": "Çıkış fişi oluşturulmamış."
+        })
+
+    return JsonResponse({
+        "success": True,
+        "url": reverse("order_cikis_pdf", args=[pk])
+    })
 # -------------------------------------------------
 # GENEL YARDIMCI FONKSİYONLAR
 # -------------------------------------------------

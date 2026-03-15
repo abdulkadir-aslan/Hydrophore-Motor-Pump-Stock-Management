@@ -120,8 +120,8 @@
                                     </td>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
                                     <td>{{ item.hydrophore}}</td>
-                                    <td>{{ item.outbound_work_order.get_district_display }}</td>
-                                    <td>{{ item.outbound_work_order.neighborhood }}</td>
+                                    <td>{{ item.get_district_display }}</td>
+                                    <td>{{ item.neighborhood }}</td>
                                     <td>{{ item.outbound_work_order.district_personnel }}</td>
                                     <td>{{ item.workshop_dispatch_slip_number }}</td>
                                     <td>{{item.workshop_dispatch_date}}</td>

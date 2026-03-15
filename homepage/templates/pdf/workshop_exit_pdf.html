@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ŞUSKİ Çıkış Fişi - {{ order.outlet_plug }}</title>
+  <title>ŞUSKİ Atölye Çıkış Fişi - {{ order.entrance_plug }} </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -34,7 +34,7 @@
     .value { flex: 1; border-bottom: 1px dotted #444; min-height: 18px; }
     .kuyu-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
     .kuyu-table th, .kuyu-table td { border: 1px solid #000; padding: 4px 6px; text-align: left; vertical-align: middle; }
-    .kuyu-table td { background: #f0f0f0; font-weight: bold; }
+    .kuyu-table th { background: #f0f0f0; font-weight: bold; }
     .islem { margin: 12px 0; line-height: 1.4; }
     .imza-alan { display: flex; justify-content: space-between; margin-top: 35px; }
     .imza-kutu { width: 48%; }
@@ -52,79 +52,53 @@
     </div>
     <div class="header">
     <div class="title">ŞUSKİ GENEL MÜDÜRLÜĞÜ</div>
-    <div class="title">MOTOPOMP ATÖLYESİ</div>
-    <div class="subtitle">TESLİM MAKBUZU</div>
+    <div class="title">MEKANİK TESİSLER ŞUBE MÜDÜRLÜĞÜ</div>
+    <div class="subtitle">BAKIM ONARIM FİŞİ</div>
   </div>
     <div class="logo-right">
         <img src="{% static 'assets/img/pdf/suski.jpg' %}" alt="ŞÜSKİ Logo Sağ" style="width: 150px; height: 150px; object-fit: contain;">
     </div>
   </div>
 
-  
+<br><br>
+<div class="row">
+    <div class="col" style="text-align: left;margin-bottom: 5px;">
+        <div><i> İhale Kayıt No : 2025 / 1946409</i></div>
+        <div><i>Kurum : </i>ŞUSKİ GENEL MÜDÜRLÜĞÜ</div>
+        <br>
+        <h4><strong>TAMİRE GİDEN MALZEME BİLGİSİ</strong></h4>
+    </div>
 
-  <div class="text-center mb-2">
-    <strong>TESLİM EDİLEN MALZEMENİN </strong>
-  </div>
-
-  <div style="text-align: right; margin-bottom: 5px;">
-    <div><strong>Sıra : {{ order.outlet_plug }} </strong></div>
-    <div><strong>Tarih : </strong>{{ order.outlet_plug_date|date:"d.m.Y" }} </div>
+    <div class="col text-end" style="margin-bottom: 5px;">
+        <div><strong>Sıra : AG  {{ order.entrance_plug }}</strong></div>
+        <div><strong>Tarih : </strong>{{ order.entrance_plug_date|date:"d.m.Y" }}</div>
+    </div>
 </div>
+  <div class="info-block">
+    <div class="row-label"><span class="label">Kuyu Numarası</span><span class="value">: {{ order.inventory.well_number }}</span></div>
+    <div class="row-label"><span class="label">İlçe</span><span class="value">: {{ order.inventory.get_district_display }} </span></div>
+    <div class="row-label"><span class="label">Mahalle</span><span class="value">:{{ order.inventory.address }}  </span></div>
+  </div>
 
   <div class="info-block">
-    <div class="row-label"><span class="label">Kuyu Numarası</span><span class="value">:{{ order.inventory.well_number }} </span></div>
-    <div class="row-label"><span class="label">İlçe</span><span class="value">: {{ order.inventory.get_district_display }}</span></div>
-    <div class="row-label"><span class="label">Mahalle</span><span class="value">:{{ order.inventory.address }} </span></div>
+    <div class="row-label"><span class="label">Motor Tipi</span><span class="value">: {{ order.disassembled_engine.get_engine_type_display }} </span></div>
+    <div class="row-label"><span class="label">Motor Markası</span><span class="value">: {{ order.disassembled_engine.engine_mark }} </span></div>
+    <div class="row-label"><span class="label">Motor Gücü</span><span class="value">: {{ order.disassembled_engine.engine_power }} {% if order.disassembled_engine %}HP{% endif %}  </span></div>
+    <div class="row-label"><span class="label">Motor Seri No</span><span class="value">:{{ order.disassembled_engine.serialnumber }}  </span></div>
+    <div class="row-label"><span class="label">Pompa Tipi</span><span class="value">: {{ order.disassembled_pump.pump_type }} </span></div>
+    <div class="row-label"><span class="label">Pompa Markası</span><span class="value">: {{ order.disassembled_pump.pump_mark.engine_mark }}</span></div>
   </div>
-
-  <div class="info-block">
-    <div class="row-label"><span class="label">Motor Tipi</span><span class="value">:{{ order.mounted_engine.get_engine_type_display }} </span></div>
-    <div class="row-label"><span class="label">Motor Markası</span><span class="value">: {{ order.mounted_engine.engine_mark }}</span></div>
-    <div class="row-label"><span class="label">Motor Gücü</span><span class="value">:  {{ order.mounted_engine.engine_power }} {% if order.mounted_engine %}HP{% endif %} </span></div>
-    <div class="row-label"><span class="label">Motor Seri No</span><span class="value">: {{ order.mounted_engine.serialnumber }} </span></div>
-    <div class="row-label"><span class="label">Pompa Tipi</span><span class="value">:  {{ order.mounted_pump.pump_type }}</span></div>
-    <div class="row-label"><span class="label">Pompa Markası</span><span class="value">:  {{ order.mounted_pump.pump_mark.engine_mark }}</span></div>
-  </div>
-
-
-  <div class="text-center mt-3 mb-1">
-    <strong>KUYU BİLGİSİ (EN SON YAPILAN İŞLEME GÖRE)</strong>
-  </div>
-
-  <table class="kuyu-table">
-    <tr>
-      <th>DEMONTAJ DERİNLİĞİ</th>
-      <td>{{ order.inventory.disassembly_depth }}</td>
-      <th>BORU TİPİ</th>
-      <td>{{ order.inventory.pipe_type }}</td>
-    </tr>
-    <tr>
-      <th>MONTAJ DERİNLİĞİ</th>
-      <td>{{ order.inventory.mounting_depth }}</td>
-      <th>KABLO</th>
-      <td>{{ order.inventory.cable }}</td>
-    </tr>
-    <tr>
-      <th>DEPO BİLGİSİ</th>
-      <td>{{ order.inventory.tank_info }}</td>
-      <th>NOT</th>
-      <td></td>
-    </tr>
-  </table>
 
   <div class="islem">
+    <strong>Açıklama :</strong><br>
     
-    <strong>Yapılan İşlem :</strong><br>
-      {{ order.get_situation_display }} Yapıldı.
-    <br>
-    <p>{{order.comment}}</p>
   </div>
 
   <div class="imza-alan" >
     <div class="imza-kutu" >
       <strong>Teslim Alan</strong><br>
-      Adı-Soyadı : ................................ <br>
-      Plaka       : <br>
+      Adı-Soyadı : ................................<br>
+      Plaka       :<br>
       Tel         :<br>
       İmza        :
     </div>
@@ -138,9 +112,8 @@
     </div>
   </div>
 
-  <br><br><br><br><br><br>
   <div class="footer">
-    <strong>PP {{ order.inventory }} &nbsp;&nbsp; C {{ order.outlet_plug }}</strong>
+    <strong>PP {{ order.inventory.well_number }} &nbsp;&nbsp; C {{ order.outlet_plug }}</strong>
   </div>
 
 </div>

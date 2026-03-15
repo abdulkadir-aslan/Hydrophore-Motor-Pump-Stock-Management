@@ -14,6 +14,7 @@ urlpatterns = [
     path("motor_sil/<int:myid>/", engineDelete, name="engine_delete"),
     path("motor_duzenle/<int:pk>/", engine_edit, name="engine_edit"),
     path("motorlar/", engine_homepage, name="engine_homepage"),
+    
 
     # Pompalar
     path("pompa_ekle/", newPump, name="add_pump"),
@@ -26,6 +27,7 @@ urlpatterns = [
     path("envanter_duzenle/<int:pk>/", inventory_edit, name="inventory_edit"),
     path("envanter_ekle/", add_inventory, name="add_inventory"),
     path("envanter_sil/<int:id>/", delete_inventory, name="delete_inventory"),
+    path("export-inventory/", export_inventory, name="export_inventory"),
     
     # İkinci el
     path("ikinci_el/", seconhand, name="seconhand"),
@@ -42,12 +44,16 @@ urlpatterns = [
 
     # Kullanılamaz
     path("pert_depo/", unusable, name="unusable"),
+    path("export-unusable/", export_unusable, name="export_unusable"),
 
     # Yeni Depo Sayfası
     path("yeni_depo_motor/", new_warehouse_engine, name="new_warehouse_engine"),
     path("depo_aktarma/", transfer_warehouse, name="transfer_warehouse"),
     path("yeni_depo_pompa_sil/<int:id>/", new_warehouse_pump_delete, name="new_warehouse_pump_delete"),
     path("yeni_depo_pompa/", new_warehouse_pump, name="new_warehouse_pump"),
+    path("export-engine/", export_engine, name="export_engine"),
+    path("export-new-warehouse-pump/", export_new_warehouse_pump, name="export_new_warehouse_pump"),
+    
 
     # İş Emirleri
     path("iş_emri_sil/<int:id>/", delete_order, name="delete_order"),
@@ -60,12 +66,14 @@ urlpatterns = [
     path('geridön/<int:pk>/', order_go_back, name='order_go_back'),
     path('iş_emri_göster/<int:pk>/update/', order_show, name='order_show'),
     path("islemler/<int:id>/", transactions, name="transactions"),
+    path("export-seconhand/", export_seconhand, name="export_seconhand"),
+    path("export-order/", export_order, name="export_order"),
     
     path("kapanan_tum_is_emirleri/", workshop_exit_slip, name="workshop_exit_slip"),
     path("kapanan_tum_is_emiri_ekle/", new_workshop_exit_slip, name="new_workshop_exit_slip"),
     path("kapanan_tum_is_emiri_düzenle/<int:id>/", workshop_exit_slip_edit, name="workshop_exit_slip_edit"),
     path("kapanan_tum_is_emiri_sil/<int:id>/", workshop_exit_slip_delete, name="workshop_exit_slip_delete"),
-
+    path("export-workshop-exit-slips/", export_workshop_exit_slips, name="export_workshop_exit_slips"),
     # Raporlama
     path("is_emiri_raporlama/", work_order_reporting, name="work_order_reporting"),
 ]

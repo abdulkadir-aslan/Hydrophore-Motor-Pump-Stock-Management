@@ -171,6 +171,14 @@ class OutboundWorkOrderForm(ModelForm):
 
             self.initial["dispatch_slip_number"] = next_number
     
+    def clean_neighborhood(self):
+        neighborhood = self.cleaned_data.get("neighborhood")
+
+        if neighborhood:
+            neighborhood = neighborhood.upper()
+
+        return neighborhood
+
     def clean_dispatch_slip_number(self):
         slip_number = self.cleaned_data.get("dispatch_slip_number")
 
@@ -221,13 +229,14 @@ class WorkshopExitForm(ModelForm):
         ]
         widgets = {
             'workshop_dispatch_slip_number': forms.TextInput(
-                attrs={'class': 'form-control', 'placeholder': 'Çıkış Fişi No',"required": "required",}
+                attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş No',"required": "required",}
             ),
             'workshop_dispatch_date': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date',"required": "required"},
                 format='%Y-%m-%d'
             ),
         }
+
     def clean_workshop_dispatch_slip_number(self):
         slip_number = self.cleaned_data.get('workshop_dispatch_slip_number')
         if slip_number:

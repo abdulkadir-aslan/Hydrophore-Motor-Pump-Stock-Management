@@ -9,8 +9,9 @@ from .forms import *
 from account.decorators import administrator,admin
 from other_materials.forms import CategoryStockOut2Form
 from hydrophore.models import OutboundWorkOrder,WorkshopExit,RepairReturn
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from django.template.loader import render_to_string
+from openpyxl import Workbook
 
 def handle_deletion(request, model, object_id, redirect_url, success_message, error_message, protected_error_message):
     try:
@@ -283,56 +284,133 @@ def inventory_edit(request, pk):
     if request.method == 'POST':
         # POST'tan tekrar al
         next_url = request.POST.get('next')
-        form = InventoryEditForm(request.POST, instance=inventory)
-        if form.is_valid():
-            form.save()
+        form = InventoryForm(request.POST, instance=inventory)
+        engine_form = EngineForm(request.POST,instance=inventory.engine)
+        pump_form = PumpForm(request.POST)
+        if form.is_valid() and engine_form.is_valid():
+            item = form.save(commit=False)
+            engine_form.save()
+            existing_pump = Pump.objects.filter(
+                    pump_type=pump_form.data["pump_type"],
+                    pump_breed=pump_form.data["pump_breed"],
+                    pump_mark=pump_form.data["pump_mark"]
+                ).first()
+
+            if existing_pump:
+                pump = existing_pump
+            else:
+                pump = pump_form.save()
+            item.pump = pump
+            item.save()
             messages.success(request, "Kuyu bilgileri güncellendi.")
             return redirect(next_url or 'inventory')
         else:
             messages.warning(request, form.errors.as_ul())
+            messages.warning(request, engine_form.errors.as_ul())
     else:
-        form = InventoryEditForm(instance=inventory)
+        engine_form = EngineForm(instance=inventory.engine)
+        pump_form = PumpForm(instance=inventory.pump)
+        form = InventoryForm(instance=inventory)
     return render(request, 'new_inventory.html', {
         'form': form,
-        'pump_list': Pump.objects.all(),
-        'selected_pump': inventory.pump,
+        'engine_form':engine_form,
+        'pump_form':pump_form,
         'next': next_url
     })
-
-def seconhand_row_edit(request,model,data):
-    if model == "engine":
-        datas = data.split("-")
-        row = Seconhand.objects.get(row_identifier=datas[0].strip())
-        row.engine = None
-        row.save()
-    elif model == "pump":
-        datas = data.split("-")
-        row = Seconhand.objects.get(row_identifier=datas[0].strip())
-        row.pump = None
-        row.save()
-    else:
-        messages.warning(request, "Formda hatalar var tekrar giriniz.")
-        return redirect("add_inventory")
 
 @admin
 def add_inventory(request):
     next_url = request.GET.get('next')
     if request.method == 'POST':
         next_url = request.GET.get('next')
-        form = InventoryForm(request.POST)
-        if form.is_valid(): 
-            obj = form.save()
-            seconhand_row_edit(request,"engine",form.data["engine_row_identifier"])
-            seconhand_row_edit(request,"pump",form.data["pump_row_identifier"])
-            messages.success(request, f"*{obj.well_number}* Kuyu kaydı başarıyla eklendi ve ilgili alanlar güncellendi.")
+        form = InventoryForm(request.POST or None)
+        engine_form = EngineForm(request.POST or None)
+        pump_form = PumpForm(request.POST or None)
+        if form.is_valid() and engine_form.is_valid(): 
+            existing_pump = Pump.objects.filter(
+                    pump_type=pump_form.data["pump_type"],
+                    pump_breed=pump_form.data["pump_breed"],
+                    pump_mark=pump_form.data["pump_mark"]
+                ).first()
+
+            if existing_pump:
+                pump = existing_pump
+            else:
+                pump = pump_form.save()
+            engine = engine_form.save()
+            item = form.save(commit=False)
+            item.engine = engine
+            item.pump = pump
+            item.save()
+            messages.success(request, f"*{item.well_number}* Kuyu kaydı başarıyla eklendi ve ilgili alanlar güncellendi.")
             return redirect('inventory')
         else:
             messages.warning(request, form.errors.as_ul())
+            messages.warning(request, engine_form.errors.as_ul())
     else:
+        engine_form = EngineForm()
+        pump_form = PumpForm()
         form = InventoryForm()
 
-    context = {'form': form ,'next': next_url}
+    context = {'form': form ,'engine_form':engine_form,'pump_form':pump_form,'next': next_url}
     return render(request, 'new_inventory.html', context)
+
+def export_inventory(request):
+    # queryset ve filtreleme
+    inventory_list = Inventory.objects.select_related('engine', 'pump').all()
+
+    inventory_filter = InventoryFilter(request.GET, queryset=inventory_list)
+    filtered_inventory_list = inventory_filter.qs
+   
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Kuyular")
+
+    # Excel başlıkları – Kuyu odaklı
+    ws.append([
+        "Kuyu Numarası",
+        "İlçe",
+        "Adres",
+        "Demontaj Derinliği",
+        "Montaj Derinliği",
+        "Depo Bilgisi",
+        "Boru Tipi",
+        "Kablo",
+        "Motor",
+        "Pompa",
+        "Debi",
+        "Açıklama",
+        "Durum",
+        "Oluşturulma Tarihi",
+        "Güncellenme Tarihi"
+    ])
+
+    # verileri iterator ile yaz
+    for obj in filtered_inventory_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.well_number,
+            obj.get_district_display(),
+            obj.address,
+            obj.disassembly_depth,
+            obj.mounting_depth,
+            obj.tank_info,
+            obj.pipe_type,
+            obj.cable,
+            str(obj.engine) if obj.engine else "",
+            str(obj.pump) if obj.pump else "",
+            obj.flow,
+            obj.comment,
+            obj.get_status_display(),
+            obj.created_at.strftime("%Y-%m-%d %H:%M") if obj.created_at else "",
+            obj.updated_at.strftime("%Y-%m-%d %H:%M") if obj.updated_at else ""
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="kuyu_bilgileri.xlsx"'
+
+    wb.save(response)
+    return response
 
 @administrator
 def delete_inventory(request, id):
@@ -407,12 +485,44 @@ def seconhand(request):
 
         'null_list': Seconhand.objects.filter(
             Q(engine__isnull=True) | Q(pump__isnull=True)
-        ).select_related('engine','pump'),
+        ).select_related('engine','pump').order_by("row_identifier"),
         'total': seconhand_filter.qs.count(),
         'query_string': request.GET.urlencode(),
     }
 
     return render(request, "secondhand_page.html", context)
+
+def export_seconhand(request):
+    # Filtreleri uygula
+    order_list = Seconhand.objects.select_related('pump', 'engine').all()
+    order_filter = SeconhandFilter(request.GET, queryset=order_list)
+    filtered_order_list = order_filter.qs
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="2.El Depo")
+
+    # Başlıklar
+    ws.append([
+        "Sıra",
+        "Pompa",
+        "Motor",
+    ])
+
+    # Verileri yaz
+    for obj in filtered_order_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.row_identifier,
+            str(obj.pump )if obj.pump else "",
+            str(obj.engine) if obj.engine else "",
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="2_el_depo.xlsx"'
+
+    wb.save(response)
+    return response
 
 def warehouses_repair(request):
     repair_list = Repair.objects.filter(status="active")
@@ -447,7 +557,7 @@ def all_repair(request):
     }
     return render(request, "repair_page.html",contex)
 
-@administrator
+@admin
 def repair_edit(request, id):
     repair = get_object_or_404(Repair, order__pk=id)
     if repair.engine:
@@ -585,6 +695,40 @@ def unusable(request):
     }
     return render(request, "unusable_page.html",contex)
 
+def export_unusable(request):
+    # queryset ve filtreleme
+    unusable_list = Unusable.objects.select_related('well_number', 'pump', 'engine').all()
+
+    unusable_filter = UnusableFilter(request.GET, queryset=unusable_list)
+    filtered_unusable_list = unusable_filter.qs
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Pert Depolar")
+
+    # Excel başlıkları
+    ws.append([
+        "Kuyu Numarası",
+        "Pompa",
+        "Motor",
+        "Oluşturulma Tarihi"
+    ])
+
+    # verileri iterator ile yaz
+    for obj in filtered_unusable_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.well_number.well_number if obj.well_number else "",
+            str(obj.pump) if obj.pump else "",
+            str(obj.engine) if obj.engine else "",
+            obj.created_at.strftime("%Y-%m-%d %H:%M") if obj.created_at else "",
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="pert_depo.xlsx"'
+
+    wb.save(response)
+    return response
 
 def new_warehouse_engine(request):
     if request.method == "POST":
@@ -613,6 +757,43 @@ def new_warehouse_engine(request):
 
     }
     return render(request, "new_warehouse_engine.html",context)
+
+def export_engine(request):
+    # queryset ve filtreleme
+    engine_list = Engine.objects.select_related('engine_power', 'engine_mark').all()
+
+    engine_filter = GeneralEngineFilter(request.GET, queryset=engine_list)
+    filtered_engine_list = engine_filter.qs
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Sıfır Motorlar")
+
+    # Excel başlıkları
+    ws.append([
+        "Motor Tipi",
+        "Motor Gücü (HP)",
+        "Marka",
+        "Seri Numarası",
+        "Açıklama"
+    ])
+
+    # verileri iterator ile yaz
+    for obj in filtered_engine_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.get_engine_type_display(),
+            obj.engine_power.engine_power if obj.engine_power else "",
+            obj.engine_mark.engine_mark if obj.engine_mark else "",
+            obj.serialnumber,
+            obj.comment,
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="sifir_motorlar.xlsx"'
+
+    wb.save(response)
+    return response
 
 def new_warehouse_pump(request):
     if request.method == "POST":
@@ -647,6 +828,37 @@ def new_warehouse_pump(request):
     }
     
     return render(request, "new_warehouse_pump.html",context)
+
+def export_new_warehouse_pump(request):
+    # queryset ve filtreleme
+    pump_list = NewWarehousePump.objects.select_related('pump').all()
+
+    pump_filter = NewPumpFilter(request.GET, queryset=pump_list)
+    filtered_pump_list = pump_filter.qs
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Yeni Pompa")
+
+    # Excel başlıkları
+    ws.append([
+        "Pompa",
+        "Miktar",
+    ])
+
+    # verileri iterator ile yaz
+    for obj in filtered_pump_list.iterator(chunk_size=1000):
+        ws.append([
+            str(obj.pump) if obj.pump else "",
+            obj.quantity,
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="yeni_pompa.xlsx"'
+
+    wb.save(response)
+    return response
 
 @admin
 def transfer_warehouse(request):
@@ -684,6 +896,72 @@ def new_warehouse_pump_delete(request, id):
     )
 
 #------------İş Emirleri----------
+def export_order(request):
+    # queryset ve filtreleme
+    order_list = Order.objects.select_related(
+        'inventory', 'mounted_engine', 'mounted_pump', 'disassembled_engine', 'disassembled_pump'
+    ).all()
+
+    # Status filtresi (aktif / pasif)
+    status_filter = request.GET.get('status_filter')
+    if status_filter == "active":
+        order_list = order_list.filter(status="active")
+    elif status_filter == "passive":
+        order_list = order_list.filter(status="passive")
+
+    order_filter = OrderFilter(request.GET, queryset=order_list)
+    filtered_order_list = order_filter.qs
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="İş Emirleri")
+
+    ws.append([
+        "Kuyu Numarası",
+        "İlçe",
+        "Adres",
+        "İş Emri Fişi",
+        "Çıkış Fişi",
+        "Demontaj Fişi",
+        "Montaj Fişi",
+        "Atölyeden Giden Fiş",
+        "Montaj Edilen Motor",
+        "Montaj Edilen Pompa",
+        "Demontaj Edilen Motor",
+        "Demontaj Edilen Pompa",
+        "Çıkış Fişi Tarihi",
+        "Atölyeden Giden Fiş Tarihi",
+        "Durum",
+        "Açıklama"
+    ])
+
+    for obj in filtered_order_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.inventory.well_number if obj.inventory else "",
+            obj.inventory.get_district_display() if obj.inventory else "",
+            obj.inventory.address if obj.inventory else "",
+            obj.work_order_plug,
+            obj.outlet_plug,
+            obj.disassembly_plug,
+            obj.assembly_plug,
+            obj.entrance_plug,
+            str(obj.mounted_engine) if obj.mounted_engine else "",
+            str(obj.mounted_pump) if obj.mounted_pump else "",
+            str(obj.disassembled_engine) if obj.disassembled_engine else "",
+            str(obj.disassembled_pump) if obj.disassembled_pump else "",
+            obj.outlet_plug_date.strftime("%Y-%m-%d") if obj.outlet_plug_date else "",
+            obj.entrance_plug_date.strftime("%Y-%m-%d") if obj.entrance_plug_date else "",
+            obj.get_status_display(),
+            obj.comment
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="is_emirleri.xlsx"'
+
+    wb.save(response)
+    return response
+
 @administrator
 def delete_order(request, id):
     return handle_deletion(
@@ -1116,6 +1394,70 @@ def workshop_exit_slip(request):
         'filter': order_filter,
     }
     return render(request, "workshop_exit_slip.html", context)
+
+def export_workshop_exit_slips(request):
+    # filtreleri uygula
+    order_list = WorkshopExitSlip.objects.all()
+    order_filter = WorkshopExitSlipFilter(request.GET, queryset=order_list)
+    filtered_order_list = order_filter.qs
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="atölye_cıkış_fişleri")
+
+    # Excel Header
+    ws.append([
+        "Tarih",
+        "Fiş No",
+        "Kuyu No",
+        "İlçe",
+        "Adres",
+        "Motor Tipi",
+        "Hidrofor No",
+        "Markası",
+        "Gücü",
+        "Pompa Tipi",
+        "Pompa Markası",
+        "Dalgıç",
+        "Motor",
+        "Pompa",
+        "Hidrofor",
+        "Ö.Boru",
+        "K.Boru",
+        "Bakım Durumu",
+        "Genel Durum",
+    ])
+
+    # iterator ile bellek dostu export
+    for obj in filtered_order_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.date.strftime("%Y-%m-%d") if obj.date else "",
+            obj.slip_no,
+            obj.well_no,
+            obj.district,
+            obj.address,
+            obj.motor_type,
+            obj.hydrofor_no,
+            obj.brand,
+            obj.power,
+            obj.pump_type,
+            obj.pump_brand,
+            obj.submersible,
+            obj.motor,
+            obj.pump,
+            obj.hydrofor,
+            obj.main_pipe,
+            obj.secondary_pipe,
+            obj.maintenance_status,
+            obj.overall_status,
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="atölye_cıkış_fişleri.xlsx"'
+
+    wb.save(response)
+    return response
 
 @admin
 def new_workshop_exit_slip(request):

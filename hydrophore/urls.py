@@ -14,6 +14,7 @@ urlpatterns = [
     path("hidroforlar/", hydrophore_homepage, name="hydrophore_homepage"),
     path("hidrofor_sil/<int:id>/", hydrophore_delete, name="hydrophore_delete"),
     path("hidrofor_duzenle/<int:pk>/", hydrophore_edit, name="hydrophore_edit"),
+    path("export-hydrophore/", export_hydrophore, name="export_hydrophore"),
     
     # Saha Personelleri
     path('ajax/search_hydrophore/', search_hydrophore, name='search_hydrophore'),
@@ -28,7 +29,8 @@ urlpatterns = [
     path("yeni_cikis_is_emri/<int:id>/", new_outbound_work_order, name="new_outbound_work_order"),
     path("cikis_is_emri_sil/<int:id>/", outbound_work_order_delete, name="outbound_work_order_delete"),
     path("cikis_is_emri_duzenle/<int:pk>/", outbound_work_order_edit, name="outbound_work_order_edit"),
-
+    path("export-outbound-work-order/", export_outbound_work_order, name="export_outbound_work_order"),
+        
     # Tamirden Gelen İş Emri
     path("tamir_cikis/", workshop_exit, name="workshop_exit"),
     path("tamir_cikis_sil/<int:id>/", workshop_exit_delete, name="workshop_exit_delete"),

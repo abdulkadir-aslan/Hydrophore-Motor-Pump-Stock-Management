@@ -205,6 +205,22 @@ class WorkshopExit(models.Model):
         verbose_name='Hidrofor'
     )
 
+    district = models.CharField(
+        max_length=100,
+        choices=Hydrophore.DISTRICT_CHOICES,
+        verbose_name='İlçe',
+        blank=True,
+        null=True,
+    )
+
+    neighborhood = models.CharField(
+        max_length=100,
+        verbose_name='Mahalle',
+        blank=True,
+        null=True,
+    )
+
+
     outbound_work_order = models.ForeignKey(
         OutboundWorkOrder,
         on_delete=models.PROTECT,
@@ -277,6 +293,17 @@ class WorkshopExit(models.Model):
             # WorkshopExit sil
             super().delete(using=using, keep_parents=keep_parents)
 
+    def save(self, *args, **kwargs):
+        if self.outbound_work_order:
+            # İş emri varsa ondan al
+            self.district = self.outbound_work_order.district
+            self.neighborhood = self.outbound_work_order.neighborhood 
+        elif self.hydrophore:
+            # İş emri yoksa hidrophore’dan al
+            self.district = self.hydrophore.district
+            self.neighborhood = self.hydrophore.neighborhood 
+
+        super().save(*args, **kwargs)
 
     def _str_(self):
         return f"{self.workshop_dispatch_slip_number}"

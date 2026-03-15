@@ -5,7 +5,8 @@ from warehouses.views import handle_deletion,paginate_items,get_object_or_404,tr
 from .filters import HydrophoreFilter,HydrophoreAllFilter,OutboundWorkOrderFilter,WorkshopExitFilter,RepairReturnFilter
 from django.contrib import messages
 from django.db.utils import IntegrityError
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
+from openpyxl import Workbook
 from account.decorators import administrator,admin
 
 @admin
@@ -126,6 +127,47 @@ def hydrophore_edit(request, pk):
         'form': form,
         'next': next_url
     })
+
+def export_hydrophore(request):
+    # queryset ve filtreleme
+    hydrophore_list = Hydrophore.objects.select_related('engine_power', 'pump_type').all()
+    hydrophore_filter = HydrophoreAllFilter(request.GET, queryset=hydrophore_list)
+    filtered_list = hydrophore_filter.qs
+
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Hidroforlar")
+
+    # Excel başlıkları
+    ws.append([
+        "Seri Numarası",
+        "Motor Gücü (KW)",
+        "Motor Markası",
+        "Pompa Tipi",
+        "İlçe",
+        "Mahalle",
+        "Lokasyon"
+    ])
+
+    # verileri iterator ile yaz
+    for obj in filtered_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.serial_number,
+            obj.engine_power.power if obj.engine_power else "",
+            obj.engine_brand,
+            obj.pump_type.type if obj.pump_type else "",
+            obj.get_district_display(),
+            obj.neighborhood,
+            obj.get_location_display(),
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="hidroforlar.xlsx"'
+
+    wb.save(response)
+    return response
 
 ################ İş Emirleri ################
 @admin
@@ -355,6 +397,60 @@ def outbound_work_order_delete(request, id):
         "İş Emri kaydı bulunamadı.",
         "*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
     )
+
+def export_outbound_work_order(request):
+    # queryset ve filtreleme
+    work_orders = OutboundWorkOrder.objects.select_related(
+        'disassembled_hydrophore', 'mounted_hydrophore', 'district_personnel'
+    ).all()
+
+    # Status filtresi: active / passive
+    status_filter = request.GET.get('status_filter')
+    if status_filter == "active":
+        work_orders = work_orders.filter(status="active")
+    elif status_filter == "passive":
+        work_orders = work_orders.filter(status="passive")
+
+    work_order_filter = OutboundWorkOrderFilter(request.GET, queryset=work_orders)
+    filtered_list = work_order_filter.qs
+
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Çıkış İş Emirleri")
+
+    # Excel başlıkları
+    ws.append([
+        "Çıkış Fişi No",
+        "Sökülen Hidrofor",
+        "Takılan Hidrofor",
+        "Demontaj Tarihi",
+        "İlçe",
+        "Mahalle",
+        "Saha Personeli",
+        "Oluşturulma Tarihi",
+        "Açıklama"
+    ])
+
+    for obj in filtered_list.iterator(chunk_size=1000):
+        ws.append([
+            obj.dispatch_slip_number,
+            str(obj.disassembled_hydrophore) if obj.disassembled_hydrophore else "",
+            str(obj.mounted_hydrophore) if obj.mounted_hydrophore else "",
+            obj.disassembled_date.strftime("%Y-%m-%d") if obj.disassembled_date else "",
+            obj.get_district_display(),
+            obj.neighborhood,
+            str(obj.district_personnel) if obj.district_personnel else "",
+            obj.created_at.strftime("%Y-%m-%d %H:%M") if obj.created_at else "",
+            obj.comment
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="cikis_is_emirleri.xlsx"'
+
+    wb.save(response)
+    return response
 
 def workshop_exit(request):
     queryset = WorkshopExit.objects.filter(status="active").order_by('-id')

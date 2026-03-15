@@ -58,6 +58,10 @@
         <div class="card">
             <div class="table-responsive text-nowrap">
                 <div class="container">
+                    <br>
+                    <a href="{% url 'export_order' %}?status_filter=passive" class="btn btn-success" target="_blank">
+                        Excel'e Aktar
+                    </a>
                     <table class="table table-striped mt32 customers-list">
                         <thead>
                             <tr>
@@ -86,11 +90,67 @@
                                              <i class="bx bxs-printer"></i> 
                                         </button> 
                                         <div class="dropdown-menu" style="">
-                                                <a class="dropdown-item" onclick="window.open('{% url 'order_cikis_pdf' item.id %}', '_blank')">
-                                                <i class="bx bx-file me-1"></i> Çıkış Fişi</a> 
-                                                <a class="dropdown-item" href="/update_car/1093/">
-                                                    <i class="bx bx-edit-alt me-1"></i> Tamir Çıkışı Fişi
-                                                </a>
+                                            <script>
+
+                                                function fisAc(orderId, checkUrl){
+
+                                                    fetch(checkUrl.replace("0", orderId))
+                                                    .then(res => res.json())
+                                                    .then(data => {
+
+                                                        if(!data.success){
+                                                            showToast(data.message)
+                                                            return
+                                                        }
+
+                                                        let w = 900
+                                                        let h = 700
+                                                        let left = (screen.width - w) / 2
+                                                        let top = (screen.height - h) / 2
+
+                                                        window.open(
+                                                            data.url,
+                                                            "fis_penceresi",
+                                                            `width=${w},height=${h},top=${top},left=${left},scrollbars=yes`
+                                                        )
+
+                                                    })
+
+                                                }
+
+                                                function showToast(message){
+
+                                                    let toast = document.createElement("div")
+
+                                                    toast.className = "toast align-items-center text-white border-0 position-fixed show"
+                                                    toast.style.backgroundColor = "#dc3545"
+                                                    toast.style.top = "80px"
+                                                    toast.style.right = "20px"
+
+                                                    toast.innerHTML = `
+                                                    <div class="d-flex">
+                                                        <div class="toast-body">
+                                                            ${message}
+                                                        </div>
+                                                        <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
+                                                    </div>
+                                                    `
+
+                                                    document.body.appendChild(toast)
+
+                                                    setTimeout(()=>toast.remove(),4000)
+
+                                                }
+
+                                            </script>
+                                            <a class="dropdown-item"
+                                                onclick="fisAc({{ item.id }}, '/order/cikis-check/0/')">
+                                                <i class="bx bx-file me-1"></i> Çıkış Fişi
+                                            </a>
+                                            <a class="dropdown-item"
+                                                onclick="fisAc({{ item.id }}, '/atölye/workshop-exit-check/0/')">
+                                                <i class="bx bx-file me-1"></i> Atölye Çıkış Fişi
+                                            </a>
                                         </div>
                                         <button type="button"
                                             class="btn btn-icon btn-outline-info js-update-book btn-flat"
