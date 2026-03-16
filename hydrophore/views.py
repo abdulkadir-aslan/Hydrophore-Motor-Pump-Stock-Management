@@ -128,6 +128,7 @@ def hydrophore_edit(request, pk):
         'next': next_url
     })
 
+@admin
 def export_hydrophore(request):
     # queryset ve filtreleme
     hydrophore_list = Hydrophore.objects.select_related('engine_power', 'pump_type').all()
@@ -398,6 +399,7 @@ def outbound_work_order_delete(request, id):
         "*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+@admin
 def export_outbound_work_order(request):
     # queryset ve filtreleme
     work_orders = OutboundWorkOrder.objects.select_related(

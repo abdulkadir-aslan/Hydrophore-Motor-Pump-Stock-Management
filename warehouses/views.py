@@ -355,6 +355,7 @@ def add_inventory(request):
     context = {'form': form ,'engine_form':engine_form,'pump_form':pump_form,'next': next_url}
     return render(request, 'new_inventory.html', context)
 
+@admin
 def export_inventory(request):
     # queryset ve filtreleme
     inventory_list = Inventory.objects.select_related('engine', 'pump').all()
@@ -492,6 +493,7 @@ def seconhand(request):
 
     return render(request, "secondhand_page.html", context)
 
+@admin
 def export_seconhand(request):
     # Filtreleri uygula
     order_list = Seconhand.objects.select_related('pump', 'engine').all()
@@ -695,6 +697,7 @@ def unusable(request):
     }
     return render(request, "unusable_page.html",contex)
 
+@admin
 def export_unusable(request):
     # queryset ve filtreleme
     unusable_list = Unusable.objects.select_related('well_number', 'pump', 'engine').all()
@@ -758,6 +761,7 @@ def new_warehouse_engine(request):
     }
     return render(request, "new_warehouse_engine.html",context)
 
+@admin
 def export_engine(request):
     # queryset ve filtreleme
     engine_list = Engine.objects.select_related('engine_power', 'engine_mark').all()
@@ -829,6 +833,7 @@ def new_warehouse_pump(request):
     
     return render(request, "new_warehouse_pump.html",context)
 
+@admin
 def export_new_warehouse_pump(request):
     # queryset ve filtreleme
     pump_list = NewWarehousePump.objects.select_related('pump').all()
@@ -896,6 +901,7 @@ def new_warehouse_pump_delete(request, id):
     )
 
 #------------İş Emirleri----------
+@admin
 def export_order(request):
     # queryset ve filtreleme
     order_list = Order.objects.select_related(
@@ -1395,6 +1401,7 @@ def workshop_exit_slip(request):
     }
     return render(request, "workshop_exit_slip.html", context)
 
+@admin
 def export_workshop_exit_slips(request):
     # filtreleri uygula
     order_list = WorkshopExitSlip.objects.all()

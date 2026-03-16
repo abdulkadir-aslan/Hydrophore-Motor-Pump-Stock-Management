@@ -77,14 +77,14 @@
   <div class="info-block">
     <div class="row-label"><span class="label">Kuyu Numarası</span><span class="value">: {{ order.inventory.well_number }}</span></div>
     <div class="row-label"><span class="label">İlçe</span><span class="value">: {{ order.inventory.get_district_display }} </span></div>
-    <div class="row-label"><span class="label">Mahalle</span><span class="value">:{{ order.inventory.address }}  </span></div>
+    <div class="row-label"><span class="label">Mahalle</span><span class="value">: {{ order.inventory.address }}  </span></div>
   </div>
 
   <div class="info-block">
     <div class="row-label"><span class="label">Motor Tipi</span><span class="value">: {{ order.disassembled_engine.get_engine_type_display }} </span></div>
     <div class="row-label"><span class="label">Motor Markası</span><span class="value">: {{ order.disassembled_engine.engine_mark }} </span></div>
     <div class="row-label"><span class="label">Motor Gücü</span><span class="value">: {{ order.disassembled_engine.engine_power }} {% if order.disassembled_engine %}HP{% endif %}  </span></div>
-    <div class="row-label"><span class="label">Motor Seri No</span><span class="value">:{{ order.disassembled_engine.serialnumber }}  </span></div>
+    <div class="row-label"><span class="label">Motor Seri No</span><span class="value">: {{ order.disassembled_engine.serialnumber }}  </span></div>
     <div class="row-label"><span class="label">Pompa Tipi</span><span class="value">: {{ order.disassembled_pump.pump_type }} </span></div>
     <div class="row-label"><span class="label">Pompa Markası</span><span class="value">: {{ order.disassembled_pump.pump_mark.engine_mark }}</span></div>
   </div>
