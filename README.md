@@ -10,12 +10,16 @@ A Django-based system for managing the inventory and movement of hydrophores, mo
 - Workshop entry/exit tracking
 - Filtering and search
 - Notifications for operations
+- Django signals for event-driven operations and notifications
 - Custom forms and validations
 - AJAX-powered dynamic selection for hydrophores
 - Custom middleware for access control
 - View-level permission decorators
 - Custom template tags
 - django-filter based advanced filtering
+- PDF export using **WeasyPrint**
+- Excel export using **OpenPyXL**
+
 
 ## Installation
 
@@ -86,6 +90,8 @@ A Django-based system for managing the inventory and movement of hydrophores, mo
   - `forms.py`: User forms
 - `homepage/`: Home/dashboard operations.
   - `views.py`: Home page views.
+  - `signals.py`: Event-driven operations and notification.
+  - `context_processors.py`
 - `hydrophore/`: Hydrophore management.
   - `admin.py`
   - `models.py`

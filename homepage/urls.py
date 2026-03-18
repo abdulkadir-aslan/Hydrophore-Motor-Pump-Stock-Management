@@ -4,7 +4,9 @@ from .views import *
 urlpatterns = [
     path('',index,name='home'),
     path('veri_yükleme',data_load,name='data_load'),
-    
+    #Bildirimler
+    path('bildirimler/sil/<int:notification_id>/', delete_notification, name='delete_notification'),
+    path('bildirimler/', notifications_view, name='notifications'),
     #Fişler
     path("hidrofor/<int:pk>/atölye-cikis-fisi-pdf/",hydrophore_workshop_exit_pdf, name="hydrophore_workshop_exit_pdf"),
     path("hidrofor/atölye-exit-check/<int:pk>/", hydrophore_workshop_exit_check, name="hydrophore_workshop_exit_check"),

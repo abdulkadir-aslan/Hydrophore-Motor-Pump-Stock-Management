@@ -50,7 +50,7 @@ def category_stock(request):
         'query_string': request.GET.urlencode(),
     })
 
-@admin
+@administrator
 def new_category_stock(request):
     initial_data = {}
 

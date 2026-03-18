@@ -307,7 +307,7 @@ def all_outbound_work_order(request):
     }
     return render(request, "all_outbound_work_order.html",contex)
 
-@administrator
+@admin
 def outbound_work_order_edit(request,pk):
     item = get_object_or_404(OutboundWorkOrder, pk=pk)
     if request.method == 'POST':
@@ -487,7 +487,7 @@ def workshop_exit(request):
     }
     return render(request, "workshop_exit.html",contex)
 
-@administrator
+@admin
 def workshop_exit_edit(request, pk):
     item = get_object_or_404(WorkshopExit, pk=pk)
     if request.method == 'POST':
@@ -568,7 +568,7 @@ def repair_return_delete(request, id):
         "*{0}* Hidrofor kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
-@administrator
+@admin
 def repair_return_edit(request, pk):
     item = get_object_or_404(RepairReturn, pk=pk)
     if request.method == 'POST':

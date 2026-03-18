@@ -305,7 +305,15 @@
                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                    <div class="avatar avatar-online">
                      <img src="{{ request.user.profileimage.url }}" alt class="w-px-40 h-auto rounded-circle" />
-                   </div>
+                     <!-- Aktif bildirim sayısı -->
+                    {% if active_notifications_count > 0 and request.user.authorization == "1" %}
+                    <span class="badge badge-center rounded-pill bg-danger w-px-20 h-px-20" 
+                        style="position: absolute; top: 0; right: 0; transform: translate(50%, -50%); 
+                           display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                     {{ active_notifications_count }}
+                      </span>
+                    {% endif %}
+                    </div>
                  </a>
                  <ul class="dropdown-menu dropdown-menu-end " data-bs-popper="none">
                    <li>
@@ -339,13 +347,21 @@
                      </a>
                    </li> -->
                    <li>
-                     <a class="dropdown-item" href="#">
+                    {% if request.user.authorization == "1" %}
+                     <a class="dropdown-item" href="{% url 'notifications' %}">
                        <span class="d-flex align-items-center align-middle">
                          <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
                          <span class="flex-grow-1 align-middle">Bildirimler</span>
-                         <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">0</span>
+                         <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">
+                          {% if active_notifications_count > 0 %}
+                            {{ active_notifications_count }}
+                          {% else %}
+                            0
+                          {% endif %}
+                        </span>
                        </span>
                      </a>
+                    {% endif %}
                    </li>
                    <li>
                      <div class="dropdown-divider"></div>

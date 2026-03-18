@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Bildirimler /</span> Aktif
+    </h4>
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="nav nav-pills flex-column flex-md-row mb-3">
+                <li class="nav-item">
+                    <a class="nav-link {% if notification_type == 'active' %}active{% endif %}"
+                       href="{% url 'notifications' %}?type=active">
+                        <i class="bx bx-user me-1"></i> AKTİF
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if notification_type == 'read' %}active{% endif %}"
+                       href="{% url 'notifications' %}?type=read">
+                        <i class="bx bx-add-to-queue"></i> OKUNDU
+                    </a>
+                </li>
+            </ul>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for notification in notifications %}
+                            <div style="border:1px solid #ccc; padding:10px; margin:5px;">
+                                <input type="checkbox" name="read_ids" value="{{ notification.id }}">
+                                <strong>{{ notification.message }}</strong>
+                                {% if notification_type != 'active' %}
+                                    <td class="text-nowrap text-center" ><a href="{% url 'delete_notification' notification.id %}" class="btn btn-danger btn-lm delete-btn float-end" >Sil</a></td>
+                                {% endif %}
+                                 <br>
+                                <strong>{{ notification.user.get_full_name }}</strong> - <small>{{ notification.created_at }}</small>
+                                
+                            </div>
+                        {% empty %}
+                            <p>Okunmamış bildiriminiz yok.</p>
+                        {% endfor %}
+                        <br>
+                        {% if notifications %}
+                            {% if notification_type == 'active' %}
+                                <button class="btn btn-primary d-block" type="submit">Seçilenleri Okundu İşaretle</button>
+                            {% else %}
+                                <button class="btn btn-primary d-block" type="submit">Seçilenleri Aktif İşaretle</button>
+                            {% endif %}
+                        {% endif %}
+                    </form>
+
+                    <!-- Sayfalama -->
+                    <nav aria-label="Page navigation example">
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="container-fluid">
+                                    <a class="navbar-brand mb-0 h1">
+                                        {{ notifications.paginator.count }} Kayıttan {{ notifications.start_index }}-{{ notifications.end_index }} 
+                                        arası
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <ul class="pagination justify-content-end px-4">
+                                    {% if notifications.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?type={{ notification_type }}&page={{ notifications.previous_page_number }}">
+                                                ← Önceki
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_number in notifications.paginator.page_range %}
+                                        {% if page_number == notifications.number %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_number }}</span>
+                                            </li>
+                                        {% elif page_number > notifications.number|add:-3 and page_number < notifications.number|add:3 %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?type={{ notification_type }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if notifications.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?type={{ notification_type }}&page={{ notifications.next_page_number }}">
+                                                Sonraki →
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+    // Silme butonuna tıklanma olayını dinliyoruz
+    $('.delete-btn').click(function(e) {
+        e.preventDefault(); // Linkin yönlendirmesini engelle
+        var url = $(this).attr('href'); // Silme URL'sini al
+        // Onay penceresini göster
+        if (confirm("Bu öğeyi silmek istediğinizden emin misiniz?")) {
+            // Onaylandıysa, URL'ye yönlendir
+            window.location.href = url;
+        }
+    });
+});
+</script>
+{% endblock %}

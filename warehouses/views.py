@@ -337,7 +337,9 @@ def add_inventory(request):
                 pump = existing_pump
             else:
                 pump = pump_form.save()
-            engine = engine_form.save()
+            engine = engine_form.save(commit=False)
+            engine.location = "1"
+            engine.save()
             item = form.save(commit=False)
             item.engine = engine
             item.pump = pump
@@ -1056,12 +1058,17 @@ def order_page(request):
         if well_number:
             try:
                 well = Inventory.objects.get(well_number=well_number)
-                active_order = Order.objects.filter(inventory=well, status="active").exists()
-                if active_order:
-                    messages.info(request, "Bu kuyu numarasında aktif iş emri mevcut.")
+                active_order = Order.objects.filter(inventory=well, status="active")
+                if len(active_order) > 2:
+                    messages.info(request, "Bu kuyu numarasında 3 aktif iş emri mevcut.")
                 else:
                     if well.status == "passive":
+                        if len(active_order) > 0:
+                            messages.info(request,"YENİ kuyu olduğundan dolayı ikinci iş emri açılamamakta.Mevcut iş emrini kapattıktan sonra işlemlere devam edebilirsiniz.")
+                            return redirect("order_page")
                         messages.info(request,"Kuyu PASİF durumda motor ve pompa eklerseniz AKTİF duruma geçecektir.")
+                    if len(active_order) > 0:
+                        messages.info(request,f"Kuyuda AKTİF iş emri var. *{len(active_order)+1}*. İş emri açılacaktır. ")
                     return redirect("transactions", id=well.id)
             except Inventory.DoesNotExist:
                 messages.warning(request, "Bu kuyu numarası bulunamadı.")

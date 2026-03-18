@@ -89,6 +89,48 @@
     <div class="row-label"><span class="label">Pompa Markası</span><span class="value">: {{ order.disassembled_pump.pump_mark.engine_mark }}</span></div>
   </div>
 
+    <br>
+  <div class="row">
+    <div class="col" style="text-align: left;margin-bottom: 5px;">
+        <div> MEGER DEĞERİ:</div>
+        <div> METRAJ :</div>
+        <div> AMPER : </div>
+        <div> DEBİ : </div>
+        <br>
+    </div>
+
+    <div class="col text-center" style="margin-bottom: 5px;">
+        <div> METRAJ :</div>
+        <div> AMPER : </div>
+        <div> DEBİ : </div>
+    </div>
+  </div>
+
+  <div class="text-center mt-3 mb-1">
+    <strong>KUYU BİLGİSİ (EN SON YAPILAN İŞLEME GÖRE)</strong>
+  </div>
+
+  <table class="kuyu-table">
+    <tr>
+      <th>DEMONTAJ DERİNLİĞİ</th>
+      <td>{{ order.inventory.disassembly_depth }}</td>
+      <th>BORU TİPİ</th>
+      <td>{{ order.inventory.pipe_type }}</td>
+    </tr>
+    <tr>
+      <th>MONTAJ DERİNLİĞİ</th>
+      <td>{{ order.inventory.mounting_depth }}</td>
+      <th>KABLO</th>
+      <td>{{ order.inventory.cable }}</td>
+    </tr>
+    <tr>
+      <th>DEPO BİLGİSİ</th>
+      <td>{{ order.inventory.tank_info }}</td>
+      <th>NOT</th>
+      <td></td>
+    </tr>
+  </table>
+
   <div class="islem">
     <strong>Açıklama :</strong><br>
     
@@ -98,16 +140,12 @@
     <div class="imza-kutu" >
       <strong>Teslim Alan</strong><br>
       Adı-Soyadı : ................................<br>
-      Plaka       :<br>
-      Tel         :<br>
       İmza        :
     </div>
 
     <div class="imza-kutu">
       <strong>Teslim Eden</strong><br>
       Adı-Soyadı : ................................<br>
-      Plaka       :<br>
-      Tel         :<br>
       İmza        :
     </div>
   </div>

@@ -43,7 +43,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
-    'core.middlewares.LoginRequiredMiddleware',
+    'core.middleware.LoginRequiredMiddleware',
+    'core.middleware.CurrentUserMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -55,6 +56,9 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                # Yeni eklediğiniz context processor
+                'homepage.context_processors.notifications',
+                
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',

@@ -11,12 +11,13 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Max, IntegerField
 from django.db.models.functions import Cast, Substr
-
+from homepage.models import Notification
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse,JsonResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.urls import reverse
+from django.core.paginator import Paginator
 
 @login_required(login_url="login")
 def index(request):
@@ -27,6 +28,46 @@ def page_not_found(request,exception):
 
 def server_error(request):
     return render(request,"404-error.html",500)
+
+# -------------------------------------------------
+# BİLDİRİMLER
+# -------------------------------------------------
+@login_required(login_url="login")
+def notifications_view(request):
+    notification_type = request.GET.get('type', 'active')  # 'active' veya 'read'
+
+    if notification_type == 'read':
+        notifications = Notification.objects.filter(is_read=True).order_by('-created_at')
+    else:
+        notifications = Notification.objects.filter(is_read=False).order_by('-created_at')
+
+    # Paginator ekliyoruz
+    paginator = Paginator(notifications, 10)  # Sayfa başına 10 bildirim
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    if request.method == "POST":
+        ids = request.POST.getlist('read_ids')
+        if notification_type == 'active':
+            # Aktif bildirimleri okundu olarak işaretle
+            Notification.objects.filter(id__in=ids).update(is_read=True)
+        else:
+            # Okundu bildirimleri tekrar aktif (okunmamış) yap
+            Notification.objects.filter(id__in=ids).update(is_read=False)
+
+        # POST sonrası aynı sekmeye yönlendirelim
+        return redirect(f"{request.path}?type={notification_type}")
+
+    return render(request, "notifications.html", {
+        "notifications": page_obj,  # Burada doğrudan `page_obj`'yi gönderiyoruz
+        "notification_type": notification_type,
+    })
+
+@login_required(login_url="login")
+def delete_notification(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id)
+    notification.delete()
+    return redirect('notifications')
 
 # -------------------------------------------------
 # ÇIKIŞ FİŞLERİ
