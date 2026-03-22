@@ -192,7 +192,6 @@ def excel_serial_to_date(serial):
     except:
         return None
 
-
 def merge_broken_lines(file_obj):
     buffer = ""
     for line in file_obj:
@@ -204,14 +203,12 @@ def merge_broken_lines(file_obj):
     if buffer:
         yield buffer
 
-
 def parse_broken_csv_line(line):
     line = line.strip()
     if line.startswith('"') and line.endswith('"'):
         line = line[1:-1]
     line = line.replace('""', '"')
     return [c.strip() for c in line.split('$')]
-
 
 # -------------------------------------------------
 # DATA LOAD VIEW

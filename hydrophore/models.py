@@ -184,6 +184,8 @@ class OutboundWorkOrder(models.Model):
             # Takılan hidroforu araziye al
             if self.mounted_hydrophore:
                 self.mounted_hydrophore.location = "1"  # Atölyede
+                self.mounted_hydrophore.district = None
+                self.mounted_hydrophore.neighborhood = None
                 self.mounted_hydrophore.save()
             from warehouses.services import workshop_exit_delete
             workshop_exit_delete(self.dispatch_slip_number)

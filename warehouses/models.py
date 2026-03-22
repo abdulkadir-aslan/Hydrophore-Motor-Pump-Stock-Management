@@ -200,11 +200,11 @@ WORK_ORDER_CHOİCES = (
 )
 
 OPERATION_TYPE_CHOICES = (
-        ("installation", "Yerinde Montaj"),
-        ("dismantling", "Demontaj"),
-        ("length_extension", "Boy Ekleme"),
-        ("well_cancellation", "Kuyu İptal"),
-        ("new_well", "Yeni Kuyu"),
+        ("installation", "Yerinde Montaj"), #5,1,6,2,3,4,10
+        ("dismantling", "Demontaj"), #1,2,3,4,5,6,10
+        ("length_extension", "Boy Ekleme"),#8,10
+        ("well_cancellation", "Kuyu İptal"),#1,2,3,4,5,10
+        ("new_well", "Yeni Kuyu"),#5,6,10
     )
 
 OPERATION_ENGINE_CHOICES = (

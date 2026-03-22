@@ -26,26 +26,47 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
+
+                        <!-- TÜMÜNÜ SEÇ -->
+                        {% if notifications %}
+                        <div class="mb-2">
+                            <input type="checkbox" id="select-all">
+                            <label for="select-all"><strong>Tümünü Seç</strong></label>
+                        </div>
+                        {% endif %}
+
                         {% for notification in notifications %}
                             <div style="border:1px solid #ccc; padding:10px; margin:5px;">
-                                <input type="checkbox" name="read_ids" value="{{ notification.id }}">
-                                <strong>{{ notification.message }}</strong>
-                                {% if notification_type != 'active' %}
-                                    <td class="text-nowrap text-center" ><a href="{% url 'delete_notification' notification.id %}" class="btn btn-danger btn-lm delete-btn float-end" >Sil</a></td>
-                                {% endif %}
-                                 <br>
-                                <strong>{{ notification.user.get_full_name }}</strong> - <small>{{ notification.created_at }}</small>
+                                <input type="checkbox" class="notification-checkbox" name="read_ids" value="{{ notification.id }}">
                                 
+                                <strong>{{ notification.message }}</strong>
+
+                                {% if notification_type != 'active' %}
+                                    <a href="{% url 'delete_notification' notification.id %}" 
+                                       class="btn btn-danger btn-lm delete-btn float-end">
+                                        Sil
+                                    </a>
+                                {% endif %}
+
+                                <br>
+                                <strong>{{ notification.user.get_full_name }}</strong> 
+                                - <small>{{ notification.created_at }}</small>
                             </div>
                         {% empty %}
                             <p>Okunmamış bildiriminiz yok.</p>
                         {% endfor %}
+
                         <br>
+
                         {% if notifications %}
                             {% if notification_type == 'active' %}
-                                <button class="btn btn-primary d-block" type="submit">Seçilenleri Okundu İşaretle</button>
+                                <button class="btn btn-primary d-block" type="submit">
+                                    Seçilenleri Okundu İşaretle
+                                </button>
                             {% else %}
-                                <button class="btn btn-primary d-block" type="submit">Seçilenleri Aktif İşaretle</button>
+                                <button class="btn btn-primary d-block" type="submit">
+                                    Seçilenleri Aktif İşaretle
+                                </button>
                             {% endif %}
                         {% endif %}
                     </form>
@@ -57,8 +78,8 @@
                             <div class="col-sm-12 col-md-5">
                                 <div class="container-fluid">
                                     <a class="navbar-brand mb-0 h1">
-                                        {{ notifications.paginator.count }} Kayıttan {{ notifications.start_index }}-{{ notifications.end_index }} 
-                                        arası
+                                        {{ notifications.paginator.count }} Kayıttan 
+                                        {{ notifications.start_index }}-{{ notifications.end_index }} arası
                                     </a>
                                 </div>
                             </div>
@@ -103,18 +124,42 @@
         </div>
     </div>
 </div>
+
 <script>
 $(document).ready(function() {
-    // Silme butonuna tıklanma olayını dinliyoruz
+
+    // Silme butonu
     $('.delete-btn').click(function(e) {
-        e.preventDefault(); // Linkin yönlendirmesini engelle
-        var url = $(this).attr('href'); // Silme URL'sini al
-        // Onay penceresini göster
+        e.preventDefault();
+        var url = $(this).attr('href');
         if (confirm("Bu öğeyi silmek istediğinizden emin misiniz?")) {
-            // Onaylandıysa, URL'ye yönlendir
             window.location.href = url;
         }
     });
+
+    // TÜMÜNÜ SEÇ
+    $('#select-all').click(function() {
+        $('.notification-checkbox').prop('checked', this.checked);
+    });
+
+    // Tek tek seçim kontrolü
+    $('.notification-checkbox').click(function() {
+        if ($('.notification-checkbox:checked').length == $('.notification-checkbox').length) {
+            $('#select-all').prop('checked', true);
+        } else {
+            $('#select-all').prop('checked', false);
+        }
+    });
+
+    // Boş seçim uyarısı
+    $('form').submit(function(e) {
+        if ($('.notification-checkbox:checked').length === 0) {
+            alert("Lütfen en az bir öğe seçin.");
+            e.preventDefault();
+        }
+    });
+
 });
 </script>
+
 {% endblock %}

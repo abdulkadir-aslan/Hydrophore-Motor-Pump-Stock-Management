@@ -56,7 +56,7 @@
                                 <tr>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
                                     <td>{{ item.hydrophore }}</td>
-                                    <td>{{ item.workshop_exit }}</td>
+                                    <td>{{ item.workshop_exit.workshop_dispatch_slip_number }}</td>
                                     <td>{{ item.repair_return_slip_number }}</td>
                                     <td>{{ item.repair_return_date }}</td>
                                     <td>{{item.created_at}}</td>

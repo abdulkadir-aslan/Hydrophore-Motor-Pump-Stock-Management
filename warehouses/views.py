@@ -273,7 +273,7 @@ def inventory_homepage(request):
     }
     return render(request, "inventory_homepage.html", context)
 
-@administrator
+@admin
 def inventory_edit(request, pk):
     inventory = get_object_or_404(Inventory, pk=pk)
     next_url = request.GET.get('next')
@@ -1012,7 +1012,7 @@ def form_control(request):#*
         if form.is_valid():
             form.save()
             order.start_repair()
-            if order.mounted_engine:
+            if order.disassembled_engine:
                 engine_locations_update(order.disassembled_engine.id, "2")
             messages.success(request, "Atölye bilgileri eklendi.\n Malzemler Tamir depoya aktarıldı.")
         else:
@@ -1133,7 +1133,6 @@ def order_edit(request, pk):#*
         context['form'] = form
         context['other'] = other
         data['html_form'] = render_to_string('modal/lenght.html', context, request=request)
-
 
     return JsonResponse(data)
 

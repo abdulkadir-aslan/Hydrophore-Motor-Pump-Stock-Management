@@ -41,7 +41,7 @@ urlpatterns = [
 
     # Müteahhit Deposu
     path("müteahhit_deposu/", contractor_warehouse, name="contractor_warehouse"),
-
+    
     # Kullanılamaz
     path("pert_depo/", unusable, name="unusable"),
     path("export-unusable/", export_unusable, name="export_unusable"),

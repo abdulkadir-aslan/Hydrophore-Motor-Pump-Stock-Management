@@ -315,7 +315,6 @@ def outbound_work_order_edit(request,pk):
         if form.is_valid():
             with transaction.atomic():
                 order = form.save(commit=False)
-
                 disassembled = order.disassembled_hydrophore
                 mounted = order.mounted_hydrophore
                 if form.data["action"] == "close":
@@ -332,6 +331,8 @@ def outbound_work_order_edit(request,pk):
                 if disassembled:
                     order.status = "passive"
                     mounted.location = "4"
+                    mounted.district = order.district
+                    mounted.neighborhood = order.neighborhood
                     disassembled.location = "2"
                     mounted.save()
                     disassembled.save()
@@ -582,6 +583,8 @@ def repair_return_edit(request, pk):
                 hydrophore.location = "7"
             elif action == "workshop":
                 hydrophore.location = "1"
+                hydrophore.district = None
+                hydrophore.neighborhood = None
 
             order.status = "passive"
             hydrophore.save()
