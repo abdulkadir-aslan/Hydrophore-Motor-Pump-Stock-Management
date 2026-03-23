@@ -480,7 +480,24 @@ class OrderEditForm(forms.ModelForm):
             'entrance_plug': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş','required': 'required' }),
             'entrance_plug_date': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş Tarihi', 'type': 'date', },format='%Y-%m-%d'),
         }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+        # Sadece ilk açılışta çalışsın (POST değilken)
+        if not self.is_bound and not self.instance.pk:
+
+            order_max = Order.objects.aggregate(
+                max_val=Max("entrance_plug")
+            )["max_val"] or 0
+
+            outbound_max = WorkshopExit.objects.aggregate(
+                max_val=Max("workshop_dispatch_slip_number")
+            )["max_val"] or 0
+
+            next_number = max(order_max, outbound_max) + 1
+            self.initial["entrance_plug"] = next_number
+    
     def clean_entrance_plug(self):
         entrance_plug = self.cleaned_data.get("entrance_plug")
         if entrance_plug:
@@ -492,6 +509,10 @@ class OrderEditForm(forms.ModelForm):
             if qs.exists():
                 raise forms.ValidationError(f"*{entrance_plug}* Bu atölye fişi daha önce kullanılmıştır.")
 
+            if WorkshopExit.objects.filter(workshop_dispatch_slip_number=entrance_plug).exists():
+                raise forms.ValidationError(
+                    "Bu çıkış numarası *HİDROFOR* işlemlerinde kullanılmıştır."
+                )
             return entrance_plug
 
 class WorkshopExitSlipForm(forms.ModelForm):

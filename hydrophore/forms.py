@@ -228,7 +228,7 @@ class WorkshopExitForm(ModelForm):
             'workshop_dispatch_slip_number','workshop_dispatch_date'
         ]
         widgets = {
-            'workshop_dispatch_slip_number': forms.TextInput(
+            'workshop_dispatch_slip_number': forms.NumberInput(
                 attrs={'class': 'form-control', 'placeholder': 'Atölyeden Giden Fiş No',"required": "required",}
             ),
             'workshop_dispatch_date': forms.DateInput(
@@ -237,6 +237,19 @@ class WorkshopExitForm(ModelForm):
             ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound and self.instance.pk:  # pk değeri olmayan ilk yükleniş
+            order_max = Order.objects.aggregate(
+                max_val=Max("entrance_plug")
+            )["max_val"] or 0
+        
+            outbound_max = WorkshopExit.objects.aggregate(
+                max_val=Max("workshop_dispatch_slip_number")
+            )["max_val"] or 0
+            next_number = max(order_max, outbound_max) + 1
+            self.initial["workshop_dispatch_slip_number"] = next_number
+            
     def clean_workshop_dispatch_slip_number(self):
         slip_number = self.cleaned_data.get('workshop_dispatch_slip_number')
         if slip_number:
@@ -245,6 +258,11 @@ class WorkshopExitForm(ModelForm):
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
                 raise forms.ValidationError("Bu çıkış fişi numarası zaten kullanılıyor.")
+            # Hydrophore içinde kontrol
+            if Order.objects.filter(entrance_plug=slip_number).exists():
+                raise forms.ValidationError(
+                    "Bu çıkış numarası *DALGIÇ* işlemlerinde kullanılmıştır."
+                )
         return slip_number
     
 class RepairReturnForm(ModelForm):

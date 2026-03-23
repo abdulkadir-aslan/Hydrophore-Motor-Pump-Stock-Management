@@ -5,21 +5,20 @@ from .models import CategoryStock,CategoryStockOut,DISTRICT_CHOICES
 class CategoryStockFilter(django_filters.FilterSet):
 
     category = django_filters.CharFilter(
-        field_name='category__name',
-        lookup_expr='icontains',
         label="Kategori",
+        method="filter_category",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Kategori ara...'
+            'placeholder': 'Kategori'
         })
     )
 
     material_name = django_filters.CharFilter(
-        lookup_expr='icontains',
-        label="Malzeme Adı",
+        label="Malzeme Adi",
+        method="filter_material_name",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Malzeme ara...'
+            'placeholder': 'Malzeme ara..'
         })
     )
 
@@ -41,6 +40,18 @@ class CategoryStockFilter(django_filters.FilterSet):
         model = CategoryStock
         fields = ['category', 'material_name']
 
+    def filter_category(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(category__name__icontains=value)
+        return queryset
+
+    def filter_material_name(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(material_name__icontains=value)
+        return queryset
+    
 class CategoryStockOutFilter(django_filters.FilterSet):
 
     outlet_plug = django_filters.CharFilter(
@@ -69,34 +80,51 @@ class CategoryStockOutFilter(django_filters.FilterSet):
     )
 
     address = django_filters.CharFilter(
-        lookup_expr='icontains',
         label="Adres",
+        method="filter_address",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Adres ara...'
-        })
-    )
-
-    material_name = django_filters.CharFilter(
-        field_name='stock__material_name',
-        lookup_expr='icontains',
-        label="Malzeme",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Malzeme ara...'
+            'placeholder': 'adres ara..'
         })
     )
 
     category = django_filters.CharFilter(
-        field_name='stock__category__name',
-        lookup_expr='icontains',
         label="Kategori",
+        method="filter_category",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Kategori ara...'
+            'placeholder': 'Kategori'
+        })
+    )
+
+    material_name = django_filters.CharFilter(
+        label="Malzeme Adi",
+        method="filter_material_name",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Malzeme ara..'
         })
     )
 
     class Meta:
         model = CategoryStockOut
         fields = []
+        
+    def filter_address(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(address__icontains=value)
+        return queryset
+    
+    def filter_category(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(stock__category__name__icontains=value)
+        return queryset
+
+    def filter_material_name(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(stock__material_name__icontains=value)
+        return queryset
+    

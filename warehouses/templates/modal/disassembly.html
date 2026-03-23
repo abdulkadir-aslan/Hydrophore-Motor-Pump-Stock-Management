@@ -19,13 +19,13 @@
             <div class="col mb-0">
                 {% if order.operation_engine == "engine" or order.operation_engine == "engine_pump" %}
                 <label class="form-label" >Kuyudaki Motor</label>
-                <input type="text" class="form-control"  value="{{order.inventory.engine}}" readonly>
+                <input type="text" class="form-control"  value=" {% if order.operation_type == '3' %} {{order.disassembled_engine}} {% else %} {{order.inventory.engine}} {% endif %} " readonly>
                 {% endif %}
             </div>
             <div class="col mb-0">
                 {% if order.operation_engine == "pump" or order.operation_engine == "engine_pump" %}
                 <label  class="form-label">Kuyudaki Pompa</label>
-                <input  type="text" class="form-control" value="{{order.inventory.pump}}" readonly>
+                <input  type="text" class="form-control" value="{% if order.operation_type == '3' %} {{order.disassembled_pump}} {% else %} {{order.inventory.pump}} {% endif %}" readonly>
                 {% endif %}
             </div>
         {% endif %}

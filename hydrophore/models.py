@@ -231,8 +231,7 @@ class WorkshopExit(models.Model):
         null=True, blank=True,
     )
 
-    workshop_dispatch_slip_number = models.CharField(
-        max_length=100,
+    workshop_dispatch_slip_number = models.PositiveIntegerField(
         null=True, blank=True,
         verbose_name='Atölyeden Giden Fiş No'
     )
