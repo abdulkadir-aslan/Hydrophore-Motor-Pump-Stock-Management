@@ -101,16 +101,27 @@ def powerDelete(request, myid):
 @administrator
 def engineDelete(request, myid):
     redirect_url = request.GET.get('next', 'engine_homepage')
-    return handle_deletion(
-        request,
-        Engine,
-        myid,
-        redirect_url,
-        "*{0}* Motor kaydı başarıyla silindi.",
-        "Motor kaydı bulunamadı.",
-        "*{0}* Motor kaydı {1} tabloda kullanılıyor, silinemez."
-    )
-    
+    try:
+        obj = Engine.objects.get(id=myid)
+
+        if Inventory.objects.filter(engine=obj).exists():
+            messages.warning(request, f"*{obj}* Motor kaydı Kuyu depoda kullanılıyor, silinemez.")
+            return redirect(redirect_url)
+
+        return handle_deletion(
+            request,
+            Engine,
+            myid,
+            redirect_url,
+            "*{0}* Motor kaydı başarıyla silindi.",
+            "Motor kaydı bulunamadı.",
+            "*{0}* Motor kaydı {1} tabloda kullanılıyor, silinemez."
+        )
+
+    except Engine.DoesNotExist:
+        messages.warning(request, "Motor kaydı bulunamadı.")
+        return redirect(redirect_url)
+
 def engine_homepage(request):
     # Tüm motorlar
     engine_list = Engine.objects.all().order_by("-id")

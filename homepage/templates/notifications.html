@@ -5,60 +5,87 @@
     <h4 class="fw-bold py-3 mb-4">
         <span class="text-muted fw-light">Bildirimler /</span> Aktif
     </h4>
+
     <div class="row">
         <div class="col-md-12">
+
+            <!-- TABS -->
             <ul class="nav nav-pills flex-column flex-md-row mb-3">
                 <li class="nav-item">
                     <a class="nav-link {% if notification_type == 'active' %}active{% endif %}"
                        href="{% url 'notifications' %}?type=active">
-                        <i class="bx bx-user me-1"></i> AKTİF
+                        AKTİF
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if notification_type == 'read' %}active{% endif %}"
                        href="{% url 'notifications' %}?type=read">
-                        <i class="bx bx-add-to-queue"></i> OKUNDU
+                        OKUNDU
                     </a>
                 </li>
             </ul>
 
             <div class="card mb-4">
+
+                <!-- ✅ FİLTRE FORMU -->
                 <div class="card-body">
-                    <form method="post">
+                    <form method="get" id="filter-form" class="row g-2">
+                        <input type="hidden" name="type" value="{{ notification_type }}">
+
+                        <div class="col-md-3">
+                            {{ filter.form.message.label_tag }}
+                            {{ filter.form.message }}
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                Filtrele
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <hr>
+
+                <!-- ✅ CHECKBOX FORMU -->
+                <div class="card-body">
+                    <form method="post" id="bulk-form">
                         {% csrf_token %}
 
-                        <!-- TÜMÜNÜ SEÇ -->
-                        {% if notifications %}
+                        {% if items %}
                         <div class="mb-2">
                             <input type="checkbox" id="select-all">
                             <label for="select-all"><strong>Tümünü Seç</strong></label>
                         </div>
                         {% endif %}
 
-                        {% for notification in notifications %}
+                        {% for notification in items %}
                             <div style="border:1px solid #ccc; padding:10px; margin:5px;">
-                                <input type="checkbox" class="notification-checkbox" name="read_ids" value="{{ notification.id }}">
-                                
+                                <input type="checkbox"
+                                       class="notification-checkbox"
+                                       name="read_ids"
+                                       value="{{ notification.id }}">
+
                                 <strong>{{ notification.message }}</strong>
 
                                 {% if notification_type != 'active' %}
-                                    <a href="{% url 'delete_notification' notification.id %}" 
-                                       class="btn btn-danger btn-lm delete-btn float-end">
+                                    <a href="{% url 'delete_notification' notification.id %}"
+                                       class="btn btn-danger btn-sm delete-btn float-end">
                                         Sil
                                     </a>
                                 {% endif %}
 
                                 <br>
-                                <strong>{{ notification.user.get_full_name }}</strong> 
+                                <strong>{{ notification.user.get_full_name }}</strong>
                                 - <small>{{ notification.created_at }}</small>
                             </div>
                         {% empty %}
-                            <p>Okunmamış bildiriminiz yok.</p>
+                            <p>Bildirim yok.</p>
                         {% endfor %}
 
                         <br>
 
-                        {% if notifications %}
+                        {% if items %}
                             {% if notification_type == 'active' %}
                                 <button class="btn btn-primary d-block" type="submit">
                                     Seçilenleri Okundu İşaretle
@@ -71,45 +98,48 @@
                         {% endif %}
                     </form>
 
-                    <!-- Sayfalama -->
+                    <!-- PAGINATION -->
                     <nav aria-label="Page navigation example">
                         <hr>
                         <div class="row">
                             <div class="col-sm-12 col-md-5">
                                 <div class="container-fluid">
                                     <a class="navbar-brand mb-0 h1">
-                                        {{ notifications.paginator.count }} Kayıttan 
-                                        {{ notifications.start_index }}-{{ notifications.end_index }} arası
+                                        {{ items.paginator.count }} Kayıttan {{ items.start_index }}-{{ items.end_index }} arası
                                     </a>
                                 </div>
                             </div>
                             <div class="col-sm-12 col-md-7">
                                 <ul class="pagination justify-content-end px-4">
-                                    {% if notifications.has_previous %}
+                                    {% if items.has_previous %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?type={{ notification_type }}&page={{ notifications.previous_page_number }}">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.previous_page_number }}">
                                                 ← Önceki
                                             </a>
                                         </li>
                                     {% endif %}
 
-                                    {% for page_number in notifications.paginator.page_range %}
-                                        {% if page_number == notifications.number %}
+                                    {% for page_number in items.paginator.page_range %}
+                                        {% if page_number == items.number %}
                                             <li class="page-item active">
-                                                <span class="page-link">{{ page_number }}</span>
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
+                                                    {{ page_number }}
+                                                </a>
                                             </li>
-                                        {% elif page_number > notifications.number|add:-3 and page_number < notifications.number|add:3 %}
+                                        {% elif page_number == items.paginator.ELLIPSIS %}
+                                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                                        {% else %}
                                             <li class="page-item">
-                                                <a class="page-link" href="?type={{ notification_type }}&page={{ page_number }}">
+                                                <a class="page-link" href="?{{ query_string }}&page={{ page_number }}">
                                                     {{ page_number }}
                                                 </a>
                                             </li>
                                         {% endif %}
                                     {% endfor %}
 
-                                    {% if notifications.has_next %}
+                                    {% if items.has_next %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?type={{ notification_type }}&page={{ notifications.next_page_number }}">
+                                            <a class="page-link" href="?{{ query_string }}&page={{ items.next_page_number }}">
                                                 Sonraki →
                                             </a>
                                         </li>
@@ -118,7 +148,6 @@
                             </div>
                         </div>
                     </nav>
-
                 </div>
             </div>
         </div>
@@ -128,31 +157,30 @@
 <script>
 $(document).ready(function() {
 
-    // Silme butonu
+    // Silme
     $('.delete-btn').click(function(e) {
         e.preventDefault();
         var url = $(this).attr('href');
-        if (confirm("Bu öğeyi silmek istediğinizden emin misiniz?")) {
+        if (confirm("Silmek istediğinize emin misiniz?")) {
             window.location.href = url;
         }
     });
 
-    // TÜMÜNÜ SEÇ
+    // Tümünü seç
     $('#select-all').click(function() {
         $('.notification-checkbox').prop('checked', this.checked);
     });
 
-    // Tek tek seçim kontrolü
+    // Tekli seçim kontrol
     $('.notification-checkbox').click(function() {
-        if ($('.notification-checkbox:checked').length == $('.notification-checkbox').length) {
-            $('#select-all').prop('checked', true);
-        } else {
-            $('#select-all').prop('checked', false);
-        }
+        $('#select-all').prop(
+            'checked',
+            $('.notification-checkbox:checked').length === $('.notification-checkbox').length
+        );
     });
 
-    // Boş seçim uyarısı
-    $('form').submit(function(e) {
+    // ✅ SADECE BULK FORM kontrol edilir
+    $('#bulk-form').submit(function(e) {
         if ($('.notification-checkbox:checked').length === 0) {
             alert("Lütfen en az bir öğe seçin.");
             e.preventDefault();

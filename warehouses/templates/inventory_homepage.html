@@ -96,7 +96,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <form method="get" class="row g-2">
-                    <div class="col-md-2">
+                    <div class="col-md-1">
                         {{ filter.form.well_number.label_tag }}
                         {{ filter.form.well_number }}
                     </div>
@@ -126,6 +126,10 @@
                         {{ filter.form.ordering }}
                     </div>
 
+                    <div class="col-md-1">
+                        {{ filter.form.status.label_tag }}
+                        {{ filter.form.status }}
+                    </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">
                             Filtrele

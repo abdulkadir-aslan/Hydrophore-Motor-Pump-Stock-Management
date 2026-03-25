@@ -2,6 +2,7 @@ from django import forms
 from django.db.models import Max
 from django.forms import ModelForm
 from warehouses.models import Order
+from django.utils import timezone
 from .models import RepairReturn,Power,PumpType,Hydrophore,OutboundWorkOrder,DistrictFieldPersonnel,WorkshopExit
 
 class PumpTypeForm(ModelForm):
@@ -239,17 +240,20 @@ class WorkshopExitForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.is_bound and self.instance.pk:  # pk değeri olmayan ilk yükleniş
-            order_max = Order.objects.aggregate(
-                max_val=Max("entrance_plug")
-            )["max_val"] or 0
-        
-            outbound_max = WorkshopExit.objects.aggregate(
-                max_val=Max("workshop_dispatch_slip_number")
-            )["max_val"] or 0
-            next_number = max(order_max, outbound_max) + 1
-            self.initial["workshop_dispatch_slip_number"] = next_number
+        if not self.is_bound:
+            if self.instance.pk:  # pk değeri olmayan ilk yükleniş
+                order_max = Order.objects.aggregate(
+                    max_val=Max("entrance_plug")
+                )["max_val"] or 0
             
+                outbound_max = WorkshopExit.objects.aggregate(
+                    max_val=Max("workshop_dispatch_slip_number")
+                )["max_val"] or 0
+                next_number = max(order_max, outbound_max) + 1
+                self.initial["workshop_dispatch_slip_number"] = next_number
+            if not self.instance.pk or not self.instance.workshop_dispatch_date:
+                self.initial["workshop_dispatch_date"] = timezone.now().date()
+
     def clean_workshop_dispatch_slip_number(self):
         slip_number = self.cleaned_data.get('workshop_dispatch_slip_number')
         if slip_number:
@@ -280,6 +284,13 @@ class RepairReturnForm(ModelForm):
                 format='%Y-%m-%d'
             ),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            if not self.instance.pk or not self.instance.repair_return_date:
+                self.initial["repair_return_date"] = timezone.now().date()
+
+    
     def clean_repair_return_slip_number(self):
         slip_number = self.cleaned_data.get('repair_return_slip_number')
         if slip_number:

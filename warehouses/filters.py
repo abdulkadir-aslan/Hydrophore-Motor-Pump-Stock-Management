@@ -1,7 +1,9 @@
 import django_filters
 from django.db.models import Q
 from django import forms
-from .models import Inventory,Unusable,NewWarehousePump,Engine,WORK_ORDER_CHOİCES,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,Pump,Order,Seconhand,WorkshopExitSlip
+from .models import (Inventory,Unusable,NewWarehousePump,Engine,
+    WORK_ORDER_CHOİCES,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,STATUS,
+    Pump,Order,Seconhand,WorkshopExitSlip)
 
 class InventoryFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(
@@ -39,7 +41,6 @@ class InventoryFilter(django_filters.FilterSet):
             'class': 'form-select'
         })
     )
-    
 
     # Adres Filter (icontains)
     address = django_filters.CharFilter(
@@ -63,9 +64,18 @@ class InventoryFilter(django_filters.FilterSet):
         )
     )
 
+    status = django_filters.ChoiceFilter(
+        field_name='status',
+        choices=STATUS,
+        label='Durum',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
+
     class Meta:
         model = Inventory
-        fields = ['district', 'well_number', 'serialnumber', 'pump_type', 'address', 'ordering']
+        fields = ['district', 'well_number', 'serialnumber', 'pump_type', 'address', 'ordering','status']
     
     def filter_adress(self, queryset, name, value):
         if value:

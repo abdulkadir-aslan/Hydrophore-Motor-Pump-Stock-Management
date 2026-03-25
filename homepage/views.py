@@ -4,6 +4,7 @@ from warehouses.models import (
     WorkshopExitSlip, Inventory, Pump, Engine,
     Mark, Power, Seconhand, NewWarehousePump,Order
 )
+from .filters import NotificationFilter
 from hydrophore.models import Power as HydrophorePower, PumpType, Hydrophore,OutboundWorkOrder,WorkshopExit
 from datetime import datetime, timedelta
 import io, re
@@ -37,32 +38,36 @@ def notifications_view(request):
     notification_type = request.GET.get('type', 'active')  # 'active' veya 'read'
 
     if notification_type == 'read':
-        notifications = Notification.objects.filter(is_read=True).order_by('-created_at')
+        queryset = Notification.objects.filter(is_read=True).order_by('-created_at')
     else:
-        notifications = Notification.objects.filter(is_read=False).order_by('-created_at')
+        queryset = Notification.objects.filter(is_read=False).order_by('-created_at')
 
-    # Paginator ekliyoruz
-    paginator = Paginator(notifications, 10)  # Sayfa başına 10 bildirim
+    # 🔹 Filter ekleniyor
+    notification_filter = NotificationFilter(request.GET, queryset=queryset)
+    filtered_qs = notification_filter.qs
+
+    # 🔹 Paginator artık filtered queryset üzerinde
+    paginator = Paginator(filtered_qs, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     if request.method == "POST":
         ids = request.POST.getlist('read_ids')
         if notification_type == 'active':
-            # Aktif bildirimleri okundu olarak işaretle
             Notification.objects.filter(id__in=ids).update(is_read=True)
         else:
-            # Okundu bildirimleri tekrar aktif (okunmamış) yap
             Notification.objects.filter(id__in=ids).update(is_read=False)
 
-        # POST sonrası aynı sekmeye yönlendirelim
         return redirect(f"{request.path}?type={notification_type}")
 
     return render(request, "notifications.html", {
-        "notifications": page_obj,  # Burada doğrudan `page_obj`'yi gönderiyoruz
         "notification_type": notification_type,
+        'items': page_obj,
+        'total': filtered_qs.count(),
+        'query_string': request.GET.urlencode(),
+        "filter": notification_filter,  # 🔹 template'te kullanmak için
     })
-
+    
 @login_required(login_url="login")
 def delete_notification(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id)
