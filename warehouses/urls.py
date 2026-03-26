@@ -65,7 +65,7 @@ urlpatterns = [
     path("tum_is_emirleri/", all_order_page, name="all_order_page"),
     path('geridön/<int:pk>/', order_go_back, name='order_go_back'),
     path('iş_emri_göster/<int:pk>/update/', order_show, name='order_show'),
-    path("islemler/<int:id>/", transactions, name="transactions"),
+    path("islemler/<int:id>/<int:debt_id>/", transactions, name="transactions"),
     path("export-seconhand/", export_seconhand, name="export_seconhand"),
     path("export-order/", export_order, name="export_order"),
     
@@ -76,4 +76,10 @@ urlpatterns = [
     path("export-workshop-exit-slips/", export_workshop_exit_slips, name="export_workshop_exit_slips"),
     # Raporlama
     path("is_emiri_raporlama/", work_order_reporting, name="work_order_reporting"),
+    #Borç durumu
+    path("borç_durumu/", debt_situation, name="debt_situation"),
+    path("yeni_borç_durumu/<int:id>/", new_debt_situation, name="new_debt_situation"),
+    path("yeni_borç_durumu_sil/<int:id>/", delete_debt_situation, name="delete_debt_situation"),
+    path("borç_durumu_aktarma/<int:id>/", transfer_debt_situation, name="transfer_debt_situation"),
+
 ]

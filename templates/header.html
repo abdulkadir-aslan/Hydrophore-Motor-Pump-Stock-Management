@@ -115,7 +115,7 @@
                 <div data-i18n="Basic">Pompa</div>
               </a>
             </li>
-            <li class="menu-item {% if url_name == 'order_page' or url_name == 'seconhand_order_go_back' or  url_name == 'repair_edit' or  url_name == 'all_order_page' or url_name == 'order_edit' or url_name == 'transactions' or url_name == 'new_assembly_order' %}active open {% endif %}">
+            <li class="menu-item {% if url_name == 'order_page' or url_name == 'debt_situation' or url_name == 'seconhand_order_go_back' or  url_name == 'repair_edit' or  url_name == 'all_order_page' or url_name == 'order_edit' or url_name == 'transactions' or url_name == 'new_assembly_order' %}active open {% endif %}">
               <a href="#" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-copy"></i>
                 <div data-i18n="Extended UI">İş Emirleri</div>
@@ -124,6 +124,11 @@
                 <li class="menu-item {% if url_name == 'order_page' or url_name == 'all_order_page' or url_name == 'transactions' %}active {% endif %}">
                   <a href="{% url 'order_page' %}" class="menu-link">
                     <div data-i18n="Perfect Scrollbar">İş Emirleri</div>
+                  </a>
+                </li>
+                <li class="menu-item {% if url_name == 'debt_situation' %}active {% endif %}">
+                  <a href="{% url 'debt_situation' %}" class="menu-link">
+                    <div data-i18n="Perfect Scrollbar">Borç Durumu</div>
                   </a>
                 </li>
               </ul>

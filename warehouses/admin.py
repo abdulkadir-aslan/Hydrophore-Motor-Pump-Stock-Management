@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Pump,Inventory,WorkshopExitSlip, Engine,Seconhand,Repair,Unusable,NewWarehousePump,Order
+from .models import DebtSituation,Pump,Inventory,WorkshopExitSlip, Engine,Seconhand,Repair,Unusable,NewWarehousePump,Order
 
 class SeconhandAdmin(admin.ModelAdmin):
     list_display = ('row_identifier', 'pump',  'engine', 'created_at')
@@ -35,3 +35,4 @@ admin.site.register(Unusable, UnusableAdmin)
 admin.site.register(NewWarehousePump)
 admin.site.register(Order)
 admin.site.register(WorkshopExitSlip)
+admin.site.register(DebtSituation)

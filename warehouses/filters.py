@@ -3,7 +3,7 @@ from django.db.models import Q
 from django import forms
 from .models import (Inventory,Unusable,NewWarehousePump,Engine,
     WORK_ORDER_CHOİCES,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,STATUS,
-    Pump,Order,Seconhand,WorkshopExitSlip)
+    Pump,Order,Seconhand,WorkshopExitSlip,DebtSituation)
 
 class InventoryFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(
@@ -462,3 +462,44 @@ class WorkshopExitSlipFilter(django_filters.FilterSet):
         super().__init__(*args, **kwargs)
         # date_order widget attrs ekleme
         self.filters['date_order'].field.widget.attrs.update({'class': 'form-select select2'})
+
+class DebtSituationFilter(django_filters.FilterSet):
+    well_number = django_filters.CharFilter(
+        field_name='inventory__well_number',
+        lookup_expr='iexact',
+        label='Kuyu Numarası',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Kuyu numarası'
+        })
+    )
+
+    district = django_filters.ChoiceFilter(
+        field_name='inventory__district',
+        choices=DISTRICT_CHOICES,
+        label='İlçe',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
+    
+    # Adres Filter (icontains)
+    address = django_filters.CharFilter(
+        label="Adres",
+        method="filter_adres",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Adres'
+        })
+    )
+
+    class Meta:
+        model = Order
+        fields = ['well_number','district','address' ]
+    
+    def filter_adres(self, queryset, name, value):
+        if value:
+            value = value.upper()
+            return queryset.filter(inventory__address__icontains=value)
+        return queryset
+    

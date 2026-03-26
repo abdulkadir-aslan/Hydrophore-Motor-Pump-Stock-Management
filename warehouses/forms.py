@@ -562,3 +562,22 @@ class WorkshopExitSlipForm(forms.ModelForm):
             'overall_status': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Genel Durum'}),
         }
 
+class DebtSituationForm(forms.ModelForm):
+    class Meta:
+        model = DebtSituation
+        fields = [
+            'date','comment'
+        ]
+        widgets = {
+            'comment': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Açıklama', 'rows': '2'}),
+
+            'date': forms.DateInput(
+                attrs={'class': 'form-control', 'type': 'date',"required": "required"},
+                format='%Y-%m-%d'
+            ),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            if not self.instance.pk or not self.instance.date:
+                self.initial["date"] = timezone.now().date()

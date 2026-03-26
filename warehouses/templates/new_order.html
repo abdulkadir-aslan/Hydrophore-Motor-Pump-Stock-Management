@@ -177,7 +177,11 @@
     const secondhandengine = [
         {% for item in seconhand %}
             {% if item.engine %}
+                {% if item.pump %}
+                { value: "{{ item.engine.id }}", text: "Dalgıç - {{ item.row_identifier }} - {{ item.engine }}" },
+                {% else %}
                 { value: "{{ item.engine.id }}", text: "{{ item.row_identifier }} - {{ item.engine }}" },
+                {% endif %}
             {% endif %}
         {% endfor %}
     ];
@@ -185,7 +189,11 @@
     const secondhandpump = [
         {% for item in seconhand %}
             {% if item.pump %}
+                {% if item.engine %}
+                { value: "{{ item.pump.id }}", text: "Dalgıç - {{ item.row_identifier }} - {{ item.pump }}" },
+                {% else %}
                 { value: "{{ item.pump.id }}", text: "{{ item.row_identifier }} - {{ item.pump }}" },
+                {% endif %}
             {% endif %}
         {% endfor %}
     ];

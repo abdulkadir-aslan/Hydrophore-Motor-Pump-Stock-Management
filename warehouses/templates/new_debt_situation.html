@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">İş Emirleri /</span>Yeni Borç Sorgulama</h4>
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Kuyu No</label>
+          <input type="text" value="{{ inventory.well_number }}" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">İlçe</label>
+          <input type="text" value="{{ inventory.get_district_display }}" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Adres</label>
+          <input type="text" value="{{ inventory.address }}" class="form-control" readonly>
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+            <div class="mb-3">
+                {{ form.date.label_tag }}
+                {{ form.date }}
+            </div>
+            <div class="mb-3">
+                {{ form.comment.label_tag }}
+                {{ form.comment }}
+            </div>
+          <a href="{% url 'debt_situation' %}" class="btn btn-secondary">
+              Vazgeç
+          </a>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

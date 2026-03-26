@@ -514,3 +514,15 @@ class WorkshopExitSlip(models.Model):
     def __str__(self):
         return f"{self.slip_no} - {self.well_no}"
 
+class DebtSituation(models.Model):
+    inventory = models.ForeignKey(Inventory, verbose_name="Kuyu Bilgisi",on_delete=models.PROTECT, null=False)
+    date = models.DateField(verbose_name="Tarih", blank=True, null=True)
+    comment = models.TextField(verbose_name="Açıklama", blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.inventory.well_number}"
+
+    class Meta:
+        verbose_name = "Borç Durumu"
+        verbose_name_plural = "Bor. Durumları"
+        ordering = ['date']

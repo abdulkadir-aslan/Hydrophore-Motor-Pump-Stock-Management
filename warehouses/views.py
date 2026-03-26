@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.urls import reverse
 from django.db.models import ProtectedError,Q,Sum,Count
 from django.utils.datastructures import MultiValueDictKeyError
 from .models import Power, Mark, Engine
-from .filters import InventoryFilter,UnusableFilter,NewPumpFilter,EngineFilter,GeneralEngineFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter
+from .filters import (InventoryFilter,UnusableFilter,NewPumpFilter,EngineFilter,GeneralEngineFilter,
+    DebtSituationFilter,PumpFilter,OrderFilter,SeconhandFilter,WorkshopExitSlipFilter)
 from .forms import *
 from account.decorators import administrator,admin
 from other_materials.forms import CategoryStockOut2Form
@@ -1067,6 +1069,11 @@ def order_page(request):
     if request.method == "POST":
         well_number = request.POST.get("well_number").strip().upper()
         if well_number:
+            if DebtSituation.objects.filter(inventory__well_number = well_number).exists():
+                messages.warning(request, f"*{well_number}* Kuyu için borç sorgulaması yapılmakta. Eğer sorgulama bitmiş ise *BORÇ DURUMU* ekranına aktarıldınız burdan iş emrine aktarabilirsiniz.")
+                url = reverse("debt_situation") + f"?well_number={well_number}"
+                return redirect(url)
+            
             try:
                 well = Inventory.objects.get(well_number=well_number)
                 active_order = Order.objects.filter(inventory=well, status="active")
@@ -1230,7 +1237,11 @@ def handle_pump(order, pump_display):
     if not order.mounted_pump or not pump_display:
         raise ValueError("Pompa seçilmedi.")
 
-    row_identifier = pump_display.split("-")[0].strip()
+    row_identifier = pump_display.split("-")
+    if row_identifier[0].strip() == "Dalgıç":
+        row_identifier = row_identifier[1].strip()
+    else:
+        row_identifier = row_identifier[0].strip()
     try:
         item = Seconhand.objects.get(
             pump_id=order.mounted_pump,
@@ -1269,7 +1280,6 @@ def new_assembly_order(request, id):
                     else:
                         handle_engine(order)
                         handle_pump(order,request.POST.get("mounted_pump_display"))
-                    
                     if order.situation in ["new_well","dismantling"] :
                         order.operation_type = "6"
                         messages.success(request, " Çıkış Fişi bilgileri eklendi.\n Montaj bilgilerine aktarıldı.")
@@ -1312,7 +1322,7 @@ def all_order_page(request):
     return render(request, "all_order_page.html", context)
 
 @admin
-def transactions(request,id):
+def transactions(request,id, debt_id=None):
     inventory = get_object_or_404(Inventory, id=id)
     form = OperationForm(request.POST or None)
     if request.method == "POST":
@@ -1334,6 +1344,8 @@ def transactions(request,id):
                 order.operation_engine = "engine_pump"
                 
             order.save()
+            if debt_id:
+                DebtSituation.objects.filter(id=debt_id, inventory=inventory).delete()
             messages.success(request, f"*{inventory.well_number}* Nolu kuyu için *E{order.work_order_plug}* iş emri oluşturuldu.")
             return redirect("order_page")
             
@@ -1557,3 +1569,96 @@ def work_order_reporting(request):
     }
 
     return render(request, 'work_order_reporting.html', context)
+
+#Borç Durum sorgulama
+def debt_situation(request):
+    if request.method == "POST":
+        well_number = request.POST.get("well_number").strip().upper()
+        if well_number:
+            if DebtSituation.objects.filter(inventory__well_number = well_number).exists():
+                messages.warning(request, f"*{well_number}* Kuyu kaydı mevcut.")
+                return redirect(debt_situation)
+                
+            well = Inventory.objects.filter(well_number=well_number)
+            if well.exists():
+                return redirect("new_debt_situation", id=well[0].id)
+            else: 
+                messages.warning(request, "Bu kuyu numarası bulunamadı.")
+                return redirect("debt_situation")
+
+    queryset = DebtSituation.objects.all().select_related('inventory')
+    order_filter = DebtSituationFilter(request.GET, queryset=queryset)
+    filtered_qs = order_filter.qs
+
+    page_obj = paginate_items(request, filtered_qs)
+    context = {
+        'total': filtered_qs.count(),
+        'items': page_obj,
+        'query_string': request.GET.urlencode(),
+        'filter': order_filter,
+    }
+    return render(request, "debt_situation.html", context)
+
+@admin
+def new_debt_situation(request,id):
+    inventory = get_object_or_404(Inventory, id=id)
+    if request.method == "POST":
+        form = DebtSituationForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.inventory = inventory
+            item.save()
+            print(item.inventory)
+            messages.success(request, f"*{inventory.well_number}* Kuyu için borç sorgulama kaydı açıldı.")
+            return redirect("debt_situation")
+        else:
+            messages.warning(request, form.errors.as_ul())
+    else:
+        form = DebtSituationForm()
+
+    return render(request, "new_debt_situation.html", {
+        "inventory" :inventory,
+        "form": form,
+    })
+
+@administrator
+def delete_debt_situation(request, id):
+    return handle_deletion(
+        request,
+        DebtSituation,
+        id,
+        'debt_situation',
+        "*{0}* Borç durumu başarıyla silindi.",
+        "Borç durumu bulunamadı.",
+        "*{0}* Borç durumu kaydı {1} tabloda kullanılıyor, silinemez."
+    )
+
+def transfer_debt_situation(request, id):
+    debt = get_object_or_404(DebtSituation, id=id)
+    active_order = Order.objects.filter(inventory=debt.inventory, status="active")
+
+    if active_order.count() > 2:
+        messages.info(request, "Bu kuyu numarasında 3 aktif iş emri mevcut. İş emri aktarılamadı.")
+        return redirect("debt_situation")
+
+    else:
+        if debt.inventory.status == "passive":
+            if active_order.count() > 0:
+                messages.info(
+                    request,
+                    "YENİ kuyu olduğundan dolayı ikinci iş emri açılamamakta. Mevcut iş emrini kapattıktan sonra işlemlere devam edebilirsiniz."
+                )
+                return redirect("debt_situation")
+
+            messages.info(
+                request,
+                "Kuyu PASİF durumda motor ve pompa eklerseniz AKTİF duruma geçecektir."
+            )
+
+        if active_order.count() > 0:
+            messages.info(
+                request,
+                f"Kuyuda AKTİF iş emri var. *{active_order.count()+1}.* İş emri açılacaktır."
+            )
+
+    return redirect("transactions", id=debt.inventory.id, debt_id=debt.id)
