@@ -73,6 +73,54 @@ class HydrophoreForm(ModelForm):
                 f"Bu seri numarası zaten kayıtlı. Lütfen farklı bir seri numarası giriniz.\n {qs.first().get_location_display()} deposunda ordan işlem yapabilirsinzi."
             )
         return serial_number
+
+class WorkshopExitHydrophoreForm(ModelForm):
+    class Meta:
+        model = Hydrophore
+        fields = ['serial_number', 'engine_power', 'engine_brand', 'pump_type', 'district','neighborhood']
+        widgets = {
+            'serial_number': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'Seri Numarası'}
+            ),
+            'engine_power': forms.Select(
+                attrs={'class': 'form-select select2'}
+            ),
+            'engine_brand': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'Motor Markası'}
+            ),
+            'pump_type': forms.Select(
+                attrs={'class': 'form-select select2'}
+            ),
+            'district': forms.Select(
+                attrs={'class': 'form-select'}
+            ),
+            'neighborhood': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'Mahalle'}
+            ),
+        }
+
+    def clean_serial_number(self):
+        serial_number = self.cleaned_data.get('serial_number')
+        if serial_number:
+            serial_number = serial_number.strip().replace(" ", "").upper()
+
+        # Mevcut hidroforu bul
+        existing = Hydrophore.objects.filter(serial_number=serial_number).first()
+        if existing:
+            # location 4 değilse hata
+            if existing.location != "4":
+                raise forms.ValidationError(
+                    f"Hidrofor *{existing.get_location_display()}* depoda bulunduğundan iş emri oluşturulamadı. "
+                    "Burada sadece KUYU depoda  bulunan hidroforlar üzerinden iş emri oluşturulabiliyor."
+                )
+            # location 4 ise formdaki district ve neighborhood ile güncelle
+            existing.district = self.cleaned_data.get("district")
+            existing.neighborhood = self.cleaned_data.get("neighborhood")
+            existing.save()
+            # Mevcut objeyi form üzerinden return edebilmek için setattr yapıyoruz
+            self.instance = existing
+
+        return serial_number
     
 class DistrictFieldPersonnelForm(ModelForm):
     class Meta:

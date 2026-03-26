@@ -258,16 +258,7 @@ class WorkshopExit(models.Model):
 
             # Eğer iş emri YOKSA
             if not self.outbound_work_order:
-                hydrophore = self.hydrophore
-
-                # Önce WorkshopExit kaydını sil
-                super().delete(using=using, keep_parents=keep_parents)
-
-                # Sonra hidroforu sil
-                if hydrophore:
-                    hydrophore.delete()
-
-                return
+                raise ValueError(f"Bu hidrofor yeni kayıt olarak eklendiğinden dolayı geri alınamamaktadır. .")
 
             # İş emri VARSA normal akış
             order = self.outbound_work_order

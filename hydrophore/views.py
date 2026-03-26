@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect
 from .models import Hydrophore,PumpType,Power,OutboundWorkOrder,RepairReturn,WorkshopExit,DistrictFieldPersonnel
-from .forms import PumpTypeForm,RepairReturnForm,PowerForm,HydrophoreForm,OutboundWorkOrderForm,DistrictFieldPersonnelForm,WorkshopExitForm
+from .forms import PumpTypeForm,WorkshopExitHydrophoreForm,RepairReturnForm,PowerForm,HydrophoreForm,OutboundWorkOrderForm,DistrictFieldPersonnelForm,WorkshopExitForm
 from warehouses.views import handle_deletion,paginate_items,get_object_or_404,transaction,create_workshop_exit_slip
 from .filters import HydrophoreFilter,HydrophoreAllFilter,OutboundWorkOrderFilter,WorkshopExitFilter,RepairReturnFilter
 from django.contrib import messages
@@ -464,10 +464,10 @@ def workshop_exit(request):
     page_obj = paginate_items(request, filtered_qs)
     
     if request.method == "POST":
-        form = HydrophoreForm(request.POST)
+        form = WorkshopExitHydrophoreForm(request.POST)
         if form.is_valid():
-            items = form.save()
-            items.location ="2"
+            items = form.save(commit=False)
+            items.location = "2"  
             items.save()
             WorkshopExit.objects.create(
                 hydrophore = items,
@@ -477,7 +477,7 @@ def workshop_exit(request):
         else:
             messages.warning(request,f"Formda hatalar var. Lütfen kontrol edin: {form.errors.as_ul()}")
     else:
-        form = HydrophoreForm()
+        form = WorkshopExitHydrophoreForm()
 
     contex = {
         'filter': hydrophore_filter,
@@ -517,15 +517,22 @@ def workshop_exit_edit(request, pk):
 
 @administrator
 def workshop_exit_delete(request, id):
-    return handle_deletion(
-        request,
-        WorkshopExit,
-        id,
-        'outbound_work_order',
-        "*{0}* Demontaj Edilen Hidrofor kaydı başarıyla silindi. \n İş emirleri sekmesine yönlendirildiniz mevcut iş emri üzerinden işlemlere devam edebilirsiniz.",
-        "Hidrofor kaydı bulunamadı.",
-        "*{0}* Hidrofor kaydı {1} tabloda kullanılıyor, silinemez."
-    )
+    instance = get_object_or_404(WorkshopExit, id=id)
+    
+    try:
+        instance.delete()
+        messages.success(
+            request, 
+            f"*{instance.hydrophore}* Demontaj Edilen Hidrofor kaydı başarıyla silindi. \nİş emirleri sekmesine yönlendirildiniz, mevcut iş emri üzerinden işlemlere devam edebilirsiniz."
+        )
+    except ValueError as e:  # WorkshopExit.delete() tarafından fırlatılan hata
+        messages.warning(request, str(e))
+        return redirect('workshop_exit')
+    except Exception as e:  # Diğer olası hatalar
+        messages.warning(request, f"Hidrofor kaydı silinirken bir hata oluştu: {str(e)}")
+    
+    # Silme sonrası yönlendirme (örnek: liste sayfasına)
+    return redirect('outbound_work_order')
 
 def all_workshop_exit(request):
     queryset = WorkshopExit.objects.filter(status="passive").order_by('-id')
