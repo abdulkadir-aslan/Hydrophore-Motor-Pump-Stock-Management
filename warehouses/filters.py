@@ -5,6 +5,9 @@ from .models import (Inventory,Unusable,NewWarehousePump,Engine,
     WORK_ORDER_CHOİCES,DISTRICT_CHOICES,LOCATION,ENGINE_TYPE,STATUS,
     Pump,Order,Seconhand,WorkshopExitSlip,DebtSituation)
 
+def turkish_lower(text):
+    return text.replace('i', 'İ')
+
 class InventoryFilter(django_filters.FilterSet):
     well_number = django_filters.CharFilter(
         field_name='well_number',
@@ -79,6 +82,7 @@ class InventoryFilter(django_filters.FilterSet):
     
     def filter_adress(self, queryset, name, value):
         if value:
+            value = turkish_lower(value)
             value = value.upper()
             return queryset.filter(address__icontains=value)
         return queryset
@@ -309,6 +313,7 @@ class OrderFilter(django_filters.FilterSet):
     
     def filter_adres(self, queryset, name, value):
         if value:
+            value = turkish_lower(value)
             value = value.upper()
             return queryset.filter(inventory__address__icontains=value)
         return queryset
@@ -454,6 +459,7 @@ class WorkshopExitSlipFilter(django_filters.FilterSet):
     
     def filter_address(self, queryset, name, value):
         if value:
+            value = turkish_lower(value)
             value = value.upper()
             return queryset.filter(address__icontains=value)
         return queryset
@@ -499,6 +505,7 @@ class DebtSituationFilter(django_filters.FilterSet):
     
     def filter_adres(self, queryset, name, value):
         if value:
+            value = turkish_lower(value)
             value = value.upper()
             return queryset.filter(inventory__address__icontains=value)
         return queryset

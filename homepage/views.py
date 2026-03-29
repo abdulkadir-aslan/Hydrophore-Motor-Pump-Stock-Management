@@ -4,6 +4,7 @@ from warehouses.models import (
     WorkshopExitSlip, Inventory, Pump, Engine,
     Mark, Power, Seconhand, NewWarehousePump,Order
 )
+from other_materials.models import CategoryStockOut
 from .filters import NotificationFilter
 from hydrophore.models import Power as HydrophorePower, PumpType, Hydrophore,OutboundWorkOrder,WorkshopExit
 from datetime import datetime, timedelta
@@ -77,6 +78,40 @@ def delete_notification(request, notification_id):
 # -------------------------------------------------
 # ÇIKIŞ FİŞLERİ
 # -------------------------------------------------
+def stock_out_check(request, number):
+
+    items = CategoryStockOut.objects.filter(outlet_plug=number)
+
+    if not items.exists():
+        return JsonResponse({
+            "success": False,
+            "message": "Bu numaraya ait çıkış fişi bulunamadı!"
+        })
+
+    return JsonResponse({
+        "success": True,
+        "url": reverse("stock_out_pdf", args=[number])
+    })
+
+def stock_out_pdf(request, number):
+
+    items = CategoryStockOut.objects.filter(outlet_plug=number)
+
+    html_string = render_to_string("pdf/stock_out_pdf.html", {
+        "items": items,
+        "first": items.first()
+    })
+
+    pdf = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri('/')
+    ).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="cikis_fisi_{number}.pdf"'
+
+    return response
+
 def hydrophore_workshop_exit_pdf(request, pk):
     order = get_object_or_404(WorkshopExit, pk=pk)
     html_string = render_to_string("pdf/hydrophore_workshop_exit_pdf.html", {

@@ -111,6 +111,9 @@ def delete_category_stock(request, id):
     
 def category_stock_out(request):
 
+    if request.method == "POST":
+        print(request.POST)
+    
     queryset = CategoryStockOut.objects.select_related(
         'stock',
         'stock__category'
@@ -203,3 +206,4 @@ def delete_category_stock_out(request, id):
         "Malzeme kaydı bulunamadı.",
         "*{0}* Malzeme kaydı {1} tabloda kullanılıyor, silinemez."
     )
+

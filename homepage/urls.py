@@ -19,5 +19,8 @@ urlpatterns = [
     
     path("order/cikis-check/<int:pk>/", order_cikis_check, name="order_cikis_check"),
     path("order/<int:pk>/cikis-fisi-pdf/",order_cikis_pdf, name="order_cikis_pdf"),
+
+    path('stock-out-check/<str:number>/', stock_out_check, name='stock_out_check'),
+    path('stock-out-pdf/<str:number>/', stock_out_pdf, name='stock_out_pdf'),
 ]
 

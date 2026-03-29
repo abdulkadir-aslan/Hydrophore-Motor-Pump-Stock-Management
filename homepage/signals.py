@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from core.middleware import get_current_user
 
 from .models import Notification
-from warehouses.models import Order,Repair
+from warehouses.models import Order,Repair,Inventory,Engine,Pump
 from hydrophore.models import OutboundWorkOrder,WorkshopExit,RepairReturn
 from other_materials.models import CategoryStockOut
 
@@ -25,6 +25,133 @@ def create_category_stock_out_notification(sender, instance, created, **kwargs):
                 message=message
             )
 
+#İnventory
+@receiver(pre_save, sender=Engine)
+def store_old_engine(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_engine = Engine.objects.get(pk=instance.pk)
+
+            instance._old_values = {
+                'engine_type': old_engine.get_engine_type_display(),
+                'engine_power': old_engine.engine_power ,
+                'engine_mark': old_engine.engine_mark,
+                'serialnumber': old_engine.serialnumber,
+            }
+
+        except Engine.DoesNotExist:
+            instance._old_values = {}
+    else:
+        instance._old_values = {}
+
+@receiver(post_save, sender=Engine)
+def engine_update_notification(sender, instance, created, **kwargs):
+    if created:
+        return
+
+    old_values = getattr(instance, "_old_values", {})
+    changes = []
+
+    # Alanları karşılaştır
+    for field, old_value in old_values.items():
+        new_value = getattr(instance, field, None)
+        if field == "engine_type":
+            new_value = instance.get_engine_type_display()
+        if old_value != new_value:
+            field_name = instance._meta.get_field(field).verbose_name
+            changes.append(f"{field_name}: '{old_value}' → '{new_value}',")
+
+    if not changes:
+        return
+
+    # Bu motoru kullanan Inventory kayıtları
+    inventories = Inventory.objects.filter(engine=instance)
+    
+    user = get_current_user()
+    if inventories.count() == 0:
+        if user and user.authorization == "2":
+            message = (
+                f"📝 Motor güncellendi:\n"
+                + "\n".join(changes)
+            )
+            Notification.objects.create(user=user, message=message)
+            
+    for inv in inventories:
+        if user and user.authorization == "2":
+            message = (
+                f"📝 *{inv.well_number}* kuyusunda motor güncellendi:\n"
+                + "\n".join(changes)
+            )
+            Notification.objects.create(user=user, message=message)
+
+@receiver(pre_save, sender=Inventory)
+def store_old_inventory(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_instance = Inventory.objects.get(pk=instance.pk)
+
+            # Inventory normal alanlar
+            instance._old_values ={
+                'well_number': old_instance.well_number,
+                'district': old_instance.get_district_display(),
+                'address': old_instance.address,
+                'disassembly_depth': old_instance.disassembly_depth,
+                'mounting_depth': old_instance.mounting_depth,
+                'tank_info': old_instance.tank_info,
+                'pipe_type': old_instance.pipe_type,
+                'cable': old_instance.cable,
+                'status': old_instance.status,
+                'flow': old_instance.flow,
+                'comment': old_instance.comment,
+            }
+
+            # Pompa eski değerleri (FK id ile)
+            if old_instance.pump:
+                instance._old_pump_values = {
+                    'pump_type': old_instance.pump.pump_type,
+                    'pump_mark': old_instance.pump.pump_mark,
+                }
+            else:
+                instance._old_pump_values = {'pump_type': None, 'pump_mark': None}
+
+        except Inventory.DoesNotExist:
+            instance._old_values = {}
+            instance._old_pump_values = {}
+    else:
+        instance._old_values = {}
+        instance._old_pump_values = {}
+
+@receiver(post_save, sender=Inventory)
+def inventory_update_notification(sender, instance, created, **kwargs):
+    if created:
+        return
+
+    changes = []
+
+    # Inventory alan değişiklikleri
+    old_values = getattr(instance, "_old_values", {})
+    for field, old_value in old_values.items():
+        new_value = getattr(instance, field, None)
+        if field == "district":
+            new_value = instance.get_district_display()
+        if old_value != new_value:
+            field_name = instance._meta.get_field(field).verbose_name
+            changes.append(f"{field_name}: '{old_value}' → '{new_value}'")
+
+    # Pompa alan değişiklikleri
+    old_pump_values = getattr(instance, "_old_pump_values", {})
+    for field, old_value in old_pump_values.items():
+        new_value = getattr(instance.pump, field, None)
+        if old_value != new_value:
+            field_name = instance.pump._meta.get_field(field).verbose_name
+            changes.append(f"Pompa {field_name}: '{old_value}' → '{new_value}'")
+
+    if changes:
+        user = get_current_user()
+        if user and user.authorization == "2":
+            message = f"📝 *{instance.well_number}* kuyusunda değişiklikler yapıldı:\n" + "\n".join(changes)
+            Notification.objects.create(user=user, message=message)
+
 #Hydrophore
 @receiver(pre_save, sender=RepairReturn)
 def repair_return_slip_dispatch(sender, instance, **kwargs):
@@ -41,8 +168,6 @@ def repair_return_slip_dispatch(sender, instance, **kwargs):
 def repair_return_slip_notification(sender, instance, created, **kwargs):
     old_value = getattr(instance, "_old_repair_return_slip_number", None)
 
-    # 🔥 kritik şart:
-    # önce yoktu → şimdi var
     if old_value is None and instance.repair_return_slip_number:
         user = get_current_user()
 
@@ -140,7 +265,7 @@ def create_passive_notification(sender, instance, created, **kwargs):
     if old_status != "passive" and instance.status == "passive":
         user = get_current_user()
         # mesaj oluştur
-        message = f"1️⃣{str(instance.order.inventory)} kuyu numarası için *TG{str(instance.order.entrance_plug)}* fişi oluşturuldu."
+        message = f"1️⃣{str(instance.order.inventory.get_district_display())} - {str(instance.order.inventory.address)} - {str(instance.order.inventory)} kuyu numarası için *TG{str(instance.order.entrance_plug)}* fişi oluşturuldu."
 
         # motor kontrol (tercihine göre değiştirilebilir)
         if instance.engine:
@@ -162,7 +287,7 @@ def create_order_notification(sender, instance, created, **kwargs):
     if created:
         # Verilen field'lara göre mesajı oluştur
         message = (
-            f"1️⃣ {str(instance.inventory)} kuyu numarası için *E{instance.work_order_plug}* İş emri oluşturuldu. "
+            f"1️⃣ {str(instance.inventory.get_district_display())} - {str(instance.inventory.address)} - {str(instance.inventory)} kuyu numarası için *E{instance.work_order_plug}* İş emri oluşturuldu. "
             f"({instance.get_situation_display()}) emri verildi. "
             f"({instance.get_operation_engine_display()}) işlem türü seçildi."
             )
@@ -202,7 +327,7 @@ def create_disassembly_notification(sender, instance, created, **kwargs):
     if old_value is None and instance.disassembly_plug:
         user = get_current_user()
 
-        message = f"1️⃣ {str(instance.inventory)} kuyu numarası için *D{str(instance.disassembly_plug)}* Demontaj numarası verildi. "
+        message = f"1️⃣ {str(instance.inventory.get_district_display())} - {str(instance.inventory.address)} - {str(instance.inventory)} kuyu numarası için *D{str(instance.disassembly_plug)}* Demontaj numarası verildi. "
 
         user = get_current_user()
         if user.authorization == "2":
@@ -219,7 +344,7 @@ def create_assembly_notification(sender, instance, created, **kwargs):
     if old_value is None and instance.assembly_plug:
         user = get_current_user()
 
-        message = f"1️⃣ {str(instance.inventory)} kuyu numarası için *M{str(instance.assembly_plug)}* Montaj numarası verildi. "
+        message = f"1️⃣ {str(instance.inventory.get_district_display())} - {str(instance.inventory.address)} - {str(instance.inventory)} kuyu numarası için *M{str(instance.assembly_plug)}* Montaj numarası verildi. "
 
         user = get_current_user()
         if user.authorization == "2":
@@ -236,7 +361,7 @@ def create_entrance_notification(sender, instance, created, **kwargs):
     if old_value is None and instance.entrance_plug:
         user = get_current_user()
 
-        message = f"1️⃣🛠️ {str(instance.inventory)} kuyu numarası için *AG{str(instance.entrance_plug)}* Atölye çıkış fişi oluşturuldu."
+        message = f"1️⃣🛠️ {str(instance.inventory.get_district_display())} - {str(instance.inventory.address)} - {str(instance.inventory)} kuyu numarası için *AG{str(instance.entrance_plug)}* Atölye çıkış fişi oluşturuldu."
 
         # motor / pompa durumları
         if instance.disassembled_engine:
@@ -253,18 +378,10 @@ def create_entrance_notification(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Order)
 def create_outlet_notification(sender, instance, created, **kwargs):
-    """
-    outlet_plug sonradan oluştuğunda admin kullanıcılara notification oluşturur
-    """
-
     old_value = getattr(instance, "_old_outlet_plug", None)
-
-    # 🔥 kritik şart:
-    # önce yoktu → şimdi var
     if old_value is None and instance.outlet_plug:
 
-        # mesaj oluştur
-        message = f"1️⃣{str(instance.inventory)} kuyu numarası için *C{str(instance.outlet_plug)}* Çıkış fişi oluşturuldu."
+        message = f"1️⃣ {str(instance.inventory.get_district_display())} - {str(instance.inventory.address)} - {str(instance.inventory)} kuyu numarası için *C{str(instance.outlet_plug)}* Çıkış fişi oluşturuldu."
 
         # motor kontrol (tercihine göre değiştirilebilir)
         if instance.mounted_engine:

@@ -31,6 +31,7 @@ urlpatterns = [
     
     # İkinci el
     path("ikinci_el/", seconhand, name="seconhand"),
+    path("ikinci_el_pompa_sil/<int:id>/", delete_seconhand_pump, name="delete_seconhand_pump"),
 
     # Tamir
     path("tamir_depo/", warehouses_repair, name="warehouses_repair"),
@@ -65,6 +66,7 @@ urlpatterns = [
     path("tum_is_emirleri/", all_order_page, name="all_order_page"),
     path('geridön/<int:pk>/', order_go_back, name='order_go_back'),
     path('iş_emri_göster/<int:pk>/update/', order_show, name='order_show'),
+    path("islemler/<int:id>/", transactions, name="transactions"),
     path("islemler/<int:id>/<int:debt_id>/", transactions, name="transactions"),
     path("export-seconhand/", export_seconhand, name="export_seconhand"),
     path("export-order/", export_order, name="export_order"),

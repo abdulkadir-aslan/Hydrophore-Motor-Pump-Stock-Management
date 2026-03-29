@@ -508,6 +508,14 @@ def seconhand(request):
 
     return render(request, "secondhand_page.html", context)
 
+@administrator
+def delete_seconhand_pump(request, id):
+    seconhand = get_object_or_404(Seconhand,id=id)
+    messages.success(request,f"{seconhand.row_identifier} sırasındaki {str(seconhand.pump)} pompa kaydı silindi.")
+    seconhand.pump = None
+    seconhand.save()
+    return redirect("seconhand")
+
 @admin
 def export_seconhand(request):
     # Filtreleri uygula
@@ -1536,19 +1544,22 @@ def workshop_exit_slip_delete(request, id):
         protected_error_message="*{0}* İş Emri kaydı {1} tabloda kullanılıyor, silinemez."
     )
 
+from other_materials.models import CategoryStockOut
 def work_order_reporting(request):
     order = None
     hydrophore = None
     repair = None
     workshop = None
     repair_return = None
+    other_stock = None
 
     if request.method == 'POST':
         item = request.POST.get("number")
 
         order = Order.objects.filter(outlet_plug=item).first()
         hydrophore = OutboundWorkOrder.objects.filter(dispatch_slip_number=item).first()
-
+        other_stock = CategoryStockOut.objects.filter(outlet_plug=item)
+        
         if order:
             repair = Repair.objects.filter(order=order).first()
 
@@ -1557,10 +1568,12 @@ def work_order_reporting(request):
             if workshop:
                 repair_return = RepairReturn.objects.filter(workshop_exit=workshop).first()
 
+        elif other_stock:
+           other_stock = other_stock
         else:
             messages.warning(request, "Çıkış fiş numarası bulunamadı.")
-
     context = {
+        'other_stock' : other_stock, 
         'order': order,
         'hydrophore': hydrophore,
         'repair': repair,

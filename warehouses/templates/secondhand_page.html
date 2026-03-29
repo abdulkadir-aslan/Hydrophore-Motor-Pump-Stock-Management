@@ -9,7 +9,7 @@
         <ul class="nav nav-pills flex-column flex-md-row mb-4 ">
             <li class="nav-item me-2">
             </li>
-            {% if request.user.authorization != "3" %}
+            {% if request.user.authorization == "1" %}
             <li class="nav-item me-2">
                 <button type="button" class="btn " data-bs-toggle="modal" data-bs-target="#modalEngine">
                     <i class="bx bx-add-to-queue me-1"></i>Motor Ekle
@@ -167,7 +167,14 @@
                                 <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td> 
                                 <td>{{item.row_identifier}}</td>
                                 <td>{{item.engine}}</td>
-                                <td>{{item.pump}}</td>
+                                <td>
+                                    {{item.pump}}
+                                    {% if item.pump and request.user.authorization == "1" %}
+                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'delete_seconhand_pump' item.id %}">
+                                                <i class='tf-icons bx bx-trash'></i>
+                                        </button>
+                                    {% endif %}
+                                </td>
                                 <td>{{item.created_at}}</td>
                             </tr>
                         {% empty %}
@@ -274,5 +281,13 @@ $(document).ready(function () {
     });
 
 });
+      document.querySelectorAll('.delete').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu pompa kaydı depodan kalıcı olarak silinecek yapmak istediğinizden emin misiniz?")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
 </script>
 {% endblock %}
