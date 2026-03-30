@@ -78,15 +78,15 @@
   </div>
 
   <div class="info-block">
-    <div class="row-label"><span class="label">Motor Tipi</span><span class="value">: {{ order.mounted_engine.get_engine_type_display }}  </span>  <span style="position: absolute; left: 500px;">{{ order.disassembled_engine.get_engine_type_display }}  (DEMONTAJ)</span></div>
-    <div class="row-label"><span class="label">Motor Markası</span><span class="value">: {{ order.mounted_engine.engine_mark }}</span><span style="position: absolute; left: 500px;">{{ order.disassembled_engine.engine_mark }}</span></div>
-    <div class="row-label"><span class="label">Motor Gücü</span><span class="value">: {{ order.mounted_engine.engine_power }} {% if order.mounted_engine %}HP{% endif %} </span> <span style="position: absolute; left: 500px;">{{ order.disassembled_engine.engine_power }}</span></div>
-    <div class="row-label"><span class="label">Motor Seri No</span><span class="value">: {{ order.mounted_engine.serialnumber }} </span><span style="position: absolute; left: 500px;">{{ order.disassembled_engine.serialnumber }}</span></div>
-    <div class="row-label"><span class="label">Pompa Tipi</span><span class="value">: {{ order.mounted_pump.pump_type }} </span><span style="position: absolute; left: 500px;">{{ order.disassembled_pump.pump_type }}</span></div>
-    <div class="row-label"><span class="label">Pompa Markası</span><span class="value">: {{ order.mounted_pump.pump_mark.engine_mark }}</span><span style="position: absolute; left: 500px;">{{ order.disassembled_pump.pump_mark.engine_mark }}</span></div>
+    <div class="row-label"><span class="label">Motor Tipi</span><span class="value">: {{ order.mounted_engine.get_engine_type_display }}  </span> </div>
+    <div class="row-label"><span class="label">Motor Markası</span><span class="value">: {{ order.mounted_engine.engine_mark }}</span></div>
+    <div class="row-label"><span class="label">Motor Gücü</span><span class="value">: {{ order.mounted_engine.engine_power }} {% if order.mounted_engine %}HP{% endif %} </span> </div>
+    <div class="row-label"><span class="label">Motor Seri No</span><span class="value">: {{ order.mounted_engine.serialnumber }} </span></div>
+    <div class="row-label"><span class="label">Pompa Tipi</span><span class="value">: {{ order.mounted_pump.pump_type }} </span></div>
+    <div class="row-label"><span class="label">Pompa Markası</span><span class="value">: {{ order.mounted_pump.pump_mark.engine_mark }}</span></div>
   </div>
   <br>
-
+  {% if order.situation != "installation" %}
   <div class="text-center mt-3 mb-1">
     <strong>KUYU BİLGİSİ (EN SON YAPILAN İŞLEME GÖRE)</strong>
   </div>
@@ -118,7 +118,7 @@
       </td>
     </tr>
   </table>
-
+  {% endif %}
   <div class="islem">
     
     <strong>Yapılan İşlem :</strong><br>
