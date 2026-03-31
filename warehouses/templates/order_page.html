@@ -203,7 +203,37 @@
                                         
                                     </td>
                                     <td>{{ item.inventory.well_number }}</td>
-                                    <td>E{{ item.work_order_plug }}</td>
+                                    <td>
+                                        <a href="javascript:void(0);" 
+                                        class="{% if item.outlet_plug %}copy-order{% else %}text-muted{% endif %}"
+                                        {% if not item.outlet_plug %}
+                                        style="pointer-events:none; cursor:not-allowed;"
+                                        {% endif %}
+
+                                        {% if item.outlet_plug %}
+                                        data-well="{{ item.inventory.well_number }}"
+                                        data-district="{{ item.inventory.get_district_display }}"
+                                        data-address="{{ item.inventory.address }}"
+                                        data-disassembly="{{ item.inventory.disassembly_depth }}"
+                                        data-mounting="{{ item.inventory.mounting_depth }}"
+                                        data-tank="{{ item.inventory.tank_info }}"
+                                        data-pipe="{{ item.inventory.pipe_type }}"
+                                        data-cable="{{ item.inventory.cable }}"
+
+                                        data-motor-diameter="{{ item.mounted_engine.get_engine_type_display|default:item.inventory.engine.get_engine_type_display }}"
+                                        data-motor-brand="{{ item.mounted_engine.engine_mark|default:item.inventory.engine.engine_mark }}"
+                                        data-motor-power="{{ item.mounted_engine.engine_power|default:item.inventory.engine.engine_power }}"
+                                        data-motor-serial="{{ item.mounted_engine.serialnumber|default:item.inventory.engine.serialnumber }}"
+
+                                        data-pump="{{ item.mounted_pump.pump_type|default:item.inventory.pump.pump_type }}"
+                                        data-pump-brand="{{ item.mounted_pump.pump_mark|default:item.inventory.pump.pump_mark }}"
+
+                                        data-date="{{ item.created_at|date:'d.m.Y' }}"
+                                        {% endif %}
+                                        >
+                                            E{{ item.work_order_plug }}
+                                        </a>
+</td>                               </td>
                                     <td>{{ item.inventory.district|upper }}</td>
                                     <td>{{item.inventory.address}}</td>
                                     <td><span class="badge bg-label-success me-1">{{item.get_situation_display}}</span></td>
@@ -293,6 +323,32 @@
 </div>
 
 <script>
+document.querySelectorAll('.copy-order').forEach(el => {
+    el.addEventListener('click', function () {
+
+        const text = `~ *PP${this.dataset.well} ${this.dataset.district} ${this.dataset.address}*
+*DEMONTAJ DERİNLİĞİ:* ${this.dataset.disassembly} METRE
+*MONTAJ DERİNLİĞİ:* ${this.dataset.mounting} METRE
+*NEREYE BASIYOR:* ${this.dataset.tank}
+*BORU DİŞİ:* ${this.dataset.pipe}
+*KABLO TİPİ/TEK-ÇİFT:* ${this.dataset.cable}
+*MOTOR ÇAPI:* ${this.dataset.motorDiameter}
+*MOTOR MARKASI:* ${this.dataset.motorBrand}
+*MOTOR GÜCÜ:* ${this.dataset.motorPower} HP
+*MOTOR SERİ NO:* ${this.dataset.motorSerial}
+*POMPA:* ${this.dataset.pump}
+*POMPA MARKASI:* ${this.dataset.pumpBrand}
+*TARİH:* ${this.dataset.date}`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Bilgiler kopyalandı ✅");
+        }).catch(() => {
+            alert("Kopyalama başarısız ❌");
+        });
+
+    });
+});
+
     $(document).ready(function() {
         $('.select2').select2({
             closeOnSelect: false,

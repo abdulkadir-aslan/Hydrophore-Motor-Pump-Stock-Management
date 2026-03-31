@@ -1010,7 +1010,6 @@ def form_control(request):#*
         return redirect("order_page")
 
     order = get_object_or_404(Order, pk=request.POST["id"])
-
     if order.operation_type == "1": #Demontaj
         """1 -> 2"""
         form = DisassemblyForm(request.POST, instance=order)
@@ -1214,7 +1213,7 @@ def seconhand_order_go_back(request, id):
         )
     })
 
-@administrator
+@admin
 def order_go_back(request, pk):#*
     order = get_object_or_404(Order, pk=pk)
     if order.operation_type == "1":

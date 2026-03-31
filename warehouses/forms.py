@@ -412,12 +412,17 @@ class MountingForm(forms.ModelForm):
 class LenghtForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['outlet_plug','length','outlet_plug_date']
+        fields = ['outlet_plug','length','outlet_plug_date','assembly_plug']
         widgets = {
             "outlet_plug": forms.NumberInput(attrs={
                 "class": "form-control",
                 "required":"required",
                 "placeholder": "Çıkış fişi"
+            }),
+            "assembly_plug": forms.NumberInput(attrs={
+                "class": "form-control",
+                "required":"required",
+                "placeholder": "Montaj Fişi"
             }),
             "length": forms.NumberInput(attrs={
                 "class": "form-control",
@@ -451,6 +456,20 @@ class LenghtForm(forms.ModelForm):
 
             self.initial["outlet_plug"] = next_number
     
+    def clean_assembly_plug(self):
+        assembly_plug = self.cleaned_data.get("assembly_plug")
+        if assembly_plug:
+            qs = Order.objects.filter(assembly_plug=assembly_plug)
+
+            # edit formu için (kendi kaydını hariç tut)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                raise forms.ValidationError(f"*{assembly_plug}* Bu Montaj numarası daha önce kullanılmıştır.")
+
+            return assembly_plug
+
     def clean_outlet_plug(self):
         outlet_plug = self.cleaned_data.get("outlet_plug")
 

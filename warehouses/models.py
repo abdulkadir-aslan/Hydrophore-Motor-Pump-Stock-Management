@@ -525,4 +525,4 @@ class DebtSituation(models.Model):
     class Meta:
         verbose_name = "Borç Durumu"
         verbose_name_plural = "Bor. Durumları"
-        ordering = ['date']
+        ordering = ['-date']
