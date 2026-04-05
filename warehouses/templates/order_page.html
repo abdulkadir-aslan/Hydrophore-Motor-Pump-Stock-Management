@@ -220,14 +220,13 @@
                                         data-pipe="{{ item.inventory.pipe_type }}"
                                         data-cable="{{ item.inventory.cable }}"
 
-                                        data-motor-diameter="{{ item.mounted_engine.get_engine_type_display|default:item.inventory.engine.get_engine_type_display }}"
-                                        data-motor-brand="{{ item.mounted_engine.engine_mark|default:item.inventory.engine.engine_mark }}"
-                                        data-motor-power="{{ item.mounted_engine.engine_power|default:item.inventory.engine.engine_power }}"
-                                        data-motor-serial="{{ item.mounted_engine.serialnumber|default:item.inventory.engine.serialnumber }}"
+                                        data-motor-diameter="{% if item.mounted_engine %}{{ item.mounted_engine.get_engine_type_display }}{% else %}{{ item.inventory.engine.get_engine_type_display }}{% endif %}"
+                                        data-motor-brand="{% if item.mounted_engine %}{{ item.mounted_engine.engine_mark }}{% else %}{{ item.inventory.engine.engine_mark }}{% endif %}"
+                                        data-motor-power="{% if item.mounted_engine %}{{ item.mounted_engine.engine_power }}{% else %}{{ item.inventory.engine.engine_power }}{% endif %}"
+                                        data-motor-serial="{% if item.mounted_engine %}{{ item.mounted_engine.serialnumber }}{% else %}{{ item.inventory.engine.serialnumber }}{% endif %}"
 
-                                        data-pump="{{ item.mounted_pump.pump_type|default:item.inventory.pump.pump_type }}"
-                                        data-pump-brand="{{ item.mounted_pump.pump_mark|default:item.inventory.pump.pump_mark }}"
-
+                                        data-pump="{% if item.mounted_pump %}{{ item.mounted_pump.pump_type }}{% else %}{{ item.inventory.pump.pump_type }}{% endif %}"
+                                        data-pump-brand="{% if item.mounted_pump %}{{ item.mounted_pump.pump_mark }}{% else %}{{ item.inventory.pump.pump_mark }}{% endif %}"
                                         {% endif %}
                                         >
                                             E{{ item.work_order_plug }}
