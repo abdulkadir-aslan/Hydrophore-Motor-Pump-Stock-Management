@@ -622,7 +622,22 @@ def all_repair_return(request):
     }
     return render(request, "all_repair_return.html",contex)
 
-######## Depolar ###########################33
+def go_back_repair_return(request, pk):
+    item = get_object_or_404(RepairReturn, pk=pk)
+    hydrophore = item.hydrophore
+    if hydrophore.location in ["1","7"]:
+        item.status = "active"
+        item.repair_return_slip_number = None
+        item.repair_return_date = None
+        hydrophore.location = "5"
+        item.save()
+        hydrophore.save()
+        return redirect("repair_return")
+    else:
+        messages.warning(request,f"Tamirden gelen iş emri geri alınamaz. Hidrofor *{hydrophore.get_location_display()}*")
+    return redirect("all_repair_return")
+    
+######## Depolar ###########################
 def workshop_stock(request):
     queryset = Hydrophore.objects.filter(location="1").order_by("serial_number")
     
@@ -835,3 +850,127 @@ def scrap_stock(request):
         'query_string': request.GET.urlencode(),
     }
     return render(request, "warehouse/scrap_stock.html",contex)
+
+######## Rapor ###########################
+from django.shortcuts import render
+from .models import Hydrophore, OutboundWorkOrder, WorkshopExit, RepairReturn
+
+def hydrophore_report(request):
+    context = {}
+
+    if request.method == "POST":
+        number = request.POST.get("number").strip().upper()
+
+        try:
+            hydrophore = Hydrophore.objects.get(serial_number=number)
+
+            rows = []
+
+            # 🔹 1. OUTBOUND KAYITLAR
+            outbound_qs = OutboundWorkOrder.objects.filter(
+                mounted_hydrophore=hydrophore
+            ) | OutboundWorkOrder.objects.filter(
+                disassembled_hydrophore=hydrophore
+            )
+
+            outbound_qs = outbound_qs.distinct().order_by('-dispatch_date')
+
+            for o in outbound_qs:
+
+                workshop = WorkshopExit.objects.filter(
+                    outbound_work_order=o,hydrophore=o.disassembled_hydrophore
+                ).first()
+
+                repair = None
+                if workshop:
+                    repair = RepairReturn.objects.filter(
+                        workshop_exit=workshop
+                    ).first()
+
+                row = {
+                    "outbound_no": o.dispatch_slip_number,
+                    "outbound_date": o.dispatch_date,
+
+                    "workshop_no": None,
+                    "workshop_date": None,
+                    "workshop_status": None,
+
+                    "repair_no": None,
+                    "repair_date": None,
+                    "repair_status": None,
+                }
+
+                # 🔸 DEMONTAJ VARSA → süreç devam eder
+                if o.disassembled_hydrophore == hydrophore:
+
+                    if workshop:
+                        if workshop.status == "active":
+                            row["workshop_status"] = "Atölyede Tamir Bekliyor"
+                        else:
+                            row["workshop_no"] = workshop.workshop_dispatch_slip_number
+                            row["workshop_date"] = workshop.workshop_dispatch_date
+
+                    if repair:
+                        if repair.status == "active":
+                            row["repair_status"] = "Tamir Ediliyor"
+                        else:
+                            row["repair_no"] = repair.repair_return_slip_number
+                            row["repair_date"] = repair.repair_return_date
+
+                # 🔸 SADECE MONTAJ
+                else:
+                    row["workshop_status"] = "Montaj Yapıldı"
+
+                rows.append(row)
+
+            # 🔹 2. OUTBOUND YOK AMA WORKSHOP VAR
+            workshop_qs = WorkshopExit.objects.filter(
+                hydrophore=hydrophore,
+                outbound_work_order__isnull=True
+            )
+
+            for w in workshop_qs:
+
+                repair = RepairReturn.objects.filter(
+                    workshop_exit=w
+                ).first()
+
+                row = {
+                    "outbound_no": None,
+                    "outbound_date": None,
+
+                    "workshop_no": None,
+                    "workshop_date": None,
+                    "workshop_status": None,
+
+                    "repair_no": None,
+                    "repair_date": None,
+                    "repair_status": None,
+                }
+
+                # 🔸 WORKSHOP DURUMU
+                if w.status == "active":
+                    row["workshop_status"] = "Atölyede Tamir Bekliyor"
+                else:
+                    row["workshop_no"] = w.workshop_dispatch_slip_number
+                    row["workshop_date"] = w.workshop_dispatch_date
+
+                # 🔸 REPAIR
+                if repair:
+                    if repair.status == "active":
+                        row["repair_status"] = "Tamir Sürecinde"
+                    else:
+                        row["repair_no"] = repair.repair_return_slip_number
+                        row["repair_date"] = repair.repair_return_date
+
+                rows.append(row)
+
+            context.update({
+                "hydrophore": hydrophore,
+                "rows": rows
+            })
+
+        except Hydrophore.DoesNotExist:
+            messages.warning(request,"Hidrofor bulunamadı")
+
+    return render(request, "report_hydrophore.html", context)

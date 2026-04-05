@@ -116,8 +116,8 @@
                                         <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' data-href="{% url 'workshop_exit_edit' item.id  %}">
                                             <i class='tf-icons bx bx-edit'></i>
                                         </button>
-                                        <button title="sil" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'workshop_exit_delete' item.id %}">
-                                                <i class='tf-icons bx bx-trash'></i>
+                                        <button title="geri al" class='btn btn-icon btn-outline-danger delete btn-flat' data-href="{% url 'workshop_exit_delete' item.id %}">
+                                                <i class='tf-icons bx bx-undo'></i>
                                         </button>
                                     </td>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>

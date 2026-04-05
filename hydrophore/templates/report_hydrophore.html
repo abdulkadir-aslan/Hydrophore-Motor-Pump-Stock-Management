@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">Raporlar /</span> Hidrofor Raporlama
+</h4>
+
+<!-- SEARCH -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row align-items-end">
+                <div class="col-md-4 position-relative">
+                    <label class="form-label">Hidrofor Numarası</label>
+                    <input type="text" id="search" class="form-control"
+                           name="number" autocomplete="off"
+                           placeholder="Seri numarası giriniz..." required>
+
+                    <!-- AJAX -->
+                    <ul id="results" class="list-group position-absolute w-100"></ul>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-dark w-100">
+                        Ara
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if hydrophore %}
+
+<!-- HEADER -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light d-flex justify-content-between">
+        <span class="fw-semibold">Hidrofor Bilgisi</span>
+
+        {% comment %} <div>
+            <a href="{% url 'export_pdf' hydrophore.serial_number %}" class="btn btn-sm btn-outline-secondary">PDF</a>
+            <a href="{% url 'export_excel' hydrophore.serial_number %}" class="btn btn-sm btn-outline-secondary">Excel</a>
+        </div> {% endcomment %}
+    </div>
+
+    <div class="card-body small">
+        <div class="row">
+            <div class="col-md-4"><strong>Seri No:</strong> {{ hydrophore.serial_number }}</div>
+            <div class="col-md-4"><strong>Motor:</strong> {{ hydrophore.engine_power }} KW</div>
+            <div class="col-md-4"><strong>Pompa:</strong> {{ hydrophore.pump_type }}</div>
+            <div class="col-md-4 mt-2"><strong>Lokasyon:</strong> {{ hydrophore.get_location_display }}</div>
+            <div class="col-md-4 mt-2"><strong>İlçe:</strong> {{ hydrophore.get_district_display }}</div>
+            <div class="col-md-4 mt-2"><strong>Mahalle:</strong> {{ hydrophore.neighborhood }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- TEK TABLO AKIŞ -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">
+        Süreç Akışı
+    </div>
+
+    <div class="card-body table-responsive">
+
+        <table class="table table-bordered table-sm align-middle table-clean">
+            <thead>
+                <tr>
+                    <th>Çıkış Fiş</th>
+                    <th>Tarih</th>
+
+                    <th>Atölye Fiş</th>
+                    <th>Tarih</th>
+
+                    <th>Tamir Fiş</th>
+                    <th>Tarih</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for r in rows %}
+                <tr>
+
+                    <!-- OUTBOUND -->
+                    <td>
+                        {% if r.outbound_no %}
+                            {{ r.outbound_no }}
+                        {% else %}
+                            <span class="text-muted">Bilinmeyen sahadan geldi</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.outbound_date|default:"-" }}</td>
+
+                    <!-- WORKSHOP -->
+                    <td>
+                        {% if r.workshop_status == "Montaj Yapıldı" %}
+                            <span class="status-dot status-green"></span>
+                            <span class="text-success fw-semibold">Montaj Yapıldı</span>
+
+                        {% elif r.workshop_status %}
+                            <span class="text-muted">{{ r.workshop_status }}</span>
+
+                        {% else %}
+                            {{ r.workshop_no|default:"-" }}
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if r.workshop_status %}
+                            -
+                        {% else %}
+                            {{ r.workshop_date|default:"-" }}
+                        {% endif %}
+                    </td>
+
+                    <!-- REPAIR -->
+                    <td>
+                        {% if r.repair_status %}
+                            <span class="text-muted">{{ r.repair_status }}</span>
+                        {% else %}
+                            {{ r.repair_no|default:"-" }}
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if r.repair_status %}
+                            -
+                        {% else %}
+                            {{ r.repair_date|default:"-" }}
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        Kayıt bulunamadı
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+{% endif %}
+
+<!-- STYLE -->
+<style>
+/* STATUS DOT */
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* YEŞİL LED */
+.status-green {
+    background-color: #28a745;
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+}
+.table-clean th {
+    background: #f8f9fa;
+    font-size: 13px;
+}
+.table-clean td {
+    font-size: 13px;
+}
+
+/* hover çok hafif */
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+<!-- AJAX -->
+<script>
+document.getElementById("search").addEventListener("keyup", function() {
+    let query = this.value;
+
+    if (query.length < 2) return;
+
+    fetch(`/search/?q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+            let results = document.getElementById("results");
+            results.innerHTML = "";
+
+            data.forEach(item => {
+                results.innerHTML += `
+                    <li class="list-group-item list-group-item-action"
+                        onclick="selectItem('${item.serial_number}')">
+                        ${item.serial_number}
+                    </li>
+                `;
+            });
+        });
+});
+
+function selectItem(value) {
+    document.getElementById("search").value = value;
+    document.getElementById("results").innerHTML = "";
+}
+</script>
+
+{% endblock %}

@@ -44,6 +44,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th></th>
                                 <th>Hidofor No </th>
                                 <th>Atölye Ç. No</th>
                                 <th>Tamirden G. Fiş No</th>
@@ -55,6 +56,11 @@
                             {% for item in items %}
                                 <tr>
                                     <td scope="row">{{ items.start_index|add:forloop.counter0 }}</td>
+                                    <td>
+                                        <button title="geri al" class='btn btn-icon btn-outline-danger restore btn-flat' data-href="{% url 'go_back_repair_return' item.id %}">
+                                            <i class='tf-icons bx bx-undo'></i>
+                                        </button>
+                                    </td>
                                     <td>{{ item.hydrophore }}</td>
                                     <td>{{ item.workshop_exit.workshop_dispatch_slip_number }}</td>
                                     <td>{{ item.repair_return_slip_number }}</td>
@@ -134,7 +140,16 @@
         </div>
     </div>
 </div>
-
+<script>
+      document.querySelectorAll('.restore').forEach(button => {
+      button.addEventListener('click', function() {
+          const deleteUrl = button.getAttribute('data-href');
+            if (confirm("Bu kaydı geri almak istediğinizden emin misiniz?")) {
+              window.location.href = deleteUrl;  
+          }
+      });
+  });
+</script>
 {% endblock content %}
 
 

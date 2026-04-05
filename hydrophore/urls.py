@@ -36,7 +36,8 @@ urlpatterns = [
     path("tamir_cikis_sil/<int:id>/", workshop_exit_delete, name="workshop_exit_delete"),
     path("tamir_cikis_duzenle/<int:pk>/", workshop_exit_edit, name="workshop_exit_edit"),
     path("tum_tamir_cikis/", all_workshop_exit, name="all_workshop_exit"),
-
+    path("tamirden_gelen_geri_al/<int:pk>/", go_back_repair_return, name="go_back_repair_return"),
+    
     # Atölye Tamir Çıkış İş Emri
     path("tamir_gelen/", repair_return, name="repair_return"),
     path("tamir_gelen_sil/<int:id>/", repair_return_delete, name="repair_return_delete"),
@@ -51,4 +52,7 @@ urlpatterns = [
     path("elektrik_depo/", electrical_stock, name="electrical_stock"),
     path("yeni_depo/", new_stock, name="new_stock"),
     path("hurda_depo/", scrap_stock, name="scrap_stock"),
+    
+    #Rapor
+    path("hidrofor_raporlama/", hydrophore_report, name="report_hydrophore"),
 ]

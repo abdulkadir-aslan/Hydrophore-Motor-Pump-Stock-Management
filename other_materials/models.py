@@ -56,7 +56,7 @@ class CategoryStockOut(models.Model):
     )
     created_at = models.DateTimeField(
         verbose_name="Oluşturulma Tarihi",
-        auto_now_add=True
+        blank=True, null=True
     )
 
     class Meta:

@@ -228,12 +228,11 @@
                                         data-pump="{{ item.mounted_pump.pump_type|default:item.inventory.pump.pump_type }}"
                                         data-pump-brand="{{ item.mounted_pump.pump_mark|default:item.inventory.pump.pump_mark }}"
 
-                                        data-date="{{ item.created_at|date:'d.m.Y' }}"
                                         {% endif %}
                                         >
                                             E{{ item.work_order_plug }}
                                         </a>
-</td>                               </td>
+                                    </td>
                                     <td>{{ item.inventory.district|upper }}</td>
                                     <td>{{item.inventory.address}}</td>
                                     <td><span class="badge bg-label-success me-1">{{item.get_situation_display}}</span></td>
@@ -338,14 +337,22 @@ document.querySelectorAll('.copy-order').forEach(el => {
 *MOTOR SERİ NO:* ${this.dataset.motorSerial}
 *POMPA:* ${this.dataset.pump}
 *POMPA MARKASI:* ${this.dataset.pumpBrand}
-*TARİH:* ${this.dataset.date}`;
+*MONTAJ YAPAN:* 
+*TARİH:* `;
+// fallback kopyalama
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
 
-        navigator.clipboard.writeText(text).then(() => {
+        try {
+            document.execCommand("copy");
             alert("Bilgiler kopyalandı ✅");
-        }).catch(() => {
+        } catch (err) {
             alert("Kopyalama başarısız ❌");
-        });
+        }
 
+        document.body.removeChild(textarea);
     });
 });
 

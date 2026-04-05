@@ -3,6 +3,7 @@ from django.forms import ModelForm
 from .models import CategoryStock,Category,CategoryStockOut
 from django.db import transaction
 from django.db.models import F
+from django.utils import timezone
 
 class CategoryForm(ModelForm):
     class Meta:
@@ -78,7 +79,8 @@ class CategoryStockOutForm(forms.ModelForm):
             'district',
             'address',
             'stock',
-            'quantity'
+            'quantity',
+            'created_at'
         ]
         widgets = {
             'outlet_plug': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -87,7 +89,20 @@ class CategoryStockOutForm(forms.ModelForm):
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'stock': forms.Select(attrs={'class': 'form-select select2'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            "created_at": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "required": "required",
+                },
+                format='%Y-%m-%d'
+            ),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            if not self.instance.pk or not self.instance.created_at:
+                self.initial["created_at"] = timezone.now().date()
 
     def clean(self):
         cleaned_data = super().clean()

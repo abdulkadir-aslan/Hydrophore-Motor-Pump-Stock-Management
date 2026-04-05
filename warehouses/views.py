@@ -787,7 +787,7 @@ def new_warehouse_engine(request):
 @admin
 def export_engine(request):
     # queryset ve filtreleme
-    engine_list = Engine.objects.select_related('engine_power', 'engine_mark').all()
+    engine_list = Engine.objects.filter(location="5").select_related('engine_power', 'engine_mark').all()
 
     engine_filter = GeneralEngineFilter(request.GET, queryset=engine_list)
     filtered_engine_list = engine_filter.qs

@@ -174,7 +174,7 @@ def repair_return_slip_notification(sender, instance, created, **kwargs):
         message = (
             f"2️⃣🛠️ ({str(instance.hydrophore)}) hidroforu tamirden geldi. "
             f"*{instance.hydrophore.get_location_display()}* depoya aktarıldı."
-            f"* {str(instance.repair_return_slip_number)} * Tamirden gelen fişi oluşturuldu."
+            f"*TG{str(instance.repair_return_slip_number)} * Tamirden gelen fişi oluşturuldu."
         )
         if user.authorization == "2":
             Notification.objects.create(
@@ -197,14 +197,12 @@ def store_old_workshop_dispatch(sender, instance, **kwargs):
 def create_workshop_exit_notification(sender, instance, created, **kwargs):
     old_value = getattr(instance, "_old_dispatch_slip_number", None)
 
-    # 🔥 kritik şart:
-    # önce yoktu → şimdi var
     if old_value is None and instance.workshop_dispatch_slip_number:
         user = get_current_user()
 
         message = (
             f"2️⃣🛠️ ({str(instance.hydrophore)}) hidroforu tamire gönderildi "
-            f"* {str(instance.workshop_dispatch_slip_number)} * Atölye çıkış fişi oluşturuldu."
+            f"* AG{str(instance.workshop_dispatch_slip_number)} * Atölye çıkış fişi oluşturuldu."
         )
         if user.authorization == "2":
             Notification.objects.create(
@@ -227,8 +225,6 @@ def store_old_dispatch_slip(sender, instance, **kwargs):
 def create_dispatch_notification(sender, instance, created, **kwargs):
     old_value = getattr(instance, "_old_dispatch_slip_number", None)
 
-    # 🔥 kritik şart:
-    # önce yoktu → şimdi var
     if old_value is None and instance.dispatch_slip_number:
         user = get_current_user()
 
@@ -236,7 +232,7 @@ def create_dispatch_notification(sender, instance, created, **kwargs):
             f"2️⃣({str(instance.mounted_hydrophore)}) hidroforu "
             f"{instance.get_district_display()} ilçesi "
             f"{instance.neighborhood} mahallesine "
-            f"* {str(instance.dispatch_slip_number)} * çıkış fişi oluşturuldu."
+            f"* C{str(instance.dispatch_slip_number)} * çıkış fişi oluşturuldu."
         )
 
         if user.authorization == "2":
