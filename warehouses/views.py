@@ -247,7 +247,7 @@ def pump_homepage(request):
 
     context = {
         'well': Inventory.objects.filter(pump__isnull=False).count(),
-        'repair': Repair.objects.filter(pump__isnull=False).count(),
+        'repair': Repair.objects.filter(pump__isnull=False,status="active").count(),
         'secondhand': Seconhand.objects.filter(pump__isnull=False).count(),
         'unusable': Unusable.objects.filter(pump__isnull=False).count(),
         'new': NewWarehousePump.objects.aggregate(total=Sum('quantity'))['total'] or 0,
