@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h4 class="fw-bold py-3 mb-4">
+    <span class="text-muted fw-light">Raporlar /</span> Motor Seri No Raporlama
+</h4>
+
+<!-- SEARCH -->
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row align-items-end">
+                <div class="col-md-4 position-relative">
+                    <label class="form-label">Motor Seri Numarası</label>
+                    <input type="text" id="search" class="form-control"
+                           name="serialnumber" autocomplete="off"
+                           placeholder="Seri numarası giriniz..." required>
+
+
+                <ul id="results" class="list-group position-absolute w-100"></ul>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100">
+                    Ara
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+</div>
+
+{% if engine %}
+
+<!-- ENGINE -->
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">
+        Motor Bilgisi
+    </div>
+
+
+<div class="card-body small">
+    <div class="row">
+        <div class="col-md-4"><strong>Seri No:</strong> {{ engine.serialnumber }}</div>
+        <div class="col-md-4"><strong>Marka:</strong> {{ engine.engine_mark }}</div>
+        <div class="col-md-4"><strong>Güç:</strong> {{ engine.engine_power }} HP</div>
+        <div class="col-md-4 mt-2"><strong>Tip:</strong> {{ engine.get_engine_type_display }}</div>
+        <div class="col-md-4 mt-2"><strong>Lokasyon:</strong> {{ engine.get_location_display }}</div>
+    </div>
+</div>
+
+
+</div>
+
+<!-- INVENTORY -->
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">
+        {% if inventory %}
+            {% if engine.location == "1" %}
+                <span class="status-dot status-green"></span>
+            {% endif %}
+            <span class="status-dot status-green"></span>
+        {% endif %}
+        Kuyu
+    </div>
+
+
+<div class="card-body small">
+    {% if inventory %}
+        <p><strong>Kuyu No:</strong> {{ inventory.well_number }}</p>
+        <p><strong>İlçe:</strong> {{ inventory.get_district_display }}</p>
+        <p><strong>Adres:</strong> {{ inventory.address }}</p>
+    {% else %}
+        <p class="text-muted">Kayıt bulunamadı</p>
+    {% endif %}
+</div>
+
+
+</div>
+
+<!-- SECONDHAND -->
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">
+        {% if secondhand %}
+            {% if engine.location == "3" %}
+                <span class="status-dot status-green"></span>
+            {% endif %}
+            <span class="status-dot status-green"></span>
+        {% endif %}
+        2. El Depo
+    </div>
+
+
+<div class="card-body small">
+    {% if secondhand %}
+        <p><strong>Kod:</strong> {{ secondhand.row_identifier }}</p>
+        <p><strong>Tarih:</strong> {{ secondhand.created_at }}</p>
+    {% else %}
+        <p class="text-muted">Kayıt yok</p>
+    {% endif %}
+</div>
+
+
+</div>
+
+<!-- UNUSABLE -->
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">
+        {% if unusable %}
+            {% if engine.location == "4" %}
+                <span class="status-dot status-green"></span>
+            {% endif %}
+            <span class="status-dot status-green"></span>
+        {% endif %}
+        Pert Depo
+    </div>
+
+
+<div class="card-body small">
+    {% if unusable %}
+        <p><strong>Kuyu:</strong> {{ unusable.well_number }}</p>
+        <p><strong>Tarih:</strong> {{ unusable.created_at }}</p>
+    {% else %}
+        <p class="text-muted">Kayıt yok</p>
+    {% endif %}
+</div>
+
+
+</div>
+
+{% endif %}
+
+<!-- STYLE -->
+
+<style>
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.status-green {
+    background-color: #28a745;
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+}
+</style>
+
+<!-- AJAX -->
+
+<script>
+document.getElementById("search").addEventListener("keyup", function() {
+    let query = this.value;
+
+    if (query.length < 2) return;
+
+    fetch(`/search/?q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+            let results = document.getElementById("results");
+            results.innerHTML = "";
+
+            data.forEach(item => {
+                results.innerHTML += `
+                    <li class="list-group-item list-group-item-action"
+                        onclick="selectItem('${item.serialnumber}')">
+                        ${item.serialnumber}
+                    </li>
+                `;
+            });
+        });
+});
+
+function selectItem(value) {
+    document.getElementById("search").value = value;
+    document.getElementById("results").innerHTML = "";
+}
+</script>
+
+{% endblock %}

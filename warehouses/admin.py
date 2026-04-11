@@ -24,7 +24,7 @@ class EngineAdmin(admin.ModelAdmin):
 class InventoryAdmin(admin.ModelAdmin):
     list_display = ( 'well_number','get_district_display','address','engine','pump')
     list_filter = ( 'engine__location',)
-    search_fields = ( 'engine',)
+    search_fields = ( 'engine__serialnumber','well_number')
     
 admin.site.register(Pump)
 admin.site.register(Inventory,InventoryAdmin)

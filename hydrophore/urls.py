@@ -54,5 +54,5 @@ urlpatterns = [
     path("hurda_depo/", scrap_stock, name="scrap_stock"),
     
     #Rapor
-    path("hidrofor_raporlama/", hydrophore_report, name="report_hydrophore"),
+    path("hidrofor_raporlama/", hydrophore_report, name="hydrophore_report"),
 ]

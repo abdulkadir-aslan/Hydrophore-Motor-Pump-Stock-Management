@@ -188,10 +188,34 @@ def store_old_workshop_dispatch(sender, instance, **kwargs):
         try:
             old_instance = WorkshopExit.objects.get(pk=instance.pk)
             instance._old_workshop_dispatch_slip_number = old_instance.workshop_dispatch_slip_number
+            instance._old_hydrophore = old_instance.hydrophore
         except WorkshopExit.DoesNotExist:
+            instance._old_hydrophore = None
             instance._old_workshop_dispatch_slip_number = None
     else:
+        instance._old_hydrophore = None
         instance._old_workshop_dispatch_slip_number = None
+
+@receiver(post_save, sender=WorkshopExit)
+def create_dispatch_notification(sender, instance, created, **kwargs):
+    old_value = getattr(instance, "_old_hydrophore", None)
+
+    if old_value is None and instance.hydrophore:
+        user = get_current_user()
+
+        message = (
+            f"2️⃣({str(instance.hydrophore)}) hidroforu "
+            f"{instance.get_district_display()} ilçesi "
+            f"{instance.neighborhood} mahallesinden "
+            f"*{instance.outbound_work_order.district_personnel if instance.outbound_work_order else 'bilinmeyen'}* tarafından "
+            f"Atölye'ye getirildi."
+        )
+
+        if user.authorization == "2":
+            Notification.objects.create(
+                user=user,
+                message=message
+            )
 
 @receiver(post_save, sender=WorkshopExit)
 def create_workshop_exit_notification(sender, instance, created, **kwargs):

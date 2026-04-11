@@ -17,6 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .then(response => response.json())
     .then(data => {
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+        return; // devam etmesini engelle
+      }
+      
       modalElement.querySelector(".modal-content").innerHTML = data.html_form;
       modal.show();
     })

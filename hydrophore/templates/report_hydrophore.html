@@ -70,6 +70,8 @@
             <thead>
                 <tr>
                     <th>Çıkış Fiş</th>
+                    <th>İlçe</th>
+                    <th>Adres</th>
                     <th>Tarih</th>
 
                     <th>Atölye Fiş</th>
@@ -82,16 +84,17 @@
 
             <tbody>
                 {% for r in rows %}
-                <tr>
-
+                <tr {% if r.workshop_status == "Atölyede Tamir Bekliyor" or r.repair_status == "Tamir Ediliyor" %} class="table-success"{% endif %}>
                     <!-- OUTBOUND -->
                     <td>
                         {% if r.outbound_no %}
                             {{ r.outbound_no }}
                         {% else %}
-                            <span class="text-muted">Bilinmeyen sahadan geldi</span>
+                            Bilinmeyen sahadan geldi
                         {% endif %}
                     </td>
+                    <td>{{ r.outbound_district|default:"-" }}</td>
+                    <td>{{ r.outbound_neighborhood|default:"-" }}</td>
                     <td>{{ r.outbound_date|default:"-" }}</td>
 
                     <!-- WORKSHOP -->
@@ -101,7 +104,7 @@
                             <span class="text-success fw-semibold">Montaj Yapıldı</span>
 
                         {% elif r.workshop_status %}
-                            <span class="text-muted">{{ r.workshop_status }}</span>
+                            {{ r.workshop_status }}
 
                         {% else %}
                             {{ r.workshop_no|default:"-" }}
@@ -119,7 +122,7 @@
                     <!-- REPAIR -->
                     <td>
                         {% if r.repair_status %}
-                            <span class="text-muted">{{ r.repair_status }}</span>
+                            {{ r.repair_status }}
                         {% else %}
                             {{ r.repair_no|default:"-" }}
                         {% endif %}

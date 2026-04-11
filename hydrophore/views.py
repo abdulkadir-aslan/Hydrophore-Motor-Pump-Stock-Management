@@ -518,7 +518,10 @@ def workshop_exit_edit(request, pk):
 @administrator
 def workshop_exit_delete(request, id):
     instance = get_object_or_404(WorkshopExit, id=id)
-    
+    # Eğer iş emri YOKSA
+    if not instance.outbound_work_order:
+        messages.warning(request,f"Bu hidrofor yeni kayıt olarak eklendiğinden dolayı geri alınamamaktadır. .")
+        return redirect('workshop_exit')
     try:
         instance.delete()
         messages.success(
@@ -852,9 +855,7 @@ def scrap_stock(request):
     return render(request, "warehouse/scrap_stock.html",contex)
 
 ######## Rapor ###########################
-from django.shortcuts import render
-from .models import Hydrophore, OutboundWorkOrder, WorkshopExit, RepairReturn
-
+@admin
 def hydrophore_report(request):
     context = {}
 
@@ -888,7 +889,9 @@ def hydrophore_report(request):
                     ).first()
 
                 row = {
-                    "outbound_no": o.dispatch_slip_number,
+                    "outbound_no": o.dispatch_slip_number ,
+                    "outbound_district" : o.get_district_display(),
+                    "outbound_neighborhood" : o.neighborhood,
                     "outbound_date": o.dispatch_date,
 
                     "workshop_no": None,
@@ -937,6 +940,8 @@ def hydrophore_report(request):
 
                 row = {
                     "outbound_no": None,
+                    "outbound_district" : None,
+                    "outbound_neighborhood" : None,
                     "outbound_date": None,
 
                     "workshop_no": None,
@@ -958,7 +963,7 @@ def hydrophore_report(request):
                 # 🔸 REPAIR
                 if repair:
                     if repair.status == "active":
-                        row["repair_status"] = "Tamir Sürecinde"
+                        row["repair_status"] = "Tamir Ediliyor"
                     else:
                         row["repair_no"] = repair.repair_return_slip_number
                         row["repair_date"] = repair.repair_return_date

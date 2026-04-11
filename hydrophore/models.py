@@ -256,10 +256,6 @@ class WorkshopExit(models.Model):
     def delete(self, using=None, keep_parents=False):
         with transaction.atomic():
 
-            # Eğer iş emri YOKSA
-            if not self.outbound_work_order:
-                raise ValueError(f"Bu hidrofor yeni kayıt olarak eklendiğinden dolayı geri alınamamaktadır. .")
-
             # İş emri VARSA normal akış
             order = self.outbound_work_order
 

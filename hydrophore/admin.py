@@ -9,17 +9,17 @@ class HydrophoreAdmin(admin.ModelAdmin):
 class WorkshopExitAdmin(admin.ModelAdmin):
     list_display = ('hydrophore','district','neighborhood','outbound_work_order','workshop_dispatch_slip_number','workshop_dispatch_date','created_at','status')
     list_filter = ( 'status',)
-    search_fields = ( 'outbound_work_order','workshop_dispatch_slip_number')
+    search_fields = ( 'hydrophore__serial_number','workshop_dispatch_slip_number')
     
 class RepairReturnAdmin(admin.ModelAdmin):
     list_display = ('hydrophore','workshop_exit','repair_return_slip_number','repair_return_date','status','created_at')
     list_filter = ( 'status',)
-    search_fields = ( 'hydrophore','repair_return_slip_number')
+    search_fields = ( 'hydrophore__serial_number','repair_return_slip_number')
     
 class OutboundWorkOrderAdmin(admin.ModelAdmin):
     list_display = ('disassembled_hydrophore','mounted_hydrophore','disassembled_date','district','neighborhood','dispatch_slip_number','dispatch_date','district_personnel','created_at','status','updated_at')
     list_filter = ( 'status',)
-    search_fields = ( 'disassembled_hydrophore','mounted_hydrophore','dispatch_slip_number')
+    search_fields = ( 'disassembled_hydrophore__serial_number','mounted_hydrophore__serial_number','dispatch_slip_number')
 
 admin.site.register(Hydrophore,HydrophoreAdmin)
 admin.site.register(Power)

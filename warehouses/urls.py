@@ -76,12 +76,13 @@ urlpatterns = [
     path("kapanan_tum_is_emiri_düzenle/<int:id>/", workshop_exit_slip_edit, name="workshop_exit_slip_edit"),
     path("kapanan_tum_is_emiri_sil/<int:id>/", workshop_exit_slip_delete, name="workshop_exit_slip_delete"),
     path("export-workshop-exit-slips/", export_workshop_exit_slips, name="export_workshop_exit_slips"),
-    # Raporlama
-    path("is_emiri_raporlama/", work_order_reporting, name="work_order_reporting"),
     #Borç durumu
     path("borç_durumu/", debt_situation, name="debt_situation"),
     path("yeni_borç_durumu/<int:id>/", new_debt_situation, name="new_debt_situation"),
     path("yeni_borç_durumu_sil/<int:id>/", delete_debt_situation, name="delete_debt_situation"),
     path("borç_durumu_aktarma/<int:id>/", transfer_debt_situation, name="transfer_debt_situation"),
-
+    # Raporlama
+    path("is_emiri_raporlama/", work_order_reporting, name="work_order_reporting"),
+     path("motor_raporlama/", engine_report, name="engine_report"),
+    
 ]

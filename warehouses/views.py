@@ -1140,9 +1140,33 @@ def order_edit(request, pk):#*
         data['html_form'] = render_to_string('modal/disassembly.html', context, request=request)
 
     elif order.operation_type == "2":
+        # Sadece düzenlenen iş emri operation_type = "2" ise kontrol yapılacak
+        active_orders = Order.objects.filter(
+            status="active",
+            inventory=order.inventory
+        ).order_by("work_order_plug")
+
+        # Eğer düzenlenen iş emri en küçük numara değilse
+        if order in active_orders:
+            # Zincirleme kontrol: önceki ve sonraki iş emirlerini sırayla kontrol et
+            for i, other_order in enumerate(active_orders):
+                if other_order == order:
+                    continue  # kendisi atla
+                if (
+                    (other_order.situation == "dismantling" and other_order.operation_type in ["1","2"])
+                    or
+                    (other_order.situation == "installation" and other_order.operation_type in ["5","1","6","2"])
+                ):
+                    # Önceki iş emri kontrolü
+                    if other_order.work_order_plug < order.work_order_plug :
+                        messages.warning(request, f"Önceki iş emri (E{other_order.work_order_plug}) tamamlanmadan bu iş emrini devam ettiremezsiniz.")
+                        data['redirect_url'] = reverse('order_page')
+                        return JsonResponse(data)
+                    
         data['html_form'] = render_to_string('modal/workshop.html', context, request=request)
 
     elif order.operation_type == "3":
+        # data['redirect_url'] = reverse('order_page')
         form = OrderEditForm()
         context['form'] = form
         data['html_form'] = render_to_string('modal/disassembly.html', context, request=request)
@@ -1220,7 +1244,29 @@ def order_go_back(request, pk):#*
         return redirect("seconhand_order_go_back",id=order.id)
     elif order.operation_type == "6" and ( order.situation == "dismantling" or order.situation == "new_well" ) :
         return redirect("seconhand_order_go_back",id=order.id)
-        
+    
+    if order.operation_type == "3":
+        # Aynı inventory için aktif iş emirlerini sırala, **büyükten küçüğe**
+        active_orders =Order.objects.filter(
+            status="active",
+            inventory=order.inventory
+        )
+        if order in active_orders:
+            for i, other_order in enumerate(active_orders):
+                if other_order == order:
+                    continue  # kendisi atla
+
+                if (
+                    (other_order.situation == "dismantling" and other_order.operation_type in ["3","4","5","6"])
+                    or
+                    (other_order.situation == "installation" and other_order.operation_type in ["3","4"])
+                ):
+                    if other_order.work_order_plug > order.work_order_plug:
+                        messages.warning(
+                            request,
+                            f"Daha büyük iş emri (E{other_order.work_order_plug}) geri alınmadan bu iş emrini geri alamazsınız."
+                        )
+                        return redirect("order_page")
     success, message = order.go_back()
     if success:
         messages.success(request, message)
@@ -1674,3 +1720,33 @@ def transfer_debt_situation(request, id):
             )
 
     return redirect("transactions", id=debt.inventory.id, debt_id=debt.id)
+
+######## Rapor ###########################
+@admin
+def engine_report(request):
+    context = {}
+
+    if request.method == "POST":
+        serial = request.POST.get("serialnumber").upper()
+
+        if serial:
+            engine = Engine.objects.filter(serialnumber=serial).first()
+            if engine:
+            # Inventory (1-1 constraint var zaten)
+                inventory = Inventory.objects.filter(engine=engine).first()
+
+                # 2.El depo
+                secondhand = Seconhand.objects.filter(engine=engine).first()
+
+                # Pert depo
+                unusable = Unusable.objects.filter(engine=engine).first()
+
+                context = {
+                    "engine": engine,
+                    "inventory": inventory,
+                    "secondhand": secondhand,
+                    "unusable": unusable,
+                }
+            else:
+                messages.warning(request,"Seri numarası bulunmadı.")
+    return render(request, "engine_report.html", context)
