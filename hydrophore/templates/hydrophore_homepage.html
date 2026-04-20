@@ -20,34 +20,178 @@
               <a class="nav-link "  href="{% url 'district_field_personnel' %}"><i class="bx bx-add-to-queue me-1"></i> Yeni Personel</a>
             </li>
         </ul> 
-        <!--=== Filtreleme === -->
         <div class="card mb-4">
-            <div class="card-body">
+            <div class="card-body row">
+
+                <!-- SOL KART -->
+                <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
+                <div class="card h-100">
+
+                    <div class="card-header d-flex align-items-center justify-content-between pb-0">
+                    <div class="card-title mb-0">
+                        <h5 class="m-0 me-2">Toplam Hidrofor Stoğu</h5>
+                        <br>
+                    </div>
+                    </div>
+
+                    <div class="card-body">
+
+                    <!-- TOPLAM -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex flex-column align-items-center gap-1">
+                        <h2 class="mb-2">{{ total }}</h2>
+                        <span>Toplam Hidrofor</span>
+                        </div>
+                    </div>
+
+                    <!-- LİSTE -->
+                    <ul class="p-0 m-0">
+
+                        <!-- ATÖLYE -->
+                        <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-primary">
+                            <i class="bx bx-wrench"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                            <h6 class="mb-0">Atölyede</h6>
+                            <small class="text-muted">Atölyede Bulunan Hidroforlar</small>
+                            </div>
+                            <small class="fw-semibold">{{ atolye }}</small>
+                        </div>
+                        </li>
+
+                        <!-- TAMİR BEKLEYEN -->
+                        <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-warning">
+                            <i class="bx bx-time"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                            <h6 class="mb-0">Tamir Bekleyen</h6>
+                            <small class="text-muted">Atölyede Tamir Bekleyen Hidroforlar</small>
+                            </div>
+                            <small class="fw-semibold">{{ bekleyen }}</small>
+                        </div>
+                        </li>
+
+                        <!-- ELEKTRİKÇİ -->
+                        <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-secondary">
+                            <i class="bx bx-bolt"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                            <h6 class="mb-0">Elektrikçi</h6>
+                            <small class="text-muted">Elektrikçide Olan Hidroforlar</small>
+                            </div>
+                            <small class="fw-semibold">{{ elektrikci }}</small>
+                        </div>
+                        </li>
+
+                        <!-- KUYU -->
+                        <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-primary">
+                            <i class="bx bx-water"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                            <h6 class="mb-0">Kuyu</h6>
+                            <small class="text-muted">Kuyuda Bulunan Hidroforlar</small>
+                            </div>
+                            <small class="fw-semibold">{{ kuyu }}</small>
+                        </div>
+                        </li>
+
+                        <!-- TAMİR -->
+                        <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-info">
+                            <i class="bx bx-cog"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                            <h6 class="mb-0">Tamirde</h6>
+                            <small class="text-muted">Aktif Tamirde Olan Hidroforlar</small>
+                            </div>
+                            <small class="fw-semibold">{{ tamir }}</small>
+                        </div>
+                        </li>
+
+                        <!-- SIFIR -->
+                        <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-success">
+                            <i class="bx bx-package"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                            <h6 class="mb-0">Sıfır Depo</h6>
+                            <small class="text-muted">Yeni Hidroforlar</small>
+                            </div>
+                            <small class="fw-semibold">{{ sifir }}</small>
+                        </div>
+                        </li>
+
+                        <!-- PERT -->
+                        <li class="d-flex">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-danger">
+                            <i class="bx bx-x-circle"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                            <h6 class="mb-0">Pert</h6>
+                            <small class="text-muted">Kullanılamaz Hidroforlar</small>
+                            </div>
+                            <small class="fw-semibold">{{ pert }}</small>
+                        </div>
+                        </li>
+
+                    </ul>
+                    </div>
+                </div>
+                </div>
+
+                <!-- FİLTRE -->
+                <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
                 <form method="get" class="row g-2">
-                    <div class="col-md-3">
-                        {{ filter.form.serial_number.label_tag }}
-                        {{ filter.form.serial_number }}
+
+                    {{ filter.form.serial_number.label_tag }}
+                    {{ filter.form.serial_number }}
+
+                    {{ filter.form.district.label_tag }}
+                    {{ filter.form.district }}
+
+                    {{ filter.form.neighborhood.label_tag }}
+                    {{ filter.form.neighborhood }}
+
+                    {{ filter.form.location.label_tag }}
+                    {{ filter.form.location }}
+
+                    <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Filtrele
+                    </button>
                     </div>
-                    <div class="col-md-3">
-                        {{ filter.form.district.label_tag }}
-                        {{ filter.form.district }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ filter.form.neighborhood.label_tag }}
-                        {{ filter.form.neighborhood }}
-                    </div>
-                    <div class="col-md-2">
-                        {{ filter.form.location.label_tag }}
-                        {{ filter.form.location }}
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            Filtrele
-                        </button>
-                    </div>
+
                 </form>
+                </div>
+
             </div>
         </div>
+
       <div class="card">
         <div class="table-responsive text-nowrap">
           <div class="container">

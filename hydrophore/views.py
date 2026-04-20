@@ -8,6 +8,7 @@ from django.db.utils import IntegrityError
 from django.http import JsonResponse,HttpResponse
 from openpyxl import Workbook
 from account.decorators import administrator,admin
+from django.db.models import Count
 
 @admin
 def pump_type(request):
@@ -78,13 +79,30 @@ def hydrophore_homepage(request):
     
     page_obj = paginate_items(request, filtered_qs)
 
-    contex = {
+    # Tek sorguda tüm sayımları al
+    location_counts = (
+        Hydrophore.objects.values('location')
+        .annotate(count=Count('id'))
+        .order_by('location')
+    )
+    counts_dict = {str(item['location']): item['count'] for item in location_counts}
+
+    context = {
         'filter': hydrophore_filter,
-        'total': filtered_qs.count(),  
-        'items': page_obj, 
+        'total': filtered_qs.count(),
+        'items': page_obj,
         'query_string': request.GET.urlencode(),
+
+        # LOCATION bazlı sayımlar
+        'atolye': counts_dict.get("1", 0),
+        'bekleyen': counts_dict.get("2", 0),
+        'elektrikci': counts_dict.get("3", 0),
+        'kuyu': counts_dict.get("4", 0),
+        'tamir': counts_dict.get("5", 0),
+        'sifir': counts_dict.get("6", 0),
+        'pert': counts_dict.get("7", 0),
     }
-    return render(request, "hydrophore_homepage.html",contex)
+    return render(request, "hydrophore_homepage.html",context)
 
 @administrator
 def hydrophore_delete(request, id):
