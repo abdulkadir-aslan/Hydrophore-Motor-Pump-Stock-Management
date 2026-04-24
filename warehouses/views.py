@@ -146,7 +146,7 @@ def engine_homepage(request):
 
     context = {
         'well': location_dict.get("1", 0),
-        'repair': Repair.objects.filter(engine__location= "2").count(),
+        'repair': Repair.objects.filter(engine__location= "2",status="active").count(),
         'secondhand': location_dict.get("3", 0),
         'unusable': location_dict.get("4", 0),
         'new': location_dict.get("5", 0),
@@ -1466,7 +1466,10 @@ def create_workshop_exit_slip(modalname, modal):
     return
 
 def workshop_exit_slip(request):
-    order_list = WorkshopExitSlip.objects.all()
+    order_list = WorkshopExitSlip.objects.filter(slip_no__regex=r'^\d+$')
+    order_list  = order_list.annotate(
+        slip_no_int=Cast('slip_no', IntegerField())
+    ).order_by('-slip_no_int')
     
     order_filter = WorkshopExitSlipFilter(request.GET, queryset=order_list)
     filtered_order_list = order_filter.qs
