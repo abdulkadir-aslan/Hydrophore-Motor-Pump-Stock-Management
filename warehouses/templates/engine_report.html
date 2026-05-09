@@ -134,10 +134,90 @@
         <p class="text-muted">Kayıt yok</p>
     {% endif %}
 </div>
-
-
 </div>
 
+{% if orders %}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">
+        İş Emirleri
+    </div>
+
+    <div class="card-body p-0">
+        <div class="container">
+            <table class="table table-hover table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>İş Emri</th>
+                        <th>Kuyu No</th>
+                        <th>Durum</th>
+                        <th>İşlem</th>
+                        <th>Montaj Motoru</th>
+                        <th>Demontaj Motoru</th>
+                        <th>Tarih</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>
+                            {{ order.work_order_plug }}
+                        </td>
+
+                        <td>
+                            {{ order.inventory }}
+                        </td>
+
+                        <td>
+                            {{ order.get_operation_type_display }}
+                        </td>
+
+                        <td>
+                            {{ order.get_situation_display }}
+                        </td>
+
+                        <td>
+                            {% if order.mounted_engine %}
+                                {% if order.mounted_engine == engine %}
+                                    <span class="badge bg-label-primary me-1">
+                                    {{ order.mounted_engine.serialnumber }}
+                                    </span>
+                                {% else %}
+                                    {{ order.mounted_engine.serialnumber }}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                            
+                        </td>
+
+                        <td>
+                            {% if order.disassembled_engine %}
+                                {% if order.disassembled_engine == engine %}
+                                    <span class="badge bg-label-primary me-1">
+                                    {{ order.disassembled_engine.serialnumber }}
+                                    </span>
+                                {% else %}
+                                    {{ order.disassembled_engine.serialnumber }}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ order.created_at|date:"d.m.Y H:i" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endif %}
 {% endif %}
 
 <!-- STYLE -->

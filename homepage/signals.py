@@ -140,11 +140,12 @@ def inventory_update_notification(sender, instance, created, **kwargs):
 
     # Pompa alan değişiklikleri
     old_pump_values = getattr(instance, "_old_pump_values", {})
-    for field, old_value in old_pump_values.items():
-        new_value = getattr(instance.pump, field, None)
-        if old_value != new_value:
-            field_name = instance.pump._meta.get_field(field).verbose_name
-            changes.append(f"Pompa {field_name}: '{old_value}' → '{new_value}'")
+    if instance.pump:
+        for field, old_value in old_pump_values.items():
+            new_value = getattr(instance.pump, field, None)
+            if old_value != new_value:
+                field_name = instance.pump._meta.get_field(field).verbose_name
+                changes.append(f"Pompa {field_name}: '{old_value}' → '{new_value}'")
 
     if changes:
         user = get_current_user()

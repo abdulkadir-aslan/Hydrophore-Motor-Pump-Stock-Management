@@ -6,6 +6,8 @@ from django.contrib import messages
 from warehouses.views import handle_deletion,paginate_items
 from .filters import CategoryStockFilter,CategoryStockOutFilter
 from account.decorators import administrator,admin
+from openpyxl import Workbook
+from django.http import HttpResponse
 
 @admin
 def category(request):
@@ -36,6 +38,38 @@ def delete_category(request, id):
         "Kategori bulunamadı.",
         "*{0}* Kategori kaydı {1} tabloda kullanılıyor, silinemez."
     )
+
+@admin
+def export_category_stock(request):
+    queryset = CategoryStock.objects.select_related('category').all().order_by('category__name', 'material_name')
+    filterset = CategoryStockFilter(request.GET, queryset=queryset)
+    filtered_qs = filterset.qs
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Diğer Malzeme Listesi")
+
+    # Excel başlıkları
+    ws.append([
+        "Kategori",
+        "Malzeme Adı",
+        "Miktar",
+    ])
+
+    # verileri iterator ile yaz
+    for obj in filtered_qs.iterator(chunk_size=1000):
+        ws.append([
+            obj.category.name if obj.category else "",
+            obj.material_name or "",
+            obj.quantity or 0,
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="diger_malzemeler.xlsx"'
+
+    wb.save(response)
+    return response
 
 def category_stock(request):
     queryset = CategoryStock.objects.select_related('category').all().order_by('category__name', 'material_name')
@@ -109,11 +143,75 @@ def delete_category_stock(request, id):
         "*{0}* Malzeme kaydı {1} tabloda kullanılıyor, silinemez."
     )
     
+@admin
+def export_category_stock_out(request):
+    queryset = (
+        CategoryStockOut.objects
+        .select_related(
+            "stock",
+            "stock__category"
+        )
+        .all()
+        .order_by("-created_at")
+    )
+
+    filterset = CategoryStockOutFilter(request.GET, queryset=queryset)
+    filtered_qs = filterset.qs
+
+    # workbook
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet(title="Diğer Malzeme Çıkış Listesi")
+
+    # başlıklar
+    headers = [
+        "Çıkış Fişi",
+        "Kuyu Numarası",
+        "İlçe",
+        "Mahalle",
+        "Malzeme",
+        "Kategori",
+        "Miktar",
+        "Oluşturma Tarihi",
+    ]
+
+    ws.append(headers)
+
+    # veriler
+    for obj in filtered_qs.iterator(chunk_size=1000):
+
+        created_at = (
+            obj.created_at.strftime("%d.%m.%Y %H:%M")
+            if obj.created_at else ""
+        )
+
+        ws.append([
+            obj.outlet_plug or "",
+            obj.well_number or "",
+            obj.get_district_display() if obj.district else "",
+            obj.address or "",
+            str(obj.stock) if obj.stock else "",
+            str(obj.stock.category) if obj.stock and obj.stock.category else "",
+            obj.quantity or 0,
+            created_at,
+        ])
+
+    # response
+    response = HttpResponse(
+        content_type=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="diger_malzeme_cikis_listesi.xlsx"'
+    )
+
+    wb.save(response)
+
+    return response
+
 def category_stock_out(request):
 
-    if request.method == "POST":
-        print(request.POST)
-    
     queryset = CategoryStockOut.objects.select_related(
         'stock',
         'stock__category'

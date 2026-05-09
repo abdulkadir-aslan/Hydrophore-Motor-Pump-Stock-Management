@@ -1013,6 +1013,10 @@ def form_control(request):#*
     if order.operation_type == "1": #Demontaj
         """1 -> 2"""
         form = DisassemblyForm(request.POST, instance=order)
+        if order.situation == "dismantling" or order.situation == "installation":
+            if order.inventory.engine is None or order.inventory.pump is None:
+                messages.warning(request, f"'{order.inventory.well_number}' Kuyu numarasında montaj yapılmayan '{order.get_operation_engine_display()}' malzeme mevcut. Önceki iş emrine Montaj numarası vermeden devam edemezsiniz.")
+                return redirect("order_page")
         if form.is_valid():
             item = form.save()
             order.complete_disassembly(item.disassembly_plug)
@@ -1267,6 +1271,15 @@ def order_go_back(request, pk):#*
                             f"Daha büyük iş emri (E{other_order.work_order_plug}) geri alınmadan bu iş emrini geri alamazsınız."
                         )
                         return redirect("order_page")
+    if order.operation_type == "10":
+        passive_orders =Order.objects.filter(
+            status="passive",
+            inventory=order.inventory
+        ).first()
+        if passive_orders != order:
+            messages.warning(request, f"Bu iş emri geri alınamaz. Bu iş emrinden sonra oluşturulan iş emirlerini geri aldıktan sonra geri alabilirsiniz.")
+            return redirect("order_page")
+        
     success, message = order.go_back()
     if success:
         messages.success(request, message)
@@ -1744,11 +1757,18 @@ def engine_report(request):
                 # Pert depo
                 unusable = Unusable.objects.filter(engine=engine).first()
 
+                # Order kayıtları
+                orders = Order.objects.filter(
+                    Q(mounted_engine=engine) |
+                    Q(disassembled_engine=engine)
+                ).distinct()
+
                 context = {
                     "engine": engine,
                     "inventory": inventory,
                     "secondhand": secondhand,
                     "unusable": unusable,
+                    "orders": orders,
                 }
             else:
                 messages.warning(request,"Seri numarası bulunmadı.")

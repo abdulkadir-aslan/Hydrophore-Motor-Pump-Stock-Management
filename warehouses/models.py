@@ -263,10 +263,15 @@ class Order(models.Model):
             self.disassembled_engine = self.inventory.engine
             if self.situation == "installation":
                 inventory.engine = self.mounted_engine
+            elif self.situation == "dismantling":
+                inventory.engine = None
+                
         if self.operation_engine in ["pump","engine_pump"]:
             self.disassembled_pump = self.inventory.pump
             if self.situation == "installation":
                 inventory.pump = self.mounted_pump
+            elif self.situation == "dismantling":
+                inventory.pump = None
         inventory.save()
         self.save()
 
@@ -327,7 +332,7 @@ class Order(models.Model):
 
         elif self.operation_type == "3":
             inventory = self.inventory
-            if self.situation == "installation":
+            if self.situation == "installation" or self.situation == "dismantling":
                 if self.operation_engine in ["engine","engine_pump"]:
                     inventory.engine = self.disassembled_engine
                 if self.operation_engine in ["pump","engine_pump"]:
@@ -362,9 +367,9 @@ class Order(models.Model):
                 self.operation_type = "6"
                 inventory = self.inventory
                 if self.operation_engine in ["engine","engine_pump"]:
-                    inventory.engine = self.disassembled_engine
-                elif self.operation_engine in ["pump","engine_pump"]:
-                    inventory.pump = self.disassembled_pump
+                    inventory.engine = None
+                if self.operation_engine in ["pump","engine_pump"]:
+                    inventory.pump = None
                 
                 if self.situation == "new_well":
                     inventory.engine = None
@@ -386,11 +391,6 @@ class Order(models.Model):
                 self.outlet_plug = None
                 self.operation_type = "8"
                 self.status = "active"
-                # from other_materials.models import CategoryStockOut
-                # order = CategoryStockOut.objects.filter(outlet_plug = self.outlet_plug).first()
-                # print(order)
-                # if order:
-                #     order.delete()
             
         self.save()
         return True, "İşlem başarıyla geri alındı."

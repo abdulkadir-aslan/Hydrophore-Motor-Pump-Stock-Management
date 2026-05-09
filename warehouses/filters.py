@@ -242,7 +242,7 @@ class UnusableFilter(django_filters.FilterSet):
         fields = ['well_number', 'serialnumber', 'pump_type',]
 
 USER_CHOICES = (
-    ('ugur', 'UĞUR'),
+    ('ugur', 'MERT'),
     ('huseyin', 'HÜSEYİN'),
     ('tumu', 'TÜMÜ'),
 )
@@ -329,8 +329,13 @@ class OrderFilter(django_filters.FilterSet):
      # Override to filter district and operation_type based on user_choice
     def filter_user(self, queryset, name, value):
 
-        # Her ikisinde de ortak filtrelenecek operation_type'lar
-        allowed_operations = ['1', '5', '6', '8', '9']
+        base_operations = ['1', '5', '6', '8', '9']
+
+        # Koşullu operation_type filtresi
+        operation_filter = Q(operation_type__in=base_operations) | Q(
+            situation="dismantling",
+            operation_type="2"
+        )
 
         if value == 'tumu':
             return queryset.filter(
@@ -340,18 +345,16 @@ class OrderFilter(django_filters.FilterSet):
                     'karaköprü', 'haliliye', 'eyyübiye',
                     'ceylanpınar', 'viranşehir',
                     'akçakale', 'harran'
-                ],
-                operation_type__in=allowed_operations
-            )
-            
+                ]
+            ).filter(operation_filter)
+
         elif value == 'ugur':
             return queryset.filter(
                 inventory__district__in=[
                     'siverek', 'bozova', 'hilvan',
                     'birecik', 'halfeti', 'suruç'
-                ],
-                operation_type__in=allowed_operations
-            )
+                ]
+            ).filter(operation_filter)
 
         elif value == 'huseyin':
             return queryset.filter(
@@ -359,9 +362,8 @@ class OrderFilter(django_filters.FilterSet):
                     'karaköprü', 'haliliye', 'eyyübiye',
                     'ceylanpınar', 'viranşehir',
                     'akçakale', 'harran'
-                ],
-                operation_type__in=allowed_operations
-            )
+                ]
+            ).filter(operation_filter)
 
         return queryset
     

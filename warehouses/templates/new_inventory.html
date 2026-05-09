@@ -74,7 +74,7 @@
                 {{ form.comment }}
               </div>
             </div>
-
+            {% if engine_form.serialnumber.value %}
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label for="pipe_type" class="form-label">Motor Tipi</label>
@@ -96,7 +96,9 @@
                 {{ engine_form.serialnumber }}
               </div>
             </div>
+            {% endif %}
 
+            {% if pump_form.pump_type.value %}
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label for="pipe_type" class="form-label">Pompa Tipi</label>
@@ -117,7 +119,7 @@
                
               </div>
             </div>
-
+            {% endif %}
             <div class="text-end mt-3">
               <a href="{{ next|default:'{% url "inventory" %}' }}" class="btn btn-secondary">
                 Vazgeç

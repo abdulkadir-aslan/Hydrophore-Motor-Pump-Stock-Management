@@ -83,6 +83,6 @@ urlpatterns = [
     path("borç_durumu_aktarma/<int:id>/", transfer_debt_situation, name="transfer_debt_situation"),
     # Raporlama
     path("is_emiri_raporlama/", work_order_reporting, name="work_order_reporting"),
-     path("motor_raporlama/", engine_report, name="engine_report"),
+    path("motor_raporlama/", engine_report, name="engine_report"),
     
 ]

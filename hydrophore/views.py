@@ -807,7 +807,7 @@ def new_stock(request):
                     request,
                     f'*{item}* Hidrofor kaydı başarılı bir şekilde oluşturuldu.'
                 )
-                return redirect('workshop_stock')
+                return redirect('new_stock')
             except IntegrityError:
                 messages.warning(
                     request,

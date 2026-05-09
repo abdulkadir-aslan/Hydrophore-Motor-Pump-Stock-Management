@@ -89,8 +89,7 @@
                     <th>Motor Gücü</th>
                     <th>M. Markası</th>
                     <th>Pompa Tipi</th>
-                    <th>İlçe</th>
-                    <th>Mahalle</th>
+
                   </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -100,9 +99,7 @@
                       <td>{{item.serial_number}}</td>
                       <td>{{item.engine_power}} </td>
                       <td>{{item.engine_brand}}</td>
-                      <td>{{item.get_district_display}}</td>
-                      <td>{{item.neighborhood}}</td>
-                      <td>{{item.get_district_display}}</td>
+                      <td>{{item.pump_type}}</td>
                       <td>
                         <button title="düzenle" class='btn btn-icon btn-outline-success edit btn-flat' 
                             data-href="{% url 'hydrophore_edit' item.id %}?next={{ request.get_full_path }}">
