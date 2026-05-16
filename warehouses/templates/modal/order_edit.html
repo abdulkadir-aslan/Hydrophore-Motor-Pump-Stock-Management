@@ -267,6 +267,7 @@
          <td class="colon-right" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"></td>
          <td class="value-right" style=" background-color: {% if order.assembly_plug %}  #BDE8F5; {% else %} #FAAC68{% endif %}"><b>No : M{{order.assembly_plug}}</b></td>
       </tr>
+      {% if page is None %}
       <tr>
          <td colspan="6">
             <hr>
@@ -274,11 +275,15 @@
             <textarea name="comment"  cols="30" rows="1" class="form-control" placeholder="Açıklama" >{{order.comment}}</textarea>
          </td>
       </tr>
+      {% endif %}
    </tbody>
    </table>
 
 </div>
   <div class="modal-footer">
+   {% if page %}
+    <button type="button" class="btn btn-outline-secondary ms-auto" data-bs-dismiss="modal">Kapat</button>
+   {% else %}
    {% if order.operation_type == "1" and order.situation == "dismantling" or order.operation_type == "5" and order.situation == "installation" or order.situation == "length_extension" and order.operation_type == "8" or order.operation_type == "1" and order.situation == "well_cancellation" or order.operation_type == "5" and order.situation == "new_well" %}     
       <button 
          type="button" class="btn btn-danger js-delete" data-href="{% url 'delete_order' order.id %}">İş Emrini Sil
@@ -290,5 +295,6 @@
    {% endif %}   
     <button type="button" class="btn btn-outline-secondary ms-auto" data-bs-dismiss="modal">Kapat</button>
     <button type="submit" class="btn btn-primary">Düzenle</button>
-  </div>
+   {% endif %}
+   </div>
 </form>

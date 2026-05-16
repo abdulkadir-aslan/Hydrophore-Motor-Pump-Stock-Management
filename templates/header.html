@@ -267,7 +267,6 @@
               </a>
             </li>
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Raporlamalar </span></li>
-            {% if request.user.username == "asl" %}
             <li class="menu-item {% if url_name == 'hydrophore_report' %}active {% endif %}">
               <a href="{% url 'hydrophore_report' %}"  class="menu-link">
                 <i class="menu-icon tf-icons bx bx-file"></i>
@@ -280,7 +279,6 @@
                 <div data-i18n="Documentation">Motor Raporlama</div>
               </a>
             </li>
-            {% endif %}
             <li class="menu-item {% if url_name == 'work_order_reporting' %}active {% endif %}">
               <a href="{% url 'work_order_reporting' %}"  class="menu-link">
                 <i class="menu-icon tf-icons bx bx-file"></i>

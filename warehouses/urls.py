@@ -65,6 +65,7 @@ urlpatterns = [
     path('iş_emri_düzenle/<int:pk>/update/', order_edit, name='order_edit'),
     path("tum_is_emirleri/", all_order_page, name="all_order_page"),
     path('geridön/<int:pk>/', order_go_back, name='order_go_back'),
+    path('iş_emri_göster/<int:pk>/<str:page>/update/', order_show, name='order_show'),
     path('iş_emri_göster/<int:pk>/update/', order_show, name='order_show'),
     path("islemler/<int:id>/", transactions, name="transactions"),
     path("islemler/<int:id>/<int:debt_id>/", transactions, name="transactions"),

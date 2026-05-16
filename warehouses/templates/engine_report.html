@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block javascript %}
+<script src="{% static 'js/modal.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 
@@ -148,6 +151,7 @@
             <table class="table table-hover table-sm mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
+                        <th></th>
                         <th>İş Emri</th>
                         <th>Kuyu No</th>
                         <th>Durum</th>
@@ -160,7 +164,15 @@
 
                 <tbody>
                     {% for order in orders %}
-                    <tr>
+                    <tr {% if order.get_operation_type_display != 'Kapandı' %} class='table-success'{% endif %}>
+                        <td>
+                            <button type="button"
+                                class="btn btn-icon btn-outline-info js-update-book btn-flat"
+                                data-url="{% url 'order_show' pk=order.id page='engine' %}" title="İşlem Detayları">
+                                <span class="glyphicon glyphicon-pencil"></span> 
+                                <i class='tf-icons bx bx-show'></i>
+                            </button>
+                        </td>
                         <td>
                             {{ order.work_order_plug }}
                         </td>
@@ -213,6 +225,13 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% comment %} Edit Modal {% endcomment %}
+            <div class="modal fade" id="modal-book">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -1116,7 +1116,7 @@ def order_page(request):
     }
     return render(request, "order_page.html", context)
 
-def order_show(request, pk):
+def order_show(request, pk,page=None):
     order = get_object_or_404(Order, pk=pk)
     data = dict()
     repair = Repair.objects.filter(order=order).first()
@@ -1128,6 +1128,7 @@ def order_show(request, pk):
     context = {
         'order': order,
         'repair' : repair if repair else None,
+        'page' : page if page else None,
         }
     data['html_form'] = render_to_string('modal/order_edit.html', context, request=request, )
     return JsonResponse(data)
