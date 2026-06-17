@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h2>Pompa Kataloğu</h2>
+
+<a href="{% url 'pumps_add' %}" class="btn btn-primary">+ Yeni Pompa</a>
+
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>Model</th>
+            <th>Kademe</th>
+            <th>Güç (HP)</th>
+            <th>Q Listesi (L/s)</th>
+            <th>H Listesi (m)</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for pump in pumps %}
+        <tr>
+            <td>{{ pump.pump_model }}</td>
+            <td>{{ pump.kademe }}</td>
+            <td>{{ pump.power_kw }}</td>
+            <td>{{ pump.q_values_lps }}</td>
+            <td>{{ pump.h_values }}</td>
+            <td>
+                <a href="{% url 'pumps_edit' pump.id %}" class="btn btn-warning btn-sm">Düzenle</a>
+                <a href="{% url 'pumps_delete' pump.id %}" class="btn btn-danger btn-sm">Sil</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}

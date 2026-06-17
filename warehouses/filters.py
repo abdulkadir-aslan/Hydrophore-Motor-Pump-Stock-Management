@@ -35,6 +35,17 @@ class InventoryFilter(django_filters.FilterSet):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pompa Tipi'})
     )
 
+    engine_power = django_filters.NumberFilter(
+    field_name='engine__engine_power__engine_power',
+    label='Motor Gücü',
+    widget=forms.NumberInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Motor Gücü',
+                'step': '0.01'
+            }
+        )
+    )
     # İlçe Filter
     district = django_filters.ChoiceFilter(
         field_name='district',
@@ -78,7 +89,7 @@ class InventoryFilter(django_filters.FilterSet):
 
     class Meta:
         model = Inventory
-        fields = ['district', 'well_number', 'serialnumber', 'pump_type', 'address', 'ordering','status']
+        fields = ['district','engine_power', 'well_number', 'serialnumber', 'pump_type', 'address', 'ordering','status']
     
     def filter_adress(self, queryset, name, value):
         if value:
@@ -351,6 +362,7 @@ class OrderFilter(django_filters.FilterSet):
         elif value == 'ugur':
             return queryset.filter(
                 inventory__district__in=[
+                    'karaköprü', 'haliliye', 'eyyübiye',
                     'siverek', 'bozova', 'hilvan',
                     'birecik', 'halfeti', 'suruç'
                 ]
@@ -359,7 +371,6 @@ class OrderFilter(django_filters.FilterSet):
         elif value == 'huseyin':
             return queryset.filter(
                 inventory__district__in=[
-                    'karaköprü', 'haliliye', 'eyyübiye',
                     'ceylanpınar', 'viranşehir',
                     'akçakale', 'harran'
                 ]

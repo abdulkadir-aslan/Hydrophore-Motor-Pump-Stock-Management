@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h2>Excel ile Pompa Yükle</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {{ form.file.label_tag }}
+    {{ form.file }}
+
+    <br><br>
+
+    <button type="submit" class="btn btn-success">
+        Yükle
+    </button>
+    <br><br>
+
+    <a href="{% static 'katalog.xlsx' %}" download class="btn btn-primary">
+    Örnek İndir
+    </a>
+</form>
+
+{% endblock content %}

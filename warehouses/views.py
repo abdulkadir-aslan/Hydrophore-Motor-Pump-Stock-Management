@@ -1065,6 +1065,7 @@ def form_control(request):#*
             stock.well_number = order.inventory.well_number
             stock.district = order.inventory.district
             stock.address = order.inventory.address
+            stock.created_at = order.created_at
             stock.save()
             create_workshop_exit_slip("other",stock)
             order.complete_lenght(item.length)
@@ -1758,6 +1759,9 @@ def engine_report(request):
                 # Pert depo
                 unusable = Unusable.objects.filter(engine=engine).first()
 
+                # Tamir depo
+                repair = Repair.objects.filter(engine=engine)
+                
                 # Order kayıtları
                 orders = Order.objects.filter(
                     Q(mounted_engine=engine) |
@@ -1770,6 +1774,7 @@ def engine_report(request):
                     "secondhand": secondhand,
                     "unusable": unusable,
                     "orders": orders,
+                    "repair": repair,
                 }
             else:
                 messages.warning(request,"Seri numarası bulunmadı.")
