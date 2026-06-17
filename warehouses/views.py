@@ -1745,7 +1745,7 @@ def engine_report(request):
     context = {}
 
     if request.method == "POST":
-        serial = request.POST.get("serialnumber").upper()
+        serial = request.POST.get("serialnumber", "").strip().upper()
 
         if serial:
             engine = Engine.objects.filter(serialnumber=serial).first()
