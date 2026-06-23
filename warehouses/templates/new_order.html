@@ -199,15 +199,19 @@
     ];
 
     const newEngines = [
-        {% for item in new_engine %}
-            { value: "{{ item.id }}", text: "{{ item }}" },
-        {% endfor %}
+        {% if request.user.authorization == "1" %}
+            {% for item in new_engine %}
+                { value: "{{ item.id }}", text: "{{ item }}" },
+            {% endfor %}
+        {% endif %}
     ];
 
     const newPumps = [
-        {% for item in new_pump %}
-            { value: "{{ item.pump.id }}", text: "{{ item.pump }}" },
-        {% endfor %}
+        {% if request.user.authorization == "1" %}
+            {% for item in new_pump %}
+                { value: "{{ item.pump.id }}", text: "{{ item.pump }}" },
+            {% endfor %}
+        {% endif %}
     ];
 
 

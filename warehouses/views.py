@@ -1762,6 +1762,11 @@ def engine_report(request):
                 # Tamir depo
                 repair = Repair.objects.filter(engine=engine)
                 
+                # engine_info içerisinde seri numarası geçen kayıtlar
+                repair_info_matches = Repair.objects.filter(
+                    engine_info__icontains=engine.serialnumber
+                )
+                
                 # Order kayıtları
                 orders = Order.objects.filter(
                     Q(mounted_engine=engine) |
@@ -1775,6 +1780,7 @@ def engine_report(request):
                     "unusable": unusable,
                     "orders": orders,
                     "repair": repair,
+                    "repair_info_matches": repair_info_matches,
                 }
             else:
                 messages.warning(request,"Seri numarası bulunmadı.")

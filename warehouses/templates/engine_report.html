@@ -186,6 +186,52 @@
 </div>
 </div>
 
+<!-- Mütahit -->
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">
+        Mütahit Durumu
+    </div>
+
+<div class="card-body small">
+    {% if repair %}
+        <table class="table table-hover table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>İş Emri</th>
+                        <th>Kuyu No</th>
+                        <th>Tamir Fiş No</th>
+                        <th>Aktarıldığı Yer</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in repair_info_matches %}
+                    <tr {% if item.status != 'passive' %} class='table-success'{% endif %}>
+                        <td>
+                            {{ item.order.work_order_plug }}
+                        </td>
+
+                        <td>
+                            {{ item.order.inventory }}
+                        </td>
+
+                        <td>
+                            {{ item.order.entrance_plug }}
+                        </td>
+
+                        <td>
+                            {{ item.engine_info}}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    {% else %}
+        <p class="text-muted">Kayıt yok</p>
+    {% endif %}
+</div>
+</div>
 <!-- ORDER -->
 {% if orders %}
 
